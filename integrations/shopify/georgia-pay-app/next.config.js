@@ -20,10 +20,10 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@shopify/shopify-api', '@prisma/client'],
   },
   webpack: (config) => {
-    config.resolve.alias['@georgian-payments'] = path.join(
-      __dirname,
-      '../../../src/georgian-payments.cjs',
-    );
+    const fs = require('fs');
+    const vendored = path.join(__dirname, 'vendor/georgian-payments/georgian-payments.cjs');
+    const monorepo = path.join(__dirname, '../../../src/georgian-payments.cjs');
+    config.resolve.alias['@georgian-payments'] = fs.existsSync(vendored) ? vendored : monorepo;
     return config;
   },
 };
