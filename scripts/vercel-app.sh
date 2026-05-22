@@ -31,7 +31,7 @@ case "$action" in
     export NPM_CONFIG_PRODUCTION=false
     npm install --no-audit --no-fund --include=dev
     npm run build:vercel
-    if [ "$in_app_root" = "0" ]; then
+    if [ "$in_app_root" = "0" ] && [ -n "${VERCEL_ENV:-}" ]; then
       echo "[vercel-app] sync .next, public, node_modules -> repo root for Vercel"
       rm -rf "${repo_root}/.next" "${repo_root}/public" "${repo_root}/node_modules"
       cp -a "${app_dir}/.next" "${repo_root}/.next"
