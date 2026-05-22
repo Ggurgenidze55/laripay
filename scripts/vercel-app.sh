@@ -32,14 +32,12 @@ case "$action" in
     npm install --no-audit --no-fund --include=dev
     npm run build:vercel
     if [ "$in_app_root" = "0" ]; then
-      echo "[vercel-app] sync .next, public, and Prisma client to repo root for Vercel"
-      rm -rf "${repo_root}/.next" "${repo_root}/public"
+      echo "[vercel-app] sync .next, public, node_modules -> repo root for Vercel"
+      rm -rf "${repo_root}/.next" "${repo_root}/public" "${repo_root}/node_modules"
       cp -a "${app_dir}/.next" "${repo_root}/.next"
       cp -a "${app_dir}/public" "${repo_root}/public"
-      mkdir -p "${repo_root}/node_modules/.prisma" "${repo_root}/node_modules/@prisma"
-      rm -rf "${repo_root}/node_modules/.prisma/client" "${repo_root}/node_modules/@prisma/client"
-      cp -a "${app_dir}/node_modules/.prisma/client" "${repo_root}/node_modules/.prisma/client"
-      cp -a "${app_dir}/node_modules/@prisma/client" "${repo_root}/node_modules/@prisma/client"
+      # Symlink full app node_modules (Shopify, Prisma, etc.) for server trace at repo root
+      ln -sfn "${app_rel}/node_modules" "${repo_root}/node_modules"
     fi
     ;;
   *)
