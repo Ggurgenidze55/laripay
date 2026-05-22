@@ -4,6 +4,9 @@ import { AnimatePresence, motion, useInView } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { useBelowLg } from '@/hooks/use-mobile';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { SectionHeader, SectionShell, AmbientOrbs } from './shared';
 import { CodeBlock, RequestStatus, TerminalCursor } from './code-terminal';
@@ -44,6 +47,9 @@ const RESPONSE = `{
 const TAB_IDS: Lang[] = ['node', 'python', 'php', 'curl'];
 
 export function DeveloperExperience() {
+  const belowLg = useBelowLg();
+  const reduced = useReducedMotion();
+  const useScrollPin = !reduced && !belowLg;
   const { t } = useLocale();
   const dx = t.landing.developerExperience;
   const LOGS = dx.logs;
@@ -61,6 +67,7 @@ export function DeveloperExperience() {
   const full = SNIPPETS[lang];
 
   useEffect(() => {
+    if (!useScrollPin) return;
     registerGsap();
     const section = sectionRef.current;
     const pin = pinRef.current;
@@ -78,7 +85,7 @@ export function DeveloperExperience() {
     }, section);
 
     return () => ctx.revert();
-  }, []);
+  }, [useScrollPin]);
 
   useEffect(() => {
     setTyped('');
@@ -123,11 +130,14 @@ export function DeveloperExperience() {
   return (
     <SectionShell id="developers" wide>
       <AmbientOrbs />
-      <div ref={sectionRef} className="relative min-h-[130vh]">
+      <div
+        ref={sectionRef}
+        className={cn('relative', useScrollPin ? 'min-h-[130vh]' : 'min-h-0')}
+      >
         <SectionHeader eyebrow={dx.eyebrow} title={dx.title} description={dx.description} />
 
         <div ref={pinRef}>
-          <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="grid items-start gap-10 lg:grid-cols-12 lg:items-stretch lg:gap-12">
             <div className="lg:col-span-4">
               <div className="space-y-8 lg:sticky lg:top-28">
                 <div className="relative flex flex-wrap gap-2 rounded-2xl border border-border bg-foreground/[0.02] p-2">

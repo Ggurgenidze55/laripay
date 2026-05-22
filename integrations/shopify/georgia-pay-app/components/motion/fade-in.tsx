@@ -43,7 +43,7 @@ export function Stagger({ children, className }: { children: React.ReactNode; cl
       viewport={{ once: true, margin: '-40px' }}
       variants={{
         hidden: {},
-        show: { transition: { staggerChildren: 0.08 } },
+        show: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
       }}
       className={className}
     >

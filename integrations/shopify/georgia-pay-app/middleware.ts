@@ -26,6 +26,30 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === '/lanpay' || pathname === '/lanpay/') {
+    return redirect(request, `/laripay/${cookieLocale}`);
+  }
+
+  if (pathname.startsWith('/lanpay/')) {
+    const tail = pathname.slice('/lanpay/'.length);
+    if (tail === 'en' || tail === 'ka') {
+      return redirect(request, `/laripay/${tail}`);
+    }
+    return redirect(request, canonicalMarketingPath(`/laripay/${tail}`, cookieLocale));
+  }
+
+  if (pathname === '/lari-pay' || pathname === '/lari-pay/') {
+    return redirect(request, `/laripay/${cookieLocale}`);
+  }
+
+  if (pathname.startsWith('/lari-pay/')) {
+    const tail = pathname.slice('/lari-pay/'.length);
+    if (tail === 'en' || tail === 'ka') {
+      return redirect(request, `/laripay/${tail}`);
+    }
+    return redirect(request, canonicalMarketingPath(`/laripay/${tail}`, cookieLocale));
+  }
+
   if (pathname === '/demo' || pathname.startsWith('/demo/')) {
     const tail = pathname === '/demo' ? 'demo' : pathname.slice(1);
     return redirect(request, canonicalMarketingPath(`/laripay/${tail}`, cookieLocale));

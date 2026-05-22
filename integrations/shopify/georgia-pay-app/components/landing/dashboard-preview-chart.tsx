@@ -1,5 +1,6 @@
 'use client';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 
 const CHARTS = [
@@ -32,30 +33,47 @@ const CHARTS = [
   ],
 ];
 
+const STROKES = ['#60a5fa', '#34d399', '#a78bfa'];
+const FILLS = ['previewGrad0', 'previewGrad1', 'previewGrad2'];
+
 export function DashboardPreviewChart({ viewIndex }: { viewIndex: number }) {
   const data = CHARTS[viewIndex] ?? CHARTS[0];
+  const gradId = FILLS[viewIndex] ?? FILLS[0];
+  const stroke = STROKES[viewIndex] ?? STROKES[0];
 
   return (
-    <div className="mt-6 h-[220px] min-h-[220px] w-full min-w-0">
-      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-        <AreaChart data={data} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-          <defs>
-            <linearGradient id="previewGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.45} />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <Area
-            type="monotone"
-            dataKey="v"
-            stroke="#60a5fa"
-            strokeWidth={2}
-            fill="url(#previewGrad)"
-            isAnimationActive
-            animationDuration={800}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={viewIndex}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="mt-6 h-[220px] min-h-[220px] w-full min-w-0"
+      >
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+          <AreaChart data={data} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
+            <defs>
+              {FILLS.map((id, i) => (
+                <linearGradient key={id} id={id} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={STROKES[i]} stopOpacity={0.5} />
+                  <stop offset="100%" stopColor={STROKES[i]} stopOpacity={0} />
+                </linearGradient>
+              ))}
+            </defs>
+            <Area
+              type="monotone"
+              dataKey="v"
+              stroke={stroke}
+              strokeWidth={2.5}
+              fill={`url(#${gradId})`}
+              isAnimationActive
+              animationDuration={900}
+              animationEasing="ease-out"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </motion.div>
+    </AnimatePresence>
   );
 }

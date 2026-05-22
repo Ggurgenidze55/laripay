@@ -6,6 +6,10 @@ const nextConfig = {
   ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   async redirects() {
     return [
+      { source: '/lanpay', destination: '/laripay', permanent: true },
+      { source: '/lanpay/:path*', destination: '/laripay/:path*', permanent: true },
+      { source: '/lari-pay', destination: '/laripay', permanent: true },
+      { source: '/lari-pay/:path*', destination: '/laripay/:path*', permanent: true },
       { source: '/', destination: '/laripay', permanent: false },
       { source: '/pay', destination: '/laripay', permanent: false },
       { source: '/pay/:path*', destination: '/laripay/:path*', permanent: false },

@@ -53,7 +53,7 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
       >
         <div
           className={cn(
-            'relative mx-auto flex h-16 items-center justify-between gap-4 px-6 lg:px-8',
+            'relative mx-auto flex h-14 min-h-14 items-center justify-between gap-2 px-4 sm:h-16 sm:gap-4 sm:px-6 lg:px-8',
             isLanding ? 'max-w-[90rem]' : 'max-w-7xl',
           )}
         >
@@ -98,7 +98,7 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
             <MobileNav />
             <Link
               href={localePath(locale, 'dashboard')}
-              className="rounded-xl bg-gradient-to-r from-accent-blue to-accent-violet px-4 py-2 text-xs font-medium text-white shadow-glow transition-transform hover:scale-[1.03] active:scale-[0.98]"
+              className="shrink-0 rounded-xl bg-gradient-to-r from-accent-blue to-accent-violet px-3 py-2 text-[11px] font-medium text-white shadow-glow transition-transform hover:scale-[1.03] active:scale-[0.98] sm:px-4 sm:text-xs"
             >
               {t.nav.console}
             </Link>

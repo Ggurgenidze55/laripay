@@ -32,7 +32,7 @@ export function MobileNav() {
       </button>
       {open ? (
         <nav
-          className="absolute left-0 right-0 top-16 z-50 border-b border-border-strong bg-canvas px-6 py-4 shadow-lift backdrop-blur-xl"
+          className="absolute left-0 right-0 top-14 z-50 max-h-[min(70vh,520px)] overflow-y-auto border-b border-border-strong bg-canvas px-4 py-4 shadow-lift backdrop-blur-xl sm:top-16 sm:px-6"
           aria-label="Mobile"
         >
           <div className="mb-4 flex items-center justify-between">

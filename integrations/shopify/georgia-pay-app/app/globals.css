@@ -189,6 +189,39 @@
     }
   }
 
+  .svg-edge-flow {
+    stroke-dasharray: 3 5;
+    animation: svg-edge-flow 1.1s linear infinite;
+  }
+
+  @keyframes svg-edge-flow {
+    to {
+      stroke-dashoffset: -16;
+    }
+  }
+
+  .landing-card-interactive {
+    transition:
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.35s ease;
+  }
+
+  .landing-card-interactive:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--glow-border), 0 20px 40px -24px rgba(59, 130, 246, 0.35);
+    border-color: rgba(34, 211, 238, 0.35);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .svg-edge-flow {
+      animation: none;
+    }
+    .landing-card-interactive:hover {
+      transform: none;
+    }
+  }
+
   .section-fade-top {
     mask-image: linear-gradient(to bottom, transparent, black 12%);
   }

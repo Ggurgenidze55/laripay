@@ -47,7 +47,7 @@ export function HeroSection() {
           my.set(0);
         }}
       >
-        <div className="grid items-center gap-20 lg:grid-cols-2 lg:gap-28">
+        <div className="grid items-center gap-16 lg:grid-cols-2 lg:items-center lg:gap-28">
           <div>
             <motion.div
               initial={{ opacity: 0, y: 24 }}
@@ -59,7 +59,7 @@ export function HeroSection() {
               </Badge>
             </motion.div>
 
-            <h1 className="max-w-2xl text-[2.85rem] font-semibold leading-[1.02] tracking-[-0.03em] sm:text-6xl lg:text-[4.5rem]">
+            <h1 className="max-w-2xl text-[2.1rem] font-semibold leading-[1.05] tracking-[-0.03em] min-[400px]:text-[2.35rem] sm:text-5xl lg:text-[4.5rem]">
               {[h.title1, h.title2].map((line, i) => (
                 <motion.span
                   key={line}
@@ -113,7 +113,7 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="mt-24 grid grid-cols-3 gap-10 border-t border-border pt-14"
+              className="mt-16 grid grid-cols-3 gap-3 border-t border-border pt-10 text-center sm:mt-24 sm:gap-8 sm:pt-14 sm:text-left"
             >
               {STAT_VALUES.map((s, i) => (
                 <motion.div
@@ -121,11 +121,15 @@ export function HeroSection() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.65 + i * 0.06 }}
+                  whileHover={reduced ? undefined : { y: -3 }}
+                  className="rounded-xl px-2 py-1 transition-colors hover:bg-foreground/[0.03]"
                 >
                   <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-foreground-muted/80">
                     {statKeys[i]}
                   </p>
-                  <p className="mt-2.5 font-mono text-xl tracking-tight text-foreground">{s.v}</p>
+                  <p className="mt-2 font-mono text-base tracking-tight text-foreground sm:mt-2.5 sm:text-xl">
+                    {s.v}
+                  </p>
                 </motion.div>
               ))}
             </motion.div>
@@ -139,8 +143,9 @@ export function HeroSection() {
             className="relative"
           >
             <div className="absolute -inset-16 rounded-[3rem] bg-gradient-to-br from-accent-blue/30 via-accent-violet/10 to-accent-cyan/20 blur-[80px]" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-border-strong bg-canvas-card p-8 shadow-lift glow-border">
+            <div className="group relative overflow-hidden rounded-[1.5rem] border border-border-strong bg-canvas-card p-4 shadow-lift glow-border transition-shadow duration-500 sm:rounded-[2rem] sm:p-8 hover:shadow-glow-violet">
               <div className="absolute inset-x-0 top-0 h-px line-highlight" />
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(ellipse_80%_70%_at_50%_50%,rgba(34,211,238,0.08),transparent)]" />
               <PaymentNetwork />
             </div>
           </motion.div>

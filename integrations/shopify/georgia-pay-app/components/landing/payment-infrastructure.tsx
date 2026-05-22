@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
+import { useBelowLg } from '@/hooks/use-mobile';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { cn } from '@/lib/utils';
 import { SectionHeader, SectionShell, AmbientOrbs } from './shared';
 
 const NODE_LAYOUT = [
@@ -26,8 +29,11 @@ const EDGES: [string, string][] = [
 ];
 
 export function PaymentInfrastructure() {
+  const reduced = useReducedMotion();
+  const belowLg = useBelowLg();
   const { t } = useLocale();
   const s = t.landing.paymentInfrastructure;
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const NODES = useMemo(
     () =>
@@ -42,6 +48,26 @@ export function PaymentInfrastructure() {
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<SVGPathElement[]>([]);
+
+  const connectedIds = useMemo(() => {
+    if (!hoveredId) return null;
+    const ids = new Set<string>([hoveredId]);
+    EDGES.forEach(([a, b]) => {
+      if (a === hoveredId || b === hoveredId) {
+        ids.add(a);
+        ids.add(b);
+      }
+    });
+    return ids;
+  }, [hoveredId]);
+
+  const edgeActive = useCallback(
+    (a: string, b: string) => {
+      if (!connectedIds) return true;
+      return connectedIds.has(a) && connectedIds.has(b);
+    },
+    [connectedIds],
+  );
 
   useEffect(() => {
     registerGsap();
@@ -66,7 +92,7 @@ export function PaymentInfrastructure() {
     }, section);
 
     return () => ctx.revert();
-  }, []);
+  }, [reduced]);
 
   const nodeMap = Object.fromEntries(NODES.map((n) => [n.id, n]));
 
@@ -77,8 +103,10 @@ export function PaymentInfrastructure() {
 
       <div
         ref={sectionRef}
-        className="relative mx-auto aspect-[16/9] max-w-5xl overflow-hidden rounded-[2rem] border border-border-strong bg-canvas-card p-8 shadow-lift glow-border md:aspect-[2/1]"
+        className="group relative mx-auto aspect-[16/9] w-full max-w-5xl overflow-hidden rounded-[2rem] border border-border-strong bg-canvas-card p-6 shadow-lift glow-border sm:p-8 md:aspect-[2/1]"
       >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_35%_28%,rgba(34,211,238,0.12),transparent_55%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
         <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
           <defs>
             <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -90,6 +118,7 @@ export function PaymentInfrastructure() {
           {EDGES.map(([a, b], i) => {
             const n1 = nodeMap[a];
             const n2 = nodeMap[b];
+            const active = edgeActive(a, b);
             return (
               <path
                 key={`${a}-${b}`}
@@ -99,40 +128,76 @@ export function PaymentInfrastructure() {
                 d={`M ${n1.x} ${n1.y} Q ${(n1.x + n2.x) / 2} ${(n1.y + n2.y) / 2 - 8} ${n2.x} ${n2.y}`}
                 fill="none"
                 stroke="url(#flowGrad)"
-                strokeWidth="0.4"
+                strokeWidth={active ? 0.55 : 0.15}
+                style={{ opacity: active ? 1 : 0.2, transition: 'opacity 0.35s, stroke-width 0.35s' }}
+                className={active && !reduced && !hoveredId ? 'svg-edge-flow' : undefined}
               />
             );
           })}
         </svg>
 
-        {NODES.map((node, i) => (
-          <motion.div
-            key={node.id}
-            className="absolute glass-panel rounded-xl px-3 py-2 font-mono text-[10px] text-foreground md:text-xs"
-            style={{ left: `${node.x}%`, top: `${node.y}%`, transform: 'translate(-50%, -50%)' }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.08 }}
-          >
-            {node.label}
-          </motion.div>
-        ))}
+        {NODES.map((node, i) => {
+          const lit = !connectedIds || connectedIds.has(node.id);
+          const primary = hoveredId === node.id;
+          return (
+            <motion.button
+              key={node.id}
+              type="button"
+              onMouseEnter={() => setHoveredId(node.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              onFocus={() => setHoveredId(node.id)}
+              onBlur={() => setHoveredId(null)}
+              className={cn(
+                'absolute z-10 max-w-[44%] truncate rounded-lg px-2 py-1.5 font-mono text-[9px] sm:max-w-none sm:rounded-xl sm:px-3 sm:py-2 sm:text-[10px] md:text-xs',
+                'border backdrop-blur-md transition-all duration-300',
+                primary
+                  ? 'border-accent-cyan/50 bg-canvas-elevated text-foreground shadow-glow ring-2 ring-accent-cyan/30'
+                  : lit
+                    ? 'glass-panel border-border-strong text-foreground'
+                    : 'border-border-strong/60 bg-canvas-card/60 text-foreground-muted',
+              )}
+              style={{ left: `${node.x}%`, top: `${node.y}%`, transform: 'translate(-50%, -50%)' }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.08, y: -2 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.06 }}
+            >
+              {node.label}
+            </motion.button>
+          );
+        })}
 
-        <motion.div
-          className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-cyan shadow-[0_0_20px_#22d3ee]"
-          animate={{ x: [0, 120, 0], y: [0, -20, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ left: '35%', top: '28%' }}
-        />
+        {!reduced && !belowLg && (
+          <motion.div
+            className="pointer-events-none absolute h-3 w-3 rounded-full bg-accent-cyan shadow-[0_0_24px_#22d3ee]"
+            animate={{
+              left: ['12%', '35%', '62%', '88%', '62%', '35%', '12%'],
+              top: ['50%', '28%', '18%', '38%', '72%', '28%', '50%'],
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ transform: 'translate(-50%, -50%)' }}
+          />
+        )}
       </div>
 
-      <div className="mt-16 grid gap-6 sm:grid-cols-3">
-        {s.features.map((item) => (
-          <div key={item.title} className="rounded-2xl border border-border-strong bg-surface-inset px-6 py-5">
+      <div className="mx-auto mt-16 grid max-w-5xl gap-6 sm:grid-cols-3">
+        {s.features.map((item, i) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ delay: i * 0.08 }}
+            whileHover={reduced ? undefined : { y: -4 }}
+            className="landing-card-interactive rounded-2xl border border-border-strong bg-surface-inset px-6 py-5"
+          >
+            <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-accent-blue/15 font-mono text-xs text-accent-cyan">
+              {String(i + 1).padStart(2, '0')}
+            </div>
             <h4 className="font-medium text-foreground">{item.title}</h4>
             <p className="mt-2 text-sm text-foreground-muted">{item.desc}</p>
-          </div>
+          </motion.div>
         ))}
       </div>
     </SectionShell>

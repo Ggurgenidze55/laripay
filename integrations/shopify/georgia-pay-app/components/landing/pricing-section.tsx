@@ -38,52 +38,66 @@ export function PricingSection() {
   ];
 
   return (
-    <section id="pricing" className="scroll-mt-24 border-t border-border py-32 md:py-40">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <FadeIn className="text-center">
+    <section id="pricing" className="scroll-mt-24 border-t border-border py-36 md:py-48">
+      <div className="mx-auto max-w-[90rem] px-6 lg:px-8">
+        <FadeIn className="mx-auto max-w-3xl text-center">
+          <Badge variant="accent" className="mb-6">
+            {t.nav.pricing}
+          </Badge>
           <h2 className="text-4xl font-semibold tracking-[-0.02em] md:text-5xl">{p.title}</h2>
           <p className="mx-auto mt-5 max-w-lg text-lg text-foreground-muted">{p.subtitle}</p>
         </FadeIn>
 
-        <Stagger className="mt-14 grid gap-6 lg:grid-cols-3">
-          {plans.map((plan) => (
-            <StaggerItem key={plan.name}>
-              <Card glow={plan.highlight} className={plan.highlight ? 'ring-2 ring-accent-blue/40' : ''}>
-                {plan.highlight && (
-                  <Badge variant="accent" className="mb-4">
-                    {p.popular}
-                  </Badge>
-                )}
-                <p className="text-xs uppercase tracking-widest text-foreground-muted">{plan.name}</p>
-                <motion.p
-                  className="mt-3 text-4xl font-semibold tracking-tight"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
+        <Stagger className="mt-16 grid items-stretch gap-6 lg:grid-cols-3">
+          {plans.map((plan, i) => (
+            <StaggerItem key={plan.name} className="h-full">
+              <motion.div
+                className="h-full"
+                whileHover={{ y: plan.highlight ? -6 : -4 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+              >
+                <Card
+                  glow={plan.highlight}
+                  className={cn(
+                    'flex h-full flex-col',
+                    plan.highlight && 'ring-2 ring-accent-cyan/35 lg:-mt-2 lg:mb-2',
+                  )}
                 >
-                  {plan.price}
-                </motion.p>
-                <p className="text-sm text-foreground-muted">{plan.sub}</p>
-                <ul className="mt-6 space-y-2 text-sm text-foreground-muted">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2">
-                      <span className="text-accent-cyan">✓</span> {f}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+                  {plan.highlight && (
+                    <Badge variant="accent" className="mb-4 w-fit">
+                      {p.popular}
+                    </Badge>
+                  )}
+                  <p className="text-xs uppercase tracking-widest text-foreground-muted">{plan.name}</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-gradient-accent">
+                    {plan.price}
+                  </p>
+                  <p className="text-sm text-foreground-muted">{plan.sub}</p>
+                  <ul className="mt-6 flex-1 space-y-2.5 text-sm text-foreground-muted">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-center justify-center gap-2 lg:justify-start">
+                        <span className="text-accent-cyan">✓</span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {!plan.highlight && i === 2 && <div className="mt-4 flex-1" />}
+                </Card>
+              </motion.div>
             </StaggerItem>
           ))}
         </Stagger>
 
-        <FadeIn className="mt-12 text-center">
+        <FadeIn className="mt-14 text-center">
           <Link
             href={href('/laripay/onboard')}
             className={cn(
-              'inline-flex h-12 items-center rounded-xl px-8 text-sm font-medium',
+              'group relative inline-flex h-12 items-center overflow-hidden rounded-xl px-8 text-sm font-medium',
               buttonVariants.primary,
             )}
           >
-            {p.startBuilding}
+            <span className="relative z-10">{p.startBuilding}</span>
+            <span className="absolute inset-0 shimmer-line opacity-30" />
           </Link>
         </FadeIn>
       </div>
