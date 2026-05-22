@@ -21,7 +21,7 @@ export function BankPaymentMethods() {
         <div className="flex flex-wrap items-center gap-4">
           {b.wallets.map((w) => (
             <div key={w.label} className="flex items-center gap-3 rounded-xl border border-border bg-canvas-elevated/60 px-4 py-3">
-              <PaymentBrandLogo brand={w.brand as PaymentBrandId} size="sm" className="!bg-white" />
+              <PaymentBrandLogo brand={w.brand as PaymentBrandId} size="sm" transparent />
               <span className="text-sm font-medium">{w.label}</span>
             </div>
           ))}

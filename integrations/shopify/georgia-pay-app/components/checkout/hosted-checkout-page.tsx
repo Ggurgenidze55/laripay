@@ -216,7 +216,7 @@ export function HostedCheckoutPage({
                       : 'border-border bg-canvas-elevated/50 hover:border-border-strong',
                   )}
                 >
-                  <PaymentBrandLogo brand={bank.brand} size="lg" className="!bg-white" />
+                  <PaymentBrandLogo brand={bank.brand} size="lg" transparent />
                   <span className="mt-3 text-sm font-medium">{bank.label}</span>
                 </button>
               );

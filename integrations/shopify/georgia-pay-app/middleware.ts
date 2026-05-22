@@ -37,6 +37,17 @@ export function middleware(request: NextRequest) {
     return redirect(request, `/laripay/${dotLocale[1]}`);
   }
 
+  // /laripayka → /laripay/ka (missing slash)
+  if (pathname === '/laripayka' || pathname.startsWith('/laripayka/')) {
+    const tail = pathname === '/laripayka' ? '' : pathname.slice('/laripayka/'.length);
+    return redirect(request, tail ? `/laripay/ka/${tail}` : '/laripay/ka');
+  }
+
+  if (pathname === '/laripayen' || pathname.startsWith('/laripayen/')) {
+    const tail = pathname === '/laripayen' ? '' : pathname.slice('/laripayen/'.length);
+    return redirect(request, tail ? `/laripay/en/${tail}` : '/laripay/en');
+  }
+
   if (pathname === '/lanpay' || pathname === '/lanpay/') {
     return redirect(request, `/laripay/${cookieLocale}`);
   }
@@ -104,7 +115,7 @@ export function middleware(request: NextRequest) {
   if (LARIPAY_LOCALE.test(pathname)) {
     const parsed = parseMarketingPath(pathname);
     const canonical = `/laripay/${parsed.locale}${parsed.subpath ? `/${parsed.subpath}` : ''}`;
-    if (canonical !== pathname.replace(/\/+$/, '') || pathname.includes('/pay')) {
+    if (canonical !== pathname.replace(/\/+$/, '')) {
       return redirect(request, canonical);
     }
   }
