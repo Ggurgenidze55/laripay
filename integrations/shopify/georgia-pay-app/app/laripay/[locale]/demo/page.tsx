@@ -26,7 +26,7 @@ export default function DemoPage() {
       .catch(() => {});
   }, []);
 
-  async function startLariPayCheckout(provider: 'tbc' | 'bog') {
+  async function startLariPayCheckout(provider?: 'tbc' | 'bog') {
     if (!apiKey) {
       setResult('Open /api/laripay/setup and set LARIPAY_DEMO_API_KEY in .env');
       return;
@@ -43,7 +43,8 @@ export default function DemoPage() {
         },
         body: JSON.stringify({
           amount: 2.0,
-          provider,
+          provider: provider ?? 'tbc',
+          ui_mode: 'hosted',
           success_url: `${origin}${route('dashboard')}?paid=1`,
           cancel_url: `${origin}${route('demo')}`,
         }),
@@ -79,13 +80,8 @@ export default function DemoPage() {
               <p className="mt-1 text-sm text-foreground-muted">{p.apiCardDesc}</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Button disabled={loading} onClick={() => startLariPayCheckout('tbc')}>
-                    TBC · 2.00 ₾
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Button variant="secondary" disabled={loading} onClick={() => startLariPayCheckout('bog')}>
-                    BOG · 2.00 ₾
+                  <Button disabled={loading} onClick={() => startLariPayCheckout()}>
+                    {p.runDemo} · 2.00 ₾
                   </Button>
                 </motion.div>
               </div>

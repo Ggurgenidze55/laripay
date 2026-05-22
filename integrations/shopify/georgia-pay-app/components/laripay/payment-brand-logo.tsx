@@ -15,11 +15,15 @@ export function PaymentBrandLogo({ brand, className, size = 'md' }: Props) {
   const scale = SCALE[size];
   const w = Math.round(config.width * scale);
   const h = Math.round(config.height * scale);
+  const isOfficial = config.variant === 'official';
 
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-lg bg-white/90 px-3 py-2 shadow-sm ring-1 ring-black/5 dark:bg-white/95',
+        'inline-flex shrink-0 items-center justify-center',
+        isOfficial
+          ? 'rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-black/[0.06]'
+          : 'rounded-lg bg-white/90 px-3 py-2 shadow-sm ring-1 ring-black/5 dark:bg-white/95',
         config.className,
         className,
       )}

@@ -49,6 +49,9 @@ export async function POST(request: NextRequest) {
     (body.idempotency_key ? String(body.idempotency_key) : undefined);
 
   try {
+    const uiMode =
+      body.ui_mode === 'hosted' || body.checkout_ui === 'hosted' ? 'hosted' : 'redirect';
+
     const session = await createCheckoutSession(auth.merchant, {
       amount,
       currency: String(body.currency || 'GEL'),
@@ -59,6 +62,7 @@ export async function POST(request: NextRequest) {
         ? String(body.client_reference_id)
         : undefined,
       idempotencyKey,
+      uiMode,
       metadata:
         body.metadata && typeof body.metadata === 'object'
           ? (body.metadata as Record<string, unknown>)

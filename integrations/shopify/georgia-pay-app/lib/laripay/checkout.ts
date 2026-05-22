@@ -7,6 +7,15 @@ import { buildMerchantPaymentsClient, getMerchantBankConfig } from './merchant-c
 import { expireCheckoutSessionIfNeeded } from './checkout-expiry';
 import type { AuthenticatedMerchant } from './auth';
 
+export function hostedCheckoutPageUrl(sessionId: string): string {
+  const base = (process.env.HOST || process.env.VERCEL_URL || 'http://localhost:3000').replace(
+    /\/$/,
+    '',
+  );
+  const origin = base.startsWith('http') ? base : `https://${base}`;
+  return `${origin}/checkout/ui/${sessionId}`;
+}
+
 export interface CreateCheckoutInput {
   amount: number;
   currency?: string;
@@ -16,6 +25,8 @@ export interface CreateCheckoutInput {
   clientReferenceId?: string;
   idempotencyKey?: string;
   metadata?: Record<string, unknown>;
+  /** When `hosted`, customer picks bank on /checkout/ui/:id before redirect. */
+  uiMode?: 'hosted' | 'redirect';
 }
 
 export async function createCheckoutSession(
@@ -61,6 +72,7 @@ export async function createCheckoutSession(
 
   const fees = computePlatformFee(amount, fullMerchant);
   const expiresAt = new Date(Date.now() + CHECKOUT_SESSION_TTL_MS);
+  const uiMode = input.uiMode === 'hosted' ? 'hosted' : 'redirect';
 
   const session = await prisma.checkoutSession.create({
     data: {
@@ -78,48 +90,30 @@ export async function createCheckoutSession(
     },
   });
 
-  const returnUrl =
-    getLariPayReturnUrl(session.id) ||
-    `${process.env.HOST}/payment/return?paymentId=${encodeURIComponent(session.id)}&source=laripay`;
-  const callbackUrl =
-    getLariPayWebhookUrl(provider) ||
-    `${process.env.HOST}/api/webhook`;
-
-  const payments = buildMerchantPaymentsClient({ ...config, provider });
-  const bankResult = await payments.createPayment(amount, currency, session.id, returnUrl, {
-    provider,
-    callbackUrl,
-    successUrl: input.successUrl,
-    failUrl: input.cancelUrl || input.successUrl,
-  });
-
-  const paykaPayment = await prisma.paykaPayment.create({
-    data: {
-      merchantId: merchant.id,
-      amount,
+  if (uiMode === 'hosted') {
+    return {
+      id: session.id,
+      object: 'checkout.session' as const,
+      mode: 'payment' as const,
+      status: 'open' as const,
+      amount: fees.grossAmount,
       currency,
-      grossAmount: fees.grossAmount,
-      platformFee: fees.platformFee,
-      netAmount: fees.netAmount,
-      feeMode: fees.feeMode,
+      platform_fee: fees.platformFee,
+      net_amount: fees.netAmount,
+      fee_mode: fees.feeMode,
+      commission_rate: fees.commissionRateBps / 100,
       provider,
-      bankReference: bankResult.paymentId || null,
-      status: 'pending',
-      clientReferenceId: input.clientReferenceId,
-      metadata: input.metadata ? JSON.stringify(input.metadata) : null,
-    },
-  });
+      client_reference_id: input.clientReferenceId || null,
+      success_url: input.successUrl,
+      cancel_url: input.cancelUrl || null,
+      url: hostedCheckoutPageUrl(session.id),
+      payment_id: null,
+      expires_at: Math.floor(expiresAt.getTime() / 1000),
+      created: Math.floor(session.createdAt.getTime() / 1000),
+    };
+  }
 
-  await prisma.checkoutSession.update({
-    where: { id: session.id },
-    data: {
-      bankReference: bankResult.paymentId || null,
-      redirectUrl: bankResult.redirectUrl || null,
-      paykaPaymentId: paykaPayment.id,
-      status: 'open',
-    },
-  });
-
+  const bank = await initiateBankPaymentForSession(session.id, provider);
   return {
     id: session.id,
     object: 'checkout.session' as const,
@@ -135,10 +129,93 @@ export async function createCheckoutSession(
     client_reference_id: input.clientReferenceId || null,
     success_url: input.successUrl,
     cancel_url: input.cancelUrl || null,
-    url: bankResult.redirectUrl,
-    payment_id: paykaPayment.id,
+    url: bank.redirectUrl,
+    payment_id: bank.paymentId,
     expires_at: Math.floor(expiresAt.getTime() / 1000),
     created: Math.floor(session.createdAt.getTime() / 1000),
+  };
+}
+
+/** Attach TBC/BOG redirect to an open checkout session (hosted UI confirm). */
+export async function initiateBankPaymentForSession(sessionId: string, provider: 'tbc' | 'bog') {
+  const session = await prisma.checkoutSession.findUniqueOrThrow({
+    where: { id: sessionId },
+    include: { paykaPayment: true },
+  });
+
+  if (session.redirectUrl && session.paykaPaymentId) {
+    return {
+      redirectUrl: session.redirectUrl,
+      paymentId: session.paykaPaymentId,
+    };
+  }
+
+  const fullMerchant = await prisma.merchant.findUniqueOrThrow({
+    where: { id: session.merchantId },
+  });
+  const config = await getMerchantBankConfig(session.merchantId);
+  const resolvedProvider = provider;
+
+  if (resolvedProvider === 'tbc' && !(config.tbcClientId && config.tbcClientSecret)) {
+    throw new Error('TBC not configured for this merchant or platform');
+  }
+  if (resolvedProvider === 'bog' && !(config.bogPublicKey && config.bogSecretKey)) {
+    throw new Error('BOG not configured for this merchant or platform');
+  }
+
+  const fees = computePlatformFee(session.amount, fullMerchant);
+  const returnUrl =
+    getLariPayReturnUrl(session.id) ||
+    `${process.env.HOST}/payment/return?paymentId=${encodeURIComponent(session.id)}&source=laripay`;
+  const callbackUrl = getLariPayWebhookUrl(resolvedProvider) || `${process.env.HOST}/api/webhook`;
+
+  const payments = buildMerchantPaymentsClient({ ...config, provider: resolvedProvider });
+  const bankResult = await payments.createPayment(
+    session.amount,
+    session.currency,
+    session.id,
+    returnUrl,
+    {
+      provider: resolvedProvider,
+      callbackUrl,
+      successUrl: session.successUrl,
+      failUrl: session.cancelUrl || session.successUrl,
+    },
+  );
+
+  const paykaPayment =
+    session.paykaPayment ??
+    (await prisma.paykaPayment.create({
+      data: {
+        merchantId: session.merchantId,
+        amount: session.amount,
+        currency: session.currency,
+        grossAmount: fees.grossAmount,
+        platformFee: fees.platformFee,
+        netAmount: fees.netAmount,
+        feeMode: fees.feeMode,
+        provider: resolvedProvider,
+        bankReference: bankResult.paymentId || null,
+        status: 'pending',
+        clientReferenceId: session.clientReferenceId,
+        metadata: session.metadata,
+      },
+    }));
+
+  await prisma.checkoutSession.update({
+    where: { id: session.id },
+    data: {
+      provider: resolvedProvider,
+      bankReference: bankResult.paymentId || null,
+      redirectUrl: bankResult.redirectUrl || null,
+      paykaPaymentId: paykaPayment.id,
+      status: 'open',
+    },
+  });
+
+  return {
+    redirectUrl: bankResult.redirectUrl,
+    paymentId: paykaPayment.id,
   };
 }
 
