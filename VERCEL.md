@@ -7,9 +7,12 @@
 
 ## Vercel პროექტის პარამეტრები
 
-**აუცილებელი:** Vercel → Settings → General → **Root Directory** = `integrations/shopify/georgia-pay-app`
+**Root Directory** (ორი ვარიანტი — ერთი საკმარისია):
 
-> ⚠️ repo root-ზე `vercel.json` არ უნდა იყოს — ის ტოვებს install-ს და build ჩავარდება.
+1. **ცარიელი** (repo root) — root `vercel.json` + `scripts/vercel-app.sh` ავტომატურად ააგებს Next.js-ს (~2–3 წთ build)
+2. **`integrations/shopify/georgia-pay-app`** — იგივე, მაგრამ უფრო სუფთა ლოგები
+
+თუ build **134ms**-ში მთავრდება — Next.js არ აიგო; დააყენე Root Directory ან გააკეთე Redeploy ახალი commit-ის შემდეგ.
 
 | პარამეტრი | მნიშვნელობა |
 |-----------|-------------|
