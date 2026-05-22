@@ -8,7 +8,7 @@
     "build:vercel": "node scripts/vercel-build.mjs",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
+    "postinstall": "node scripts/prisma-postinstall.mjs",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "payka:setup": "curl -s http://localhost:3000/api/laripay/setup | python3 -m json.tool",

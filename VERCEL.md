@@ -7,10 +7,9 @@
 
 ## Vercel პროექტის პარამეტრები
 
-**ორი სწორი ვარიანტი** (ერთ-ერთი საკმარისია):
+**აუცილებელი:** Vercel → Settings → General → **Root Directory** = `integrations/shopify/georgia-pay-app`
 
-1. **Root Directory** = `integrations/shopify/georgia-pay-app` (რეკომენდებული) — Build: `npm run build:vercel`
-2. **Root Directory** = ცარიელი (repo root) — root `vercel.json` + `vercel-build` ავტომატურად ააგებს აპს
+> ⚠️ repo root-ზე `vercel.json` არ უნდა იყოს — ის ტოვებს install-ს და build ჩავარდება.
 
 | პარამეტრი | მნიშვნელობა |
 |-----------|-------------|
