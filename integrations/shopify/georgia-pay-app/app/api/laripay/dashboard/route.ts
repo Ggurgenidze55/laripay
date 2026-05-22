@@ -9,24 +9,31 @@ import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError } from '@/lib/laripay/api-response';
 
 export async function GET(request: NextRequest) {
-  await ensureLariPaySeed();
+  try {
+    await ensureLariPaySeed();
 
-  const auth = await authenticatePortalRequest(request);
-  if ('error' in auth) {
-    const allowDemo =
-      platformEnv('ALLOW_PUBLIC_DEMO_DASHBOARD') === '1' &&
-      process.env.NODE_ENV !== 'production';
-    if (!allowDemo) {
-      return laripayError(auth.error, auth.status, 'authentication_error');
+    const auth = await authenticatePortalRequest(request);
+    if ('error' in auth) {
+      const allowDemo =
+        platformEnv('ALLOW_PUBLIC_DEMO_DASHBOARD') === '1' &&
+        process.env.NODE_ENV !== 'production';
+      if (!allowDemo) {
+        return laripayError(auth.error, auth.status, 'authentication_error');
+      }
+      const demo = await prisma.merchant.findUnique({ where: { slug: 'demo-merchant' } });
+      if (!demo) {
+        return laripayError('Demo merchant missing — open /api/laripay/setup', 404);
+      }
+      return buildDashboardResponse(demo.id);
     }
-    const demo = await prisma.merchant.findUnique({ where: { slug: 'demo-merchant' } });
-    if (!demo) {
-      return laripayError('Demo merchant missing — open /api/laripay/setup', 404);
-    }
-    return buildDashboardResponse(demo.id);
+
+    return buildDashboardResponse(auth.merchantId);
+  } catch (err) {
+    console.error('[laripay/dashboard]', err);
+    const message =
+      err instanceof Error ? err.message : 'Dashboard unavailable';
+    return laripayError(message, 500, 'internal_error');
   }
-
-  return buildDashboardResponse(auth.merchantId);
 }
 
 async function buildDashboardResponse(merchantId: string) {

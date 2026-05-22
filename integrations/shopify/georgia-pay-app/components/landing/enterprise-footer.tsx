@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { SiteFooter } from '@/components/laripay/SiteFooter';
 import { PricingSection } from './pricing-section';
 
 export function EnterpriseFooter() {
@@ -50,6 +51,8 @@ export function EnterpriseFooter() {
           </div>
         </div>
       </section>
+
+      <SiteFooter compact />
     </>
   );
 }

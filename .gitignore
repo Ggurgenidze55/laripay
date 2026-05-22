@@ -3,6 +3,7 @@ node_modules/
 .env
 *.log
 .next/
+/public/
 integrations/shopify/georgia-pay-app/prisma/dev.db
 integrations/shopify/georgia-pay-app/prisma/dev.db-journal
 deploy/.env.production

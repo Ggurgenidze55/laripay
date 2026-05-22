@@ -37,6 +37,14 @@
     @apply bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-violet bg-clip-text text-transparent;
   }
 
+  .prose-laripay a {
+    @apply text-accent-cyan underline-offset-2 hover:underline;
+  }
+
+  .prose-laripay strong {
+    @apply font-medium text-white/85;
+  }
+
   .glass-panel {
     @apply border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl;
   }

@@ -13,6 +13,7 @@ import { RevenueChart } from '@/components/dashboard/revenue-chart';
 import { TransactionFeed } from '@/components/dashboard/transaction-feed';
 import { InfrastructurePanel } from '@/components/dashboard/infrastructure-panel';
 import { StatusBadge } from '@/components/laripay/StatusBadge';
+import { parseApiJson } from '@/lib/parse-api-json';
 
 interface DashboardData {
   merchant: {
@@ -63,7 +64,7 @@ export default function DashboardContent() {
     setError('');
     setLoading(true);
     const res = await fetch('/api/laripay/dashboard', { credentials: 'include' });
-    const d = await res.json();
+    const { data: d } = await parseApiJson<DashboardData & { error?: { message?: string } }>(res);
     setLoading(false);
     if (!res.ok) {
       setData(null);
@@ -71,7 +72,7 @@ export default function DashboardContent() {
       setError(d?.error?.message || 'Authentication required');
       return;
     }
-    setData(d);
+    setData(d as DashboardData);
     setLoggedIn(true);
   }, []);
 
@@ -87,7 +88,7 @@ export default function DashboardContent() {
       headers: { Authorization: `Bearer ${apiKey.trim()}` },
       credentials: 'include',
     });
-    const d = await res.json();
+    const { data: d } = await parseApiJson<{ error?: { message?: string } }>(res);
     if (!res.ok) {
       setError(d?.error?.message || 'Login failed');
       return;

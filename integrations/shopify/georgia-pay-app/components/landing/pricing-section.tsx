@@ -34,7 +34,7 @@ const PLANS = [
 
 export function PricingSection() {
   return (
-    <section className="border-t border-white/[0.04] py-32 md:py-40">
+    <section id="pricing" className="border-t border-white/[0.04] py-32 md:py-40 scroll-mt-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeIn className="text-center">
           <h2 className="text-4xl font-semibold tracking-[-0.02em] md:text-5xl">Transparent pricing</h2>

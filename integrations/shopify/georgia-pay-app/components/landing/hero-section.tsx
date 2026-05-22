@@ -97,7 +97,7 @@ export function HeroSection() {
                 )}
               </MagneticLink>
               <MagneticLink
-                href="#developers"
+                href="/laripay/docs"
                 className={cn(
                   'inline-flex h-12 items-center rounded-2xl px-9 text-sm font-medium',
                   buttonVariants.secondary,
