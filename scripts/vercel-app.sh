@@ -24,14 +24,12 @@ case "$action" in
       echo "[vercel-app] npm install at repo root (Next.js detection)"
       (cd "$repo_root" && npm install --no-audit --no-fund)
     fi
-    npm install --no-audit --no-fund
+    NPM_CONFIG_PRODUCTION=false npm install --no-audit --no-fund --include=dev
     ;;
   build)
     export VERCEL=1
-    if [ "$in_app_root" = "0" ]; then
-      (cd "$repo_root" && npm install --no-audit --no-fund)
-    fi
-    npm install --no-audit --no-fund
+    export NPM_CONFIG_PRODUCTION=false
+    npm install --no-audit --no-fund --include=dev
     npm run build:vercel
     if [ "$in_app_root" = "0" ]; then
       echo "[vercel-app] sync .next and public to repo root for Vercel"
