@@ -12,7 +12,7 @@
 1. **ცარიელი** (repo root) — root-ზე არის `next` dependency + `next.config.js` + `scripts/vercel-app.sh` (~2–3 წთ build)
 2. **`integrations/shopify/georgia-pay-app`** — რეკომენდებული (Framework: Next.js)
 
-შეცდომა *No Next.js version detected* — Root Directory არ ემთხვევა `package.json`-ს; გამოიყენე ერთ-ერთი ვარიანტი ზემოთ.
+შეცდომა *No Next.js version detected* — Vercel root-ზე უნდა დაინსტალირდეს `next` (`npm install` repo root-ში). `vercel-app.sh` ამას აკეთებს; Root Directory ცარიელი ან `integrations/shopify/georgia-pay-app`.
 
 | პარამეტრი | მნიშვნელობა |
 |-----------|-------------|
