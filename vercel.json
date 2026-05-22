@@ -1,0 +1,5 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install --prefix integrations/shopify/georgia-pay-app",
+  "buildCommand": "npm run build:vercel --prefix integrations/shopify/georgia-pay-app"
+}

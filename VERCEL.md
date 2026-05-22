@@ -7,12 +7,18 @@
 
 ## Vercel პროექტის პარამეტრები
 
+**ორი სწორი ვარიანტი** (ერთ-ერთი საკმარისია):
+
+1. **Root Directory** = `integrations/shopify/georgia-pay-app` (რეკომენდებული) — Build: `npm run build:vercel`
+2. **Root Directory** = ცარიელი (repo root) — root `vercel.json` + `vercel-build` ავტომატურად ააგებს აპს
+
 | პარამეტრი | მნიშვნელობა |
 |-----------|-------------|
-| **Root Directory** | `integrations/shopify/georgia-pay-app` |
 | **Framework** | Next.js (auto) |
-| **Build Command** | `npm run build:vercel` (ან default — `vercel.json`-ში ჩაწერილია) |
+| **Build Command** | `npm run build:vercel` |
 | **Node** | 20.x |
+
+`DATABASE_URL` დაამატე **Production** და **Build** გარემოში (Neon/Supabase), რომ `prisma migrate deploy` build-ზე გაეშვას.
 
 ## Environment Variables (აუცილებელი)
 
