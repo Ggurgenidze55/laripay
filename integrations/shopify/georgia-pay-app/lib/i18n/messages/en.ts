@@ -73,6 +73,12 @@ export const en = {
         providers: 'Providers',
         currency: 'Currency',
       },
+      paymentBadges: [
+        { brand: 'google-pay', label: 'Google Pay' },
+        { brand: 'apple-pay', label: 'Apple Pay' },
+        { brand: 'tbc', label: 'TBC' },
+        { brand: 'bog', label: 'BOG' },
+      ],
     },
     pricing: {
       title: 'Transparent pricing',
@@ -169,6 +175,78 @@ LariPay-Event: payment.succeeded`,
         { title: 'Refunds', desc: 'Partial & full · ledger sync' },
         { title: 'Settlement', desc: 'Net volume · fee reporting' },
       ],
+    },
+    paymentChannels: {
+      eyebrow: 'Payment methods',
+      title: 'Google Pay, Apple Pay, TBC & BOG — one checkout',
+      description:
+        'Route customers through licensed Georgian bank rails. Wallets and installment plans are offered by TBC Pay and BOG Pay when your merchant is approved for those products.',
+      walletsTitle: 'Digital wallets',
+      walletsNote: 'Google Pay and Apple Pay are available via TBC / BOG hosted checkout when enabled for your store category.',
+      wallets: [
+        {
+          name: 'Google Pay',
+          brand: 'google-pay',
+          desc: 'Fast card checkout on Android & Chrome — through bank acquirer.',
+        },
+        {
+          name: 'Apple Pay',
+          brand: 'apple-pay',
+          desc: 'One-tap pay on Safari & iOS — through bank acquirer.',
+        },
+      ],
+      banks: [
+        {
+          name: 'TBC Bank',
+          brand: 'tbc',
+          product: 'TBC Pay',
+          tagline: 'Cards, internet banking, and merchant tools from TBC.',
+          services: [
+            {
+              title: 'Card payments (Visa / Mastercard)',
+              desc: 'Online card acceptance in GEL via TBC Pay hosted flow.',
+            },
+            {
+              title: 'Internet & mobile banking',
+              desc: 'Redirect customers to TBC digital channels to authorize payment.',
+            },
+            {
+              title: 'Installments (pay in parts)',
+              desc: 'Split purchases into monthly payments when TBC installment product is enabled for your business.',
+            },
+            {
+              title: 'QR & alternative channels',
+              desc: 'QR and other TBC Pay channels where supported for your MCC.',
+            },
+          ],
+        },
+        {
+          name: 'Bank of Georgia',
+          brand: 'bog',
+          product: 'BOG Pay',
+          tagline: 'BOG acquiring — cards, BOG digital banking, and flexible pay options.',
+          services: [
+            {
+              title: 'Card payments (Visa / Mastercard)',
+              desc: 'Secure BOG Pay checkout for e-commerce and platforms.',
+            },
+            {
+              title: 'BOG digital banking',
+              desc: 'Customers pay via BOG mobile / internet banking from the hosted page.',
+            },
+            {
+              title: 'Installments (ნაწილ-ნაწილ)',
+              desc: 'Offer staged payments when BOG installment program is active on your merchant ID.',
+            },
+            {
+              title: 'Wallets & express checkout',
+              desc: 'Apple Pay / Google Pay and express flows when BOG enables them for your category.',
+            },
+          ],
+        },
+      ],
+      disclaimer:
+        'Exact methods depend on your industry, onboarding, and bank approval. LariPay connects your app to TBC Pay or BOG Pay — the bank presents available options on the payment page.',
     },
     dashboardPreview: {
       eyebrow: 'Control center',
@@ -503,6 +581,41 @@ LariPay-Event: payment.succeeded`,
         { name: 'WordPress', desc: 'Lightweight checkout widget.', status: 'Beta' },
       ],
       viewDocs: 'Setup guide →',
+      bankPayments: {
+        title: 'TBC Pay, BOG Pay, Google Pay & Apple Pay',
+        intro:
+          'LariPay checkout sends the customer to TBC Pay or BOG Pay. Each bank shows the payment methods your merchant is allowed to use — cards, digital banking, installments, and wallets.',
+        wallets: [
+          { label: 'Google Pay', brand: 'google-pay' },
+          { label: 'Apple Pay', brand: 'apple-pay' },
+        ],
+        banks: [
+          {
+            name: 'TBC Bank · TBC Pay',
+            brand: 'tbc',
+            product: 'TBC Pay',
+            services: [
+              'Visa / Mastercard online',
+              'TBC internet & mobile banking redirect',
+              'Installments (pay in parts) — when enabled',
+              'QR and other TBC channels per merchant category',
+            ],
+          },
+          {
+            name: 'Bank of Georgia · BOG Pay',
+            brand: 'bog',
+            product: 'BOG Pay',
+            services: [
+              'Visa / Mastercard online',
+              'BOG digital banking redirect',
+              'Installments (ნაწილ-ნაწილ) — when enabled',
+              'Apple Pay / Google Pay via BOG when approved',
+            ],
+          },
+        ],
+        disclaimer:
+          'Enable TBC or BOG in POST /v1/checkout/sessions (provider: tbc | bog). Wallet and installment options appear on the bank-hosted page after KYC.',
+      },
       guides: {
         apiTitle: 'REST API (custom apps)',
         apiIntro: 'Use HTTP + Bearer API keys for any stack (Node, PHP, Laravel, mobile).',

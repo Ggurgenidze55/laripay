@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { IntegrationGrid } from '@/components/motion/interactive';
+import { BankPaymentMethods } from '@/components/laripay/bank-payment-methods';
 import { IntegrationsGuide } from '@/components/laripay/integrations-guide';
 import { MarketingPage, MarketingSection } from '@/components/laripay/MarketingPage';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
@@ -28,6 +29,7 @@ export default function IntegrationsPage({ params }: Props) {
   return (
     <MarketingPage eyebrow={p.eyebrow} title={p.title} description={p.description} wide>
       <IntegrationGrid items={gridItems} viewDocs={p.viewDocs} />
+      <BankPaymentMethods />
       <IntegrationsGuide />
       <MarketingSection title={p.customTitle}>
         <p>{p.customBody}</p>

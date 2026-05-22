@@ -7,6 +7,8 @@ import { MagneticLink } from '@/components/ui/magnetic-link';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { PaymentBrandLogo } from '@/components/laripay/payment-brand-logo';
+import type { PaymentBrandId } from '@/lib/payment-brands';
 import { PaymentNetwork } from './payment-network';
 import { ParticleField } from './particle-field';
 
@@ -81,6 +83,23 @@ export function HeroSection() {
             >
               {h.subtitle}
             </motion.p>
+
+            {h.paymentBadges?.length ? (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+                className="mt-8 flex flex-wrap items-center gap-3"
+              >
+                {h.paymentBadges.map((badge) => (
+                  <PaymentBrandLogo
+                    key={badge.brand}
+                    brand={badge.brand as PaymentBrandId}
+                    size="sm"
+                  />
+                ))}
+              </motion.div>
+            ) : null}
 
             <motion.div
               initial={{ opacity: 0, y: 16 }}

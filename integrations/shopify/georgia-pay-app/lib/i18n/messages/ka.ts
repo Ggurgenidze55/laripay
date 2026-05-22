@@ -75,6 +75,12 @@ export const ka = {
         providers: 'პროვაიდერები',
         currency: 'ვალუტა',
       },
+      paymentBadges: [
+        { brand: 'google-pay', label: 'Google Pay' },
+        { brand: 'apple-pay', label: 'Apple Pay' },
+        { brand: 'tbc', label: 'TBC' },
+        { brand: 'bog', label: 'BOG' },
+      ],
     },
     pricing: {
       title: 'გამჭვირვალე ფასები',
@@ -171,6 +177,79 @@ LariPay-Event: payment.succeeded`,
         { title: 'დაბრუნებები', desc: 'ნაწილობრივი და სრული · ledger sync' },
         { title: 'ანგარიშსწორება', desc: 'წმინდა მოცულობა · საფასურის ანგარიში' },
       ],
+    },
+    paymentChannels: {
+      eyebrow: 'გადახდის მეთოდები',
+      title: 'Google Pay, Apple Pay, TBC და BOG — ერთ checkout-ში',
+      description:
+        'მომხმარებელი გადის ლიცენზირებულ ქართულ ბანკის გვერდზე. საფულეები და განვადება ჩანს TBC Pay-სა და BOG Pay-ში, როცა შენი მერჩანტი ამ პროდუქტებზეა დამტკიცებული.',
+      walletsTitle: 'ციფრული საფულეები',
+      walletsNote:
+        'Google Pay და Apple Pay ხელმისაწვდომია TBC / BOG hosted checkout-ით, თუ ბანკმა შენს კატეგორიაზე ჩართა.',
+      wallets: [
+        {
+          name: 'Google Pay',
+          brand: 'google-pay',
+          desc: 'სწრაფი გადახდა Android-სა და Chrome-ში — ბანკის აკვაირინგით.',
+        },
+        {
+          name: 'Apple Pay',
+          brand: 'apple-pay',
+          desc: 'ერთი შეხებით Safari-სა და iOS-ზე — ბანკის აკვაირინგით.',
+        },
+      ],
+      banks: [
+        {
+          name: 'თიბისი ბანკი',
+          brand: 'tbc',
+          product: 'TBC Pay',
+          tagline: 'ბარათები, ინტერნეტ-ბანკინგი და მერჩანტის ხელსაწყოები TBC-დან.',
+          services: [
+            {
+              title: 'ბარათით გადახდა (Visa / Mastercard)',
+              desc: 'ონლაინ ბარათის მიღება GEL-ში TBC Pay hosted გვერდზე.',
+            },
+            {
+              title: 'ინტერნეტ და მობილური ბანკინგი',
+              desc: 'მომხმარებელი ავტორიზაციას TBC-ის ციფრულ არხებში ახდენს.',
+            },
+            {
+              title: 'განვადება (ნაწილ-ნაწილ)',
+              desc: 'ყიდვის გაყოფა თვიურ გადახდებად, როცა TBC-ის განვადების პროდუქტი ჩართულია.',
+            },
+            {
+              title: 'QR და სხვა არხები',
+              desc: 'QR და სხვა TBC Pay არხები, სადაც შენს MCC-ზე დაშვებულია.',
+            },
+          ],
+        },
+        {
+          name: 'საქართველოს ბანკი',
+          brand: 'bog',
+          product: 'BOG Pay',
+          tagline: 'BOG აკვაირინგი — ბარათები, BOG ციფრული ბანკი, მოქნილი გადახდა.',
+          services: [
+            {
+              title: 'ბარათით გადახდა (Visa / Mastercard)',
+              desc: 'უსაფრთხო BOG Pay checkout e-commerce-სა და პლატფორმებისთვის.',
+            },
+            {
+              title: 'BOG ციფრული ბანკინგი',
+              desc: 'გადახდა BOG mobile / internet banking-იდან hosted გვერდზე.',
+            },
+            {
+              title: 'განვადება (ნაწილ-ნაწილ)',
+              desc: 'თვეებად გადახდა, როცა BOG-ის განვადების პროგრამა აქტიურია შენს merchant ID-ზე.',
+            },
+            {
+              title: 'საფულეები და express checkout',
+              desc: 'Apple Pay / Google Pay და express, როცა BOG-მა დაუშვა შენს კატეგორიაზე.',
+            },
+          ],
+        },
+      ],
+      disclaimer:
+        'ზუსტი მეთოდები დამოკიდებულია ინდუსტრიაზე, onboarding-სა და ბანკის დამტკიცებაზე. LariPay გაგიყვანს TBC Pay-ზე ან BOG Pay-ზე — ბანკი აჩვენებს ხელმისაწვდომ ვარიანტებს გადახდის გვერდზე.',
     },
     dashboardPreview: {
       eyebrow: 'საკონტროლო ცენტრი',
@@ -504,6 +583,41 @@ LariPay-Event: payment.succeeded`,
         { name: 'WordPress', desc: 'მსუბუქი checkout ვიჯეტი.', status: 'ბეტა' },
       ],
       viewDocs: 'გზამკვლევი →',
+      bankPayments: {
+        title: 'TBC Pay, BOG Pay, Google Pay და Apple Pay',
+        intro:
+          'LariPay checkout მომხმარებელს გადაიყვანს TBC Pay-ზე ან BOG Pay-ზე. ბანკი აჩვენებს შენს მერჩანტზე დაშვებულ მეთოდებს — ბარათი, ციფრული ბანკი, განვადება, საფულეები.',
+        wallets: [
+          { label: 'Google Pay', brand: 'google-pay' },
+          { label: 'Apple Pay', brand: 'apple-pay' },
+        ],
+        banks: [
+          {
+            name: 'თიბისი ბანკი · TBC Pay',
+            brand: 'tbc',
+            product: 'TBC Pay',
+            services: [
+              'Visa / Mastercard ონლაინ',
+              'TBC ინტერნეტ და მობილური ბანკის redirect',
+              'განვადება (ნაწილ-ნაწილ) — თუ ჩართულია',
+              'QR და სხვა TBC არხები კატეგორიის მიხედვით',
+            ],
+          },
+          {
+            name: 'საქართველოს ბანკი · BOG Pay',
+            brand: 'bog',
+            product: 'BOG Pay',
+            services: [
+              'Visa / Mastercard ონლაინ',
+              'BOG ციფრული ბანკის redirect',
+              'განვადება (ნაწილ-ნაწილ) — თუ ჩართულია',
+              'Apple Pay / Google Pay BOG-ით, თუ დამტკიცებულია',
+            ],
+          },
+        ],
+        disclaimer:
+          'checkout სესიაში აირჩიე provider: tbc ან bog. საფულეები და განვადება ჩანს ბანკის hosted გვერდზე KYC-ის შემდეგ.',
+      },
       guides: {
         apiTitle: 'REST API (საკუთარი აპები)',
         apiIntro: 'HTTP + Bearer API გასაღებები ნებისმიერი სტეკისთვის (Node, PHP, Laravel, mobile).',

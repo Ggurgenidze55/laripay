@@ -59,11 +59,8 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
             isLanding ? 'max-w-[90rem]' : 'max-w-7xl',
           )}
         >
-          <Link href={homeHref} className="flex shrink-0 items-center gap-3 transition-opacity hover:opacity-90">
+          <Link href={homeHref} className="flex shrink-0 items-center transition-opacity hover:opacity-90" aria-label="LariPay">
             <LariPayLogo size={32} />
-            <span className="hidden text-sm font-medium tracking-tight text-foreground/80 sm:inline">
-              LariPay.ai
-            </span>
           </Link>
 
           <nav className="hidden items-center gap-1 sm:flex" aria-label="Main">
