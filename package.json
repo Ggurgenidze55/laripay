@@ -47,6 +47,8 @@
     "docker:up": "docker compose -f deploy/docker-compose.yml up -d --build",
     "docker:down": "docker compose -f deploy/docker-compose.yml down",
     "docker:logs": "docker compose -f deploy/docker-compose.yml logs -f laripay",
+    "core:dev": "cd services/laripay-core && npm run start:dev",
+    "core:docker": "cd services/laripay-core && docker compose up -d postgres redis && npx prisma migrate deploy"
     "vercel-build": "bash scripts/vercel-app.sh build"
   }
 }

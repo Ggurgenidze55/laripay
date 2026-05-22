@@ -12,7 +12,7 @@ export const COMPANY = {
 export function getSiteNav(locale: Locale) {
   const t = getDictionary(locale);
   return [
-    { href: localePath(locale), label: t.nav.platform },
+    { href: localePath(locale, 'platform'), label: t.nav.platform },
     { href: localePath(locale, 'pricing'), label: t.nav.pricing },
     { href: localePath(locale, 'docs'), label: t.nav.docs },
     { href: localePath(locale, 'onboard'), label: t.nav.developers },
@@ -24,7 +24,8 @@ export function getFooterColumns(locale: Locale) {
   const t = getDictionary(locale);
   return {
     product: [
-      { href: localePath(locale), label: t.nav.platform },
+      { href: localePath(locale, 'platform'), label: t.nav.platform },
+      { href: localePath(locale, 'playground'), label: t.footer.apiPlayground },
       { href: localePath(locale, 'pricing'), label: t.nav.pricing },
       { href: localePath(locale, 'integrations'), label: t.footer.integrations },
       { href: localePath(locale, 'security'), label: t.footer.security },
@@ -33,9 +34,11 @@ export function getFooterColumns(locale: Locale) {
     developers: [
       { href: localePath(locale, 'docs'), label: t.footer.documentation },
       { href: `${localePath(locale, 'docs')}#api`, label: t.footer.apiReference },
+      { href: localePath(locale, 'login'), label: t.footer.signIn },
       { href: localePath(locale, 'onboard'), label: t.footer.getApiKeys },
       { href: localePath(locale, 'demo'), label: t.footer.liveDemo },
       { href: localePath(locale, 'dashboard'), label: t.nav.console },
+      { href: localePath(locale, 'admin'), label: t.footer.platformAdmin },
     ],
     company: [
       { href: localePath(locale, 'about'), label: t.footer.about },

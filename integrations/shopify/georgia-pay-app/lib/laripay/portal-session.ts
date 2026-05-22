@@ -1,7 +1,9 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { platformEnv } from '@/lib/laripay-env';
+import prisma from '@/lib/prisma';
 import { authenticateApiRequest } from './auth';
+import { getUserSessionFromRequest } from './user-session';
 
 const COOKIE_NAME = 'laripay_portal';
 const LEGACY_COOKIE_NAME = 'payka_portal';
@@ -88,12 +90,30 @@ export function clearPortalCookie(response: NextResponse): NextResponse {
   return response;
 }
 
-/** Portal cookie or API key (Bearer / x-laripay-api-key). */
+/** Portal cookie, user session, or API key (Bearer / x-laripay-api-key). */
 export async function authenticatePortalRequest(
   request: NextRequest,
 ): Promise<{ merchantId: string; slug: string } | { error: string; status: number }> {
   const portal = getPortalSessionFromRequest(request);
   if (portal) return portal;
+
+  const userSession = getUserSessionFromRequest(request);
+  if (userSession) {
+    if (!userSession.merchantId) {
+      return { error: 'No merchant linked to this account', status: 403 };
+    }
+    const merchant = await prisma.merchant.findUnique({
+      where: { id: userSession.merchantId },
+      select: { slug: true, status: true },
+    });
+    if (!merchant) {
+      return { error: 'Merchant not found', status: 404 };
+    }
+    if (merchant.status === 'suspended') {
+      return { error: 'Merchant account suspended', status: 403 };
+    }
+    return { merchantId: userSession.merchantId, slug: merchant.slug };
+  }
 
   const api = await authenticateApiRequest(request);
   if ('error' in api) {

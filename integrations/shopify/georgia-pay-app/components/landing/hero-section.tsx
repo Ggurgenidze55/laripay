@@ -18,7 +18,7 @@ const STAT_VALUES = [
 
 export function HeroSection() {
   const reduced = useReducedMotion();
-  const { t, href } = useLocale();
+  const { t, route } = useLocale();
   const h = t.landing.hero;
   const statKeys = [h.stats.latency, h.stats.providers, h.stats.currency] as const;
 
@@ -89,7 +89,7 @@ export function HeroSection() {
               className="mt-14 flex flex-wrap items-center gap-4"
             >
               <MagneticLink
-                href={href('/laripay/onboard')}
+                href={route('onboard')}
                 className={cn(
                   'group relative inline-flex h-12 items-center overflow-hidden rounded-2xl px-9 text-sm font-medium',
                   buttonVariants.primary,
@@ -99,7 +99,7 @@ export function HeroSection() {
                 {!reduced && <span className="absolute inset-0 shimmer-line opacity-40" />}
               </MagneticLink>
               <MagneticLink
-                href={href('/laripay/docs')}
+                href={route('docs')}
                 className={cn(
                   'inline-flex h-12 items-center rounded-2xl px-9 text-sm font-medium',
                   buttonVariants.secondary,

@@ -1,0 +1,724 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────
+
+enum UserRole {
+  USER
+  MERCHANT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum MerchantStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum KycStatus {
+  NOT_STARTED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  AUTHORIZED
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  DISPUTED
+  CANCELED
+}
+
+enum CheckoutMode {
+  REDIRECT
+  EMBEDDED
+  DIRECT
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  AUTHORIZED
+  APPROVED
+  FAILED
+  REFUNDED
+  DISPUTED
+  CANCELED
+}
+
+enum PaymentMethodType {
+  CARD
+  APPLE_PAY
+  GOOGLE_PAY
+  BANK_TRANSFER
+  QR
+  SAVED_CARD
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  PAUSED
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  DELIVERING
+  SUCCEEDED
+  FAILED
+}
+
+enum LedgerAccountType {
+  MERCHANT_AVAILABLE
+  MERCHANT_PENDING
+  PLATFORM_REVENUE
+  USER_WALLET
+  PAYOUT_RESERVE
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  PAYMENT
+  REFUND
+  PAYOUT
+  WEBHOOK
+  ADMIN
+}
+
+// ─── Auth & users ──────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  role          UserRole  @default(USER)
+  emailVerified Boolean   @default(false)
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret String?
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  refreshTokens RefreshToken[]
+  oauthAccounts OAuthAccount[]
+  merchantUsers MerchantUser[]
+  auditLogs     AuditLog[] @relation("AuditActor")
+
+  @@index([email])
+  @@index([role])
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId   String?
+  userAgent  String?
+  ipAddress  String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model OAuthAccount {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider   String
+  providerId String
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, providerId])
+  @@index([userId])
+}
+
+// ─── Merchants ─────────────────────────────────────────────────────
+
+model Merchant {
+  id                      String         @id @default(cuid())
+  name                    String
+  email                   String         @unique
+  slug                    String         @unique
+  status                  MerchantStatus @default(PENDING)
+  kycStatus               KycStatus      @default(NOT_STARTED)
+  billingMode             String         @default("COMMISSION")
+  commissionRateBps       Int            @default(100)
+  subscriptionActiveUntil DateTime?
+  webhookSecret           String
+  defaultProvider         String         @default("mock")
+  metadata                Json?
+  deletedAt               DateTime?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  users                   MerchantUser[]
+  apiKeys                 ApiKey[]
+  wallets                 Wallet[]
+  paymentIntents          PaymentIntent[]
+  payments                Payment[]
+  payouts                 Payout[]
+  subscriptions           Subscription[]
+  webhookEndpoints        WebhookEndpoint[]
+  fraudChecks             FraudCheck[]
+  ledgerAccounts          LedgerAccount[]
+  auditLogs               AuditLog[]     @relation("AuditMerchant")
+  orders                  Order[]
+  customers               Customer[]
+  embeddedSessions        EmbeddedCheckoutSession[]
+  qrPayments              QrPayment[]
+  checkoutBranding        MerchantCheckoutBranding?
+  legacyCheckoutSessions  LegacyCheckoutSession[]
+
+  @@index([slug])
+  @@index([status])
+}
+
+model MerchantUser {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       UserRole @default(MERCHANT)
+  createdAt  DateTime @default(now())
+
+  @@unique([merchantId, userId])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  merchantId String
+  merchant   Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  keyPrefix  String
+  keyHash    String    @unique
+  mode       String
+  name       String?
+  scopes     String[]  @default([])
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([merchantId])
+  @@index([keyHash])
+}
+
+// ─── Payments ──────────────────────────────────────────────────────
+
+model PaymentIntent {
+  id                String        @id @default(cuid())
+  merchantId        String
+  merchant          Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  amount            Decimal       @db.Decimal(18, 2)
+  currency          String        @default("GEL")
+  status            PaymentStatus @default(PENDING)
+  provider          String        @default("mock")
+  captureMethod     String        @default("automatic")
+  clientSecret      String        @unique
+  idempotencyKey    String?
+  clientReferenceId String?
+  successUrl        String?
+  cancelUrl         String?
+  metadata          Json?
+  riskScore         Int?
+  expiresAt         DateTime?
+  deletedAt         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  payment           Payment?
+  paymentMethod     PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId   String?
+
+  @@unique([merchantId, idempotencyKey])
+  @@index([merchantId, status])
+  @@index([clientSecret])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  merchantId        String
+  merchant          Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  intentId          String        @unique
+  intent            PaymentIntent   @relation(fields: [intentId], references: [id], onDelete: Cascade)
+  amount            Decimal       @db.Decimal(18, 2)
+  currency          String        @default("GEL")
+  status            PaymentStatus @default(PENDING)
+  provider          String
+  providerRef       String?
+  grossAmount       Decimal       @db.Decimal(18, 2)
+  platformFee       Decimal       @db.Decimal(18, 2) @default(0)
+  netAmount         Decimal       @db.Decimal(18, 2)
+  authorizedAt      DateTime?
+  capturedAt        DateTime?
+  failedAt          DateTime?
+  failureCode       String?
+  failureMessage    String?
+  metadata          Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  refunds           Refund[]
+  disputes          Dispute[]
+  fraudChecks       FraudCheck[]
+
+  @@index([merchantId, status])
+  @@index([providerRef])
+}
+
+model PaymentMethod {
+  id           String           @id @default(cuid())
+  merchantId   String?
+  customerId   String?
+  type         PaymentMethodType
+  provider     String           @default("mock")
+  tokenRef     String
+  last4        String?
+  brand        String?
+  expMonth     Int?
+  expYear      Int?
+  fingerprint  String?
+  metadata     Json?
+  deletedAt    DateTime?
+  createdAt    DateTime         @default(now())
+  intents      PaymentIntent[]
+
+  @@index([tokenRef])
+}
+
+model Refund {
+  id             String        @id @default(cuid())
+  paymentId      String
+  payment        Payment       @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amount         Decimal       @db.Decimal(18, 2)
+  currency       String        @default("GEL")
+  status         PaymentStatus @default(PENDING)
+  reason         String?
+  idempotencyKey String?
+  providerRef    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([paymentId])
+}
+
+model Dispute {
+  id         String   @id @default(cuid())
+  paymentId  String
+  payment    Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  status     String   @default("open")
+  reason     String?
+  amount     Decimal  @db.Decimal(18, 2)
+  evidence   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([paymentId])
+}
+
+model PaymentLink {
+  id         String   @id @default(cuid())
+  merchantId String
+  code       String   @unique
+  amount     Decimal? @db.Decimal(18, 2)
+  currency   String   @default("GEL")
+  active     Boolean  @default(true)
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([merchantId])
+}
+
+// ─── Ledger & wallets ──────────────────────────────────────────────
+
+model Wallet {
+  id         String   @id @default(cuid())
+  merchantId String?
+  merchant   Merchant? @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  userId     String?
+  currency   String   @default("GEL")
+  createdAt  DateTime @default(now())
+  accounts   LedgerAccount[]
+
+  @@index([merchantId])
+}
+
+model LedgerAccount {
+  id        String            @id @default(cuid())
+  walletId  String
+  wallet    Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  merchantId String?
+  merchant  Merchant?         @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  type      LedgerAccountType
+  currency  String            @default("GEL")
+  createdAt DateTime          @default(now())
+  entries   LedgerEntry[]
+
+  @@unique([walletId, type, currency])
+  @@index([merchantId])
+}
+
+model LedgerEntry {
+  id            String   @id @default(cuid())
+  transactionId String
+  accountId     String
+  account       LedgerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  debit         Decimal  @default(0) @db.Decimal(18, 2)
+  credit        Decimal  @default(0) @db.Decimal(18, 2)
+  currency      String   @default("GEL")
+  description   String?
+  referenceType String?
+  referenceId   String?
+  immutable     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  @@index([transactionId])
+  @@index([accountId])
+  @@index([referenceType, referenceId])
+}
+
+// ─── Payouts ───────────────────────────────────────────────────────
+
+model Payout {
+  id          String       @id @default(cuid())
+  merchantId  String
+  merchant    Merchant     @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  amount      Decimal      @db.Decimal(18, 2)
+  currency    String       @default("GEL")
+  status      PayoutStatus @default(PENDING)
+  scheduledAt DateTime?
+  bankIban    String?
+  failureReason String?
+  providerRef String?
+  attempts    Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([merchantId, status])
+}
+
+// ─── Subscriptions ─────────────────────────────────────────────────
+
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  amount      Decimal  @db.Decimal(18, 2)
+  currency    String   @default("GEL")
+  interval    String   @default("month")
+  usageBased  Boolean  @default(false)
+  active      Boolean  @default(true)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  subscriptions Subscription[]
+  coupons     Coupon[]
+}
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  merchantId         String
+  merchant           Merchant           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  planId             String
+  plan               SubscriptionPlan   @relation(fields: [planId], references: [id])
+  status             SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean            @default(false)
+  metadata           Json?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  invoices           Invoice[]
+
+  @@index([merchantId, status])
+}
+
+model Invoice {
+  id             String   @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amount         Decimal  @db.Decimal(18, 2)
+  currency       String   @default("GEL")
+  status         String   @default("open")
+  dueAt          DateTime
+  paidAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  @@index([subscriptionId])
+}
+
+model Coupon {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  planId    String?
+  plan      SubscriptionPlan? @relation(fields: [planId], references: [id])
+  percentOff Int?
+  amountOff Decimal? @db.Decimal(18, 2)
+  active    Boolean  @default(true)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+// ─── Webhooks ──────────────────────────────────────────────────────
+
+model WebhookEndpoint {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  url        String
+  secret     String
+  events     String[]
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deliveries WebhookDelivery[]
+
+  @@index([merchantId])
+}
+
+model WebhookEvent {
+  id         String   @id @default(cuid())
+  merchantId String
+  type       String
+  payload    Json
+  createdAt  DateTime @default(now())
+  deliveries WebhookDelivery[]
+
+  @@index([merchantId, type])
+}
+
+model WebhookDelivery {
+  id           String                @id @default(cuid())
+  eventId      String
+  event        WebhookEvent          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  endpointId   String
+  endpoint     WebhookEndpoint       @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  status       WebhookDeliveryStatus @default(PENDING)
+  attempts     Int                   @default(0)
+  responseCode Int?
+  lastError    String?
+  nextRetryAt  DateTime?
+  deliveredAt  DateTime?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@index([status, nextRetryAt])
+}
+
+// ─── Fraud ─────────────────────────────────────────────────────────
+
+model FraudCheck {
+  id         String   @id @default(cuid())
+  merchantId String?
+  merchant   Merchant? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  paymentId  String?
+  payment    Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  score      Int
+  decision   String
+  ipAddress  String?
+  country    String?
+  deviceFp   String?
+  rules      Json?
+  createdAt  DateTime @default(now())
+
+  @@index([paymentId])
+  @@index([merchantId])
+}
+
+// ─── Audit & compliance ────────────────────────────────────────────
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  action     AuditAction
+  actorId    String?
+  actor      User?       @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  merchantId String?
+  merchant   Merchant?   @relation("AuditMerchant", fields: [merchantId], references: [id], onDelete: SetNull)
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+
+  @@index([merchantId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+// ─── Orders & checkout modes ───────────────────────────────────────
+
+model Order {
+  id                String        @id @default(cuid())
+  merchantId        String
+  merchant          Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  amount            Decimal       @db.Decimal(18, 2)
+  currency          String        @default("GEL")
+  status            OrderStatus   @default(PENDING)
+  checkoutMode      CheckoutMode  @default(REDIRECT)
+  paymentIntentId   String?
+  clientReferenceId String?
+  description       String?
+  locale            String        @default("en")
+  methods           String[]      @default(["card", "wallets", "banks"])
+  metadata          Json?
+  expiresAt         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  embeddedSession   EmbeddedCheckoutSession?
+  qrPayments        QrPayment[]
+
+  @@index([merchantId, status])
+  @@index([clientReferenceId])
+}
+
+model MerchantCheckoutBranding {
+  id              String   @id @default(cuid())
+  merchantId      String   @unique
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  logoUrl         String?
+  primaryColor    String?  @default("#3b82f6")
+  accentColor     String?  @default("#06b6d4")
+  theme           String   @default("dark")
+  layout          String   @default("default")
+  methodOrder     String[] @default(["card", "apple_pay", "google_pay", "open_banking"])
+  gradient        String?
+  fullscreen      Boolean  @default(false)
+  compact         Boolean  @default(false)
+  locales         String[] @default(["en", "ka"])
+  customCss       Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model EmbeddedCheckoutSession {
+  id           String   @id @default(cuid())
+  merchantId   String
+  merchant     Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  orderId      String   @unique
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sessionToken String   @unique
+  options      Json?
+  params       Json?
+  theme        Json?
+  messages     Json?
+  fieldsCustom Json?
+  cssVariables Json?
+  methods      String[] @default(["card", "wallets", "banks"])
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([merchantId])
+  @@index([sessionToken])
+}
+
+model Customer {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  email      String?
+  name       String?
+  phone      String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tokens     CardToken[]
+
+  @@index([merchantId, email])
+}
+
+model CardToken {
+  id          String   @id @default(cuid())
+  merchantId  String
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  tokenRef    String   @unique
+  last4       String?
+  brand       String?
+  expMonth    Int?
+  expYear     Int?
+  fingerprint String?
+  provider    String   @default("mock")
+  encrypted   String?
+  createdAt   DateTime @default(now())
+
+  @@index([merchantId])
+  @@index([customerId])
+}
+
+model QrPayment {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  orderId    String?
+  order      Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  code       String   @unique
+  amount     Decimal  @db.Decimal(18, 2)
+  currency   String   @default("GEL")
+  status     String   @default("pending")
+  payloadUrl String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([merchantId])
+}
+
+// ─── Legacy bridge (Shopify / existing app) ────────────────────────
+
+model LegacyCheckoutSession {
+  id                String   @id @default(cuid())
+  merchantId        String
+  merchant          Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  intentId          String?  @unique
+  amount            Decimal  @db.Decimal(18, 2)
+  currency          String   @default("GEL")
+  provider          String
+  status            String   @default("open")
+  redirectUrl       String?
+  bankReference     String?
+  successUrl        String
+  cancelUrl         String?
+  clientReferenceId String?
+  idempotencyKey    String?
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([merchantId, idempotencyKey])
+  @@index([merchantId])
+}

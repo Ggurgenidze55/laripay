@@ -6,6 +6,10 @@ const nextConfig = {
   ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   async redirects() {
     return [
+      { source: '/laripay.en', destination: '/laripay/en', permanent: false },
+      { source: '/laripay.en/:path*', destination: '/laripay/en/:path*', permanent: false },
+      { source: '/laripay.ka', destination: '/laripay/ka', permanent: false },
+      { source: '/laripay.ka/:path*', destination: '/laripay/ka/:path*', permanent: false },
       { source: '/lanpay', destination: '/laripay', permanent: true },
       { source: '/lanpay/:path*', destination: '/laripay/:path*', permanent: true },
       { source: '/lari-pay', destination: '/laripay', permanent: true },
@@ -20,8 +24,10 @@ const nextConfig = {
       { source: '/api/payka/:path*', destination: '/api/laripay/:path*', permanent: true },
     ];
   },
+  transpilePackages: ['framer-motion'],
   experimental: {
     serverComponentsExternalPackages: ['@shopify/shopify-api', '@prisma/client'],
+    // Do not use optimizePackageImports for framer-motion — breaks dev vendor-chunks (.next/server/vendor-chunks/framer-motion.js).
   },
   webpack: (config) => {
     const fs = require('fs');

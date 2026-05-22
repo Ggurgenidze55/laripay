@@ -10,7 +10,7 @@ import { FadeIn, Stagger, StaggerItem } from '@/components/motion/fade-in';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 
 export function PricingSection() {
-  const { t, href } = useLocale();
+  const { t, route } = useLocale();
   const p = t.landing.pricing;
 
   const plans = [
@@ -90,7 +90,7 @@ export function PricingSection() {
 
         <FadeIn className="mt-14 text-center">
           <Link
-            href={href('/laripay/onboard')}
+            href={route('onboard')}
             className={cn(
               'group relative inline-flex h-12 items-center overflow-hidden rounded-xl px-8 text-sm font-medium',
               buttonVariants.primary,

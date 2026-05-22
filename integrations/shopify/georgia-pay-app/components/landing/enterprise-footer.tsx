@@ -10,7 +10,7 @@ import { useLocale } from '@/components/i18n/LocaleProvider';
 import { FadeIn } from '@/components/motion/fade-in';
 
 export function EnterpriseFooter() {
-  const { t, href } = useLocale();
+  const { t, route } = useLocale();
   const f = t.landing.footerCta;
 
   return (
@@ -50,7 +50,7 @@ export function EnterpriseFooter() {
           </FadeIn>
           <FadeIn delay={0.2} className="mt-12 flex flex-wrap items-center justify-center gap-4">
             <MagneticLink
-              href={href('/laripay/onboard')}
+              href={route('onboard')}
               className={cn(
                 'group relative inline-flex h-14 items-center overflow-hidden rounded-2xl px-10 text-sm font-medium',
                 buttonVariants.primary,
@@ -60,7 +60,7 @@ export function EnterpriseFooter() {
               <span className="absolute inset-0 shimmer-line opacity-35" />
             </MagneticLink>
             <MagneticLink
-              href={href('/laripay/dashboard')}
+              href={route('dashboard')}
               className={cn(
                 'inline-flex h-14 items-center rounded-2xl px-10 text-sm font-medium',
                 buttonVariants.secondary,

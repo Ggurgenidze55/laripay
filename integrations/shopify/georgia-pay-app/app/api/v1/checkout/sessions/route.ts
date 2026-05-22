@@ -2,8 +2,30 @@ import { NextRequest } from 'next/server';
 import { authenticateApiRequest } from '@/lib/laripay/auth';
 import { createCheckoutSession } from '@/lib/laripay/checkout';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
+import { getLariPayCoreBaseUrl, proxyToLariPayCore } from '@/lib/laripay-core/proxy';
 
 export async function POST(request: NextRequest) {
+  if (getLariPayCoreBaseUrl()) {
+    const authHeader = request.headers.get('authorization') || '';
+    const idempotencyKey = request.headers.get('idempotency-key') || undefined;
+    const body = await request.text();
+    const proxied = await proxyToLariPayCore('/v1/checkout/sessions', {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
+      },
+      body,
+    });
+    if (proxied) {
+      const data = await proxied.json().catch(() => ({}));
+      return new Response(JSON.stringify(data), {
+        status: proxied.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
   const auth = await authenticateApiRequest(request);
   if ('error' in auth) {
     return laripayError(auth.error, auth.status, 'authentication_error');

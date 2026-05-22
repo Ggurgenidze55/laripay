@@ -7,12 +7,15 @@ import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { persistLocale } from '@/lib/i18n/locale-preference';
 import type { Messages } from '@/lib/i18n/messages/en';
 import { localizeHref, swapLocaleInPathname } from '@/lib/i18n/routing';
+import { resolveSiteHref, type ApiRouteKey, type SiteRouteKey } from '@/lib/site-routes';
 
 type LocaleContextValue = {
   locale: Locale;
   messages: Messages;
   t: Messages;
   href: (path: string) => string;
+  /** Resolved localized path for a named site route */
+  route: (key: SiteRouteKey | ApiRouteKey) => string;
   switchLocale: (next: Locale) => void;
 };
 
@@ -36,6 +39,8 @@ export function LocaleProvider({
 
   const href = useCallback((path: string) => localizeHref(path, locale), [locale]);
 
+  const route = useCallback((key: SiteRouteKey | ApiRouteKey) => resolveSiteHref(locale, key), [locale]);
+
   const switchLocale = useCallback(
     (next: Locale) => {
       if (next === locale) return;
@@ -46,8 +51,8 @@ export function LocaleProvider({
   );
 
   const value = useMemo(
-    () => ({ locale, messages, t: messages, href, switchLocale }),
-    [locale, messages, href, switchLocale],
+    () => ({ locale, messages, t: messages, href, route, switchLocale }),
+    [locale, messages, href, route, switchLocale],
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

@@ -1,0 +1,29 @@
+/* LariPay Embedded Checkout v2 — merchant-themeable via CSS variables */
+.lp-checkout {
+  --lp-primary: var(--lp-primary, #3b82f6);
+  --lp-accent: var(--lp-accent, #06b6d4);
+  --lp-bg: var(--lp-bg, #0a0a0f);
+  --lp-text: var(--lp-text, #f1f5f9);
+  --lp-radius: 12px;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--lp-bg);
+  color: var(--lp-text);
+  padding: 1.5rem;
+  border-radius: var(--lp-radius);
+  max-width: 420px;
+}
+.lp-checkout.compact { padding: 1rem; max-width: 360px; }
+.lp-checkout.fullscreen { max-width: 100%; min-height: 100vh; border-radius: 0; }
+.lp-checkout.wallets_only .lp-method-card { display: none; }
+.lp-checkout .lp-title { font-size: 1.25rem; font-weight: 600; margin: 0 0 1rem; }
+.lp-checkout .lp-amount { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
+.lp-checkout .lp-field { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border-radius: 8px; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.05); color: inherit; }
+.lp-checkout .lp-btn {
+  width: 100%; padding: 14px; border: 0; border-radius: 10px; font-weight: 600; cursor: pointer;
+  background: linear-gradient(135deg, var(--lp-primary), var(--lp-accent)); color: #fff;
+  margin-top: 0.75rem;
+}
+.lp-checkout .lp-methods { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.lp-checkout .lp-method { padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,.12); font-size: 0.85rem; cursor: pointer; }
+.lp-checkout .lp-method.active { border-color: var(--lp-accent); }
+.lp-checkout[data-theme="light"] { --lp-bg: #f8fafc; --lp-text: #0f172a; }

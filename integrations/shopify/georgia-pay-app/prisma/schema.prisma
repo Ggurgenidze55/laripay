@@ -75,6 +75,78 @@ model RefundRecord {
 
 // ── Payka platform (Stripe-style for Georgia) ─────────────────────
 
+model PlatformUser {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  name              String?
+  phone             String?
+  phoneVerifiedAt   DateTime?
+  emailVerifiedAt   DateTime?
+  twoFactorRequired Boolean   @default(true)
+  role              String    @default("merchant")
+  merchantId        String?   @unique
+  merchant          Merchant? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  loginChallenges   AuthLoginChallenge[]
+  otpChallenges     AuthOtpChallenge[]
+
+  @@index([email])
+  @@index([phone])
+}
+
+model AuthPendingRegistration {
+  id              String    @id @default(cuid())
+  email           String
+  phone           String
+  passwordHash    String
+  name            String
+  businessName    String
+  slug            String?
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+
+  @@index([email])
+}
+
+model AuthLoginChallenge {
+  id              String       @id @default(cuid())
+  userId          String
+  user            PlatformUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose         String
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+  completedAt     DateTime?
+  expiresAt       DateTime
+  createdAt       DateTime     @default(now())
+
+  @@index([userId])
+}
+
+model AuthOtpChallenge {
+  id           String    @id @default(cuid())
+  userId       String?
+  user         PlatformUser? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pendingId    String?
+  loginId      String?
+  email        String?
+  phone        String?
+  channel      String
+  purpose      String
+  codeHash     String
+  attempts     Int       @default(0)
+  verifiedAt   DateTime?
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+
+  @@index([pendingId, channel])
+  @@index([loginId, channel])
+  @@index([email, purpose])
+}
+
 model Merchant {
   id                      String            @id @default(cuid())
   name                    String
@@ -101,6 +173,7 @@ model Merchant {
   paykaPayments           PaykaPayment[]
   paykaRefunds            PaykaRefund[]
   webhookEndpoints        WebhookEndpoint[]
+  owner                   PlatformUser?
 
   @@index([slug])
 }

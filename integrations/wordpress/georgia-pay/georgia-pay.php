@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: Georgia Pay - TBC & BOG
- * Plugin URI:  https://github.com/fintech-pay/georgia-pay
- * Description: WooCommerce payments in GEL via LariPay.ai (TBC Pay & BOG Pay, 1% or subscription).
+ * Plugin Name: LariPay.ai — Georgia Pay (TBC & BOG)
+ * Plugin URI:  https://laripay.ai
+ * Description: WooCommerce payments in GEL via LariPay.ai REST API (TBC Pay & BOG Pay). Configure API URL + sk_test_ key from laripay.ai/onboard.
  * Version:     1.0.0
  * Author:      Fintech Pay
  * Text Domain: georgia-pay

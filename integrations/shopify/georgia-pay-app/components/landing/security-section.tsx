@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { cn } from '@/lib/utils';
@@ -7,7 +8,7 @@ import { SectionHeader, SectionShell, AmbientOrbs } from './shared';
 import { Stagger, StaggerItem } from '@/components/motion/fade-in';
 
 export function SecuritySection() {
-  const { t } = useLocale();
+  const { t, route } = useLocale();
   const s = t.landing.securitySection;
 
   return (
@@ -18,6 +19,7 @@ export function SecuritySection() {
       <Stagger className="grid gap-6 md:grid-cols-2">
         {s.items.map((item, i) => (
           <StaggerItem key={item.title} className="h-full">
+            <Link href={route('security')} className="block h-full">
             <motion.div
               whileHover={{ y: -4 }}
               className="landing-card-interactive flex h-full gap-5 rounded-2xl border border-border-strong bg-surface-inset px-8 py-7"
@@ -37,6 +39,7 @@ export function SecuritySection() {
                 <p className="mt-3 text-sm leading-relaxed text-foreground-muted">{item.desc}</p>
               </div>
             </motion.div>
+            </Link>
           </StaggerItem>
         ))}
       </Stagger>

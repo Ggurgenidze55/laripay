@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { PageTransition } from '@/components/motion/interactive';
 import { useEffect, useMemo, useState } from 'react';
 import { LariPayLogo } from './Logo';
 import { MobileNav } from './MobileNav';
@@ -13,12 +14,13 @@ import { LanguageToggle } from '@/components/i18n/LanguageToggle';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { localePath } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
+import { LariPayChat } from '@/components/ai/laripay-chat';
 
 const LANDING_RE = /^\/laripay\/(en|ka)\/?$/;
 
 export function LariPayShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { locale, t } = useLocale();
+  const { locale, t, route } = useLocale();
   const isLanding = LANDING_RE.test(pathname);
   const [scrolled, setScrolled] = useState(false);
   const nav = useMemo(() => getSiteNav(locale), [locale]);
@@ -97,7 +99,7 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
             <ThemeToggle className="hidden sm:inline-flex" />
             <MobileNav />
             <Link
-              href={localePath(locale, 'dashboard')}
+              href={route('dashboard')}
               className="shrink-0 rounded-xl bg-gradient-to-r from-accent-blue to-accent-violet px-3 py-2 text-[11px] font-medium text-white shadow-glow transition-transform hover:scale-[1.03] active:scale-[0.98] sm:px-4 sm:text-xs"
             >
               {t.nav.console}
@@ -112,10 +114,18 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
           isLanding ? 'max-w-none px-0 py-0' : 'mx-auto w-full max-w-7xl px-6 py-10 lg:px-8 lg:py-14',
         )}
       >
-        {children}
+        {!isLanding ? (
+          <AnimatePresence mode="wait">
+            <PageTransition key={pathname}>{children}</PageTransition>
+          </AnimatePresence>
+        ) : (
+          children
+        )}
       </main>
 
       {isLanding ? null : <SiteFooter />}
+
+      <LariPayChat />
     </div>
   );
 }

@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: laripay
+      POSTGRES_PASSWORD: laripay
+      POSTGRES_DB: laripay
+    ports:
+      - '5434:5432'
+    volumes:
+      - laripay_core_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U laripay -d laripay']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '4000:4000'
+    environment:
+      DATABASE_URL: postgresql://laripay:laripay@postgres:5432/laripay?schema=public
+      REDIS_URL: redis://redis:6379
+      PORT: 4000
+      NODE_ENV: development
+      JWT_SECRET: dev-jwt-change-in-production
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3002
+      RUN_WORKERS: '0'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    profiles: ['worker']
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ['node', 'dist/workers/webhook-worker.bootstrap.js']
+    environment:
+      DATABASE_URL: postgresql://laripay:laripay@postgres:5432/laripay?schema=public
+      REDIS_URL: redis://redis:6379
+      RUN_WORKERS: '1'
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  laripay_core_pg:

@@ -18,12 +18,23 @@ function redirect(request: NextRequest, pathname: string) {
   return NextResponse.redirect(url);
 }
 
+/** Only real static files — not marketing paths like /laripay.ka */
+function isStaticAsset(pathname: string): boolean {
+  return /\.(?:ico|svg|png|jpe?g|gif|webp|css|js|mjs|map|woff2?|ttf|txt|xml|json)$/i.test(pathname);
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const cookieLocale = preferredLocale(request);
 
-  if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.includes('.')) {
+  if (pathname.startsWith('/api') || pathname.startsWith('/_next') || isStaticAsset(pathname)) {
     return NextResponse.next();
+  }
+
+  // Common typo: /laripay.ka or /laripay.en (dot instead of slash)
+  const dotLocale = pathname.match(/^\/laripay\.(en|ka)\/?$/);
+  if (dotLocale && isLocale(dotLocale[1])) {
+    return redirect(request, `/laripay/${dotLocale[1]}`);
   }
 
   if (pathname === '/lanpay' || pathname === '/lanpay/') {
@@ -57,6 +68,11 @@ export function middleware(request: NextRequest) {
 
   if (pathname === '/' || pathname === '/laripay' || pathname === '/laripay/') {
     return redirect(request, `/laripay/${cookieLocale}`);
+  }
+
+  if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+    const tail = pathname === '/dashboard' ? 'dashboard' : pathname.slice(1);
+    return redirect(request, canonicalMarketingPath(`/laripay/${tail}`, cookieLocale));
   }
 
   if (pathname.match(/^\/(en|ka)\/(?:pay|payka|laripay)(?:\/|$)/)) {

@@ -8,6 +8,7 @@ import { HeroSection } from './hero-section';
 import { InfrastructureScroll } from './infrastructure-scroll';
 import { DeveloperExperience } from './developer-experience';
 import { PaymentInfrastructure } from './payment-infrastructure';
+import { PlatformTeaserSection } from './platform-teaser-section';
 import { DashboardPreviewScroll } from './dashboard-preview-scroll';
 import { AnalyticsSection } from './analytics-section';
 import { WebhookSystem } from './webhook-system';
@@ -36,6 +37,7 @@ export function LandingExperience() {
         <InfrastructureScroll />
         <DeveloperExperience />
         <PaymentInfrastructure />
+        <PlatformTeaserSection />
         <DashboardPreviewScroll />
         <AnalyticsSection />
         <WebhookSystem />

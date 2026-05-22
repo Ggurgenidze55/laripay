@@ -8,24 +8,32 @@ import { LanguageToggle } from '@/components/i18n/LanguageToggle';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { localePath } from '@/lib/i18n/routing';
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 
 function FooterColumn({ title, links }: { title: string; links: readonly { href: string; label: string }[] }) {
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    >
       <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-foreground-muted">{title}</h3>
       <ul className="mt-4 space-y-2.5">
         {links.map((link) => (
           <li key={link.href}>
-            <Link
-              href={link.href}
-              className="text-sm text-foreground-muted transition-colors hover:text-foreground/85"
-            >
-              {link.label}
-            </Link>
+            <motion.span whileHover={{ x: 4 }} className="inline-block">
+              <Link
+                href={link.href}
+                className="text-sm text-foreground-muted transition-colors hover:text-accent-cyan"
+              >
+                {link.label}
+              </Link>
+            </motion.span>
           </li>
         ))}
       </ul>
-    </div>
+    </motion.div>
   );
 }
 

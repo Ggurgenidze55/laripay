@@ -35,6 +35,57 @@ services:
       postgres:
         condition: service_healthy
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  laripay-core-api:
+    profiles: ["core"]
+    build:
+      context: ../services/laripay-core
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://laripay:${POSTGRES_PASSWORD:-laripay_dev_change_me}@postgres:5432/laripay?schema=public
+      REDIS_URL: redis://redis:6379
+      PORT: 4000
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:-change-me-jwt}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3002}
+      RUN_WORKERS: "0"
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  laripay-core-worker:
+    profiles: ["core"]
+    build:
+      context: ../services/laripay-core
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["node", "dist/workers/webhook-worker.bootstrap.js"]
+    environment:
+      DATABASE_URL: postgresql://laripay:${POSTGRES_PASSWORD:-laripay_dev_change_me}@postgres:5432/laripay?schema=public
+      REDIS_URL: redis://redis:6379
+      RUN_WORKERS: "1"
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   # Optional HTTPS reverse proxy (uncomment + set DOMAIN in .env.production)
   # caddy:
   #   image: caddy:2-alpine

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { FaqList } from '@/components/motion/interactive';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { MarketingPage, MarketingSection } from '@/components/laripay/MarketingPage';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
@@ -28,14 +29,7 @@ export default function PricingPage({ params }: Props) {
       <PricingSection />
       <div className="mx-auto max-w-3xl px-6 lg:px-8">
         <MarketingSection title={p.faqTitle}>
-          <dl className="space-y-6">
-            {p.faq.map((item) => (
-              <div key={item.q}>
-                <dt className="font-medium text-foreground/85">{item.q}</dt>
-                <dd className="mt-2 text-foreground-muted">{item.a}</dd>
-              </div>
-            ))}
-          </dl>
+          <FaqList items={p.faq} />
         </MarketingSection>
         <p className="mt-8 text-sm text-foreground-muted">
           {p.questions}{' '}

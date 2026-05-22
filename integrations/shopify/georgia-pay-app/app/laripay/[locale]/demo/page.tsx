@@ -6,11 +6,12 @@ import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { FadeIn } from '@/components/motion/fade-in';
+import { FadeIn, Stagger, StaggerItem } from '@/components/motion/fade-in';
+import { HoverLift } from '@/components/motion/interactive';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 
 export default function DemoPage() {
-  const { t, href, locale } = useLocale();
+  const { t, route, locale } = useLocale();
   const p = t.pages.demo;
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,8 +44,8 @@ export default function DemoPage() {
         body: JSON.stringify({
           amount: 2.0,
           provider,
-          success_url: `${origin}/laripay/${locale}/dashboard?paid=1`,
-          cancel_url: `${origin}/laripay/${locale}/demo`,
+          success_url: `${origin}${route('dashboard')}?paid=1`,
+          cancel_url: `${origin}${route('demo')}`,
         }),
       });
       const data = await res.json();
@@ -70,20 +71,28 @@ export default function DemoPage() {
         <p className="mt-2 max-w-xl text-foreground-muted">{p.description}</p>
       </FadeIn>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-2">
-        <Card glow>
-          <h2 className="text-lg font-medium">{p.apiCardTitle}</h2>
-          <p className="mt-1 text-sm text-foreground-muted">{p.apiCardDesc}</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button disabled={loading} onClick={() => startLariPayCheckout('tbc')}>
-              TBC · 2.00 ₾
-            </Button>
-            <Button variant="secondary" disabled={loading} onClick={() => startLariPayCheckout('bog')}>
-              BOG · 2.00 ₾
-            </Button>
-          </div>
-        </Card>
-      </div>
+      <Stagger className="mt-10 grid gap-6 md:grid-cols-2">
+        <StaggerItem>
+          <HoverLift>
+            <Card glow>
+              <h2 className="text-lg font-medium">{p.apiCardTitle}</h2>
+              <p className="mt-1 text-sm text-foreground-muted">{p.apiCardDesc}</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button disabled={loading} onClick={() => startLariPayCheckout('tbc')}>
+                    TBC · 2.00 ₾
+                  </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                  <Button variant="secondary" disabled={loading} onClick={() => startLariPayCheckout('bog')}>
+                    BOG · 2.00 ₾
+                  </Button>
+                </motion.div>
+              </div>
+            </Card>
+          </HoverLift>
+        </StaggerItem>
+      </Stagger>
 
       {result && (
         <motion.pre
@@ -96,7 +105,7 @@ export default function DemoPage() {
       )}
 
       <p className="mt-10 text-sm text-foreground-muted">
-        <Link href={href('/laripay/dashboard')} className="text-accent-cyan hover:underline">
+        <Link href={route('dashboard')} className="text-accent-cyan hover:underline">
           {p.dashboard}
         </Link>{' '}
         ·{' '}

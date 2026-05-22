@@ -49,7 +49,21 @@ export async function POST(request: NextRequest) {
       201,
     );
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Signup failed';
-    return laripayError(message, 422);
+    const raw = err instanceof Error ? err.message : 'Signup failed';
+    if (raw.includes('Unique constraint') && raw.includes('slug')) {
+      return laripayError(
+        'This shop slug is already taken. Choose another slug or sign in via the merchant console.',
+        409,
+        'duplicate_slug',
+      );
+    }
+    if (raw.includes('Unique constraint') && raw.includes('email')) {
+      return laripayError(
+        'An account with this email already exists. Use the merchant console with your API key.',
+        409,
+        'duplicate_email',
+      );
+    }
+    return laripayError(raw, 422);
   }
 }

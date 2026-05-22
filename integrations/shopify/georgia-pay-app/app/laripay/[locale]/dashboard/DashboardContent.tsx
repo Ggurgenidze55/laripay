@@ -4,14 +4,18 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Stagger, StaggerItem } from '@/components/motion/fade-in';
+import { HoverLift } from '@/components/motion/interactive';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LoginPanel } from '@/components/dashboard/login-panel';
+import { MerchantConsoleLoginPanel } from '@/components/dashboard/merchant-console-login-panel';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { RevenueChart } from '@/components/dashboard/revenue-chart';
 import { TransactionFeed } from '@/components/dashboard/transaction-feed';
 import { InfrastructurePanel } from '@/components/dashboard/infrastructure-panel';
+import { PlatformToolsPanel } from '@/components/dashboard/platform-tools-panel';
+import { DashboardTabs, type DashboardTab } from '@/components/dashboard/dashboard-tabs';
 import { StatusBadge } from '@/components/laripay/StatusBadge';
 import { parseApiJson } from '@/lib/parse-api-json';
 import { useLocale } from '@/components/i18n/LocaleProvider';
@@ -53,16 +57,16 @@ interface DashboardData {
 }
 
 export default function DashboardContent() {
-  const { href, t } = useLocale();
+  const { route, t } = useLocale();
   const d = t.dashboard;
   const l = d.login;
   const searchParams = useSearchParams();
   const paidSuccess = searchParams.get('paid') === '1';
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
-  const [apiKey, setApiKey] = useState('');
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<DashboardTab>('overview');
 
   const loadDashboard = useCallback(async () => {
     setError('');
@@ -84,27 +88,13 @@ export default function DashboardContent() {
     loadDashboard();
   }, [loadDashboard]);
 
-  async function login(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    const res = await fetch('/api/laripay/portal/login', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey.trim()}` },
-      credentials: 'include',
-    });
-    const { data: d } = await parseApiJson<{ error?: { message?: string } }>(res);
-    if (!res.ok) {
-      setError(d?.error?.message || l.loginFailed);
-      return;
-    }
-    await loadDashboard();
-  }
-
   async function logout() {
-    await fetch('/api/laripay/portal/logout', { method: 'POST', credentials: 'include' });
+    await Promise.all([
+      fetch('/api/laripay/portal/logout', { method: 'POST', credentials: 'include' }),
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }),
+    ]);
     setData(null);
     setLoggedIn(false);
-    setApiKey('');
   }
 
   if (loading && !loggedIn) {
@@ -120,12 +110,12 @@ export default function DashboardContent() {
   }
 
   if (!loggedIn) {
-    return (
-      <LoginPanel apiKey={apiKey} setApiKey={setApiKey} error={error} onSubmit={login} />
-    );
+    return <MerchantConsoleLoginPanel onLoggedIn={loadDashboard} />;
   }
 
   if (!data) return null;
+
+  const hasLiveKey = data.api_keys.some((k) => k.mode === 'live');
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
@@ -135,70 +125,55 @@ export default function DashboardContent() {
         </div>
       )}
 
-      <div className="flex flex-wrap items-start justify-between gap-6">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-wrap items-start justify-between gap-6"
+      >
         <div>
-          <Badge variant="live" pulse className="mb-3">
-            {d.controlCenter}
-          </Badge>
+          <div className="mb-3 flex flex-wrap gap-2">
+            <Badge variant="live" pulse>
+              {d.controlCenter}
+            </Badge>
+            <Badge variant={hasLiveKey ? 'live' : 'accent'}>
+              {hasLiveKey ? d.productionMode : d.sandboxMode}
+            </Badge>
+          </div>
           <h1 className="text-3xl font-semibold tracking-tight">{data.merchant.slug}</h1>
           <p className="mt-1 text-sm text-foreground-muted">{data.merchant.email}</p>
         </div>
-        <Button variant="ghost" onClick={logout}>
-          {d.signOut}
-        </Button>
-      </div>
+        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+          <Button variant="ghost" onClick={logout}>
+            {d.signOut}
+          </Button>
+        </motion.div>
+      </motion.div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard label={d.payments} value={data.stats.payments_succeeded} pulse />
-        <StatCard label={d.grossVolume} value={data.stats.gross_volume} suffix=" ₾" decimals={2} />
-        <StatCard label={d.platformFees} value={data.stats.platform_fees} suffix=" ₾" decimals={2} />
-        <StatCard label={d.netVolume} value={data.stats.net_volume} suffix=" ₾" decimals={2} trend={d.afterFees} />
-        <StatCard label={d.refunds} value={data.stats.refunds_succeeded} />
-      </div>
+      <DashboardTabs active={tab} onChange={setTab} labels={d.tabs} />
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        <RevenueChart grossVolume={data.stats.gross_volume} />
-        <InfrastructurePanel
-          tbc={!!data.merchant.bank_configured?.tbc}
-          bog={!!data.merchant.bank_configured?.bog}
-          billingMode={data.merchant.billing_mode}
-        />
-      </div>
+      {tab === 'overview' && (
+        <>
+          <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <StaggerItem><StatCard label={d.payments} value={data.stats.payments_succeeded} pulse /></StaggerItem>
+            <StaggerItem><StatCard label={d.grossVolume} value={data.stats.gross_volume} suffix=" ₾" decimals={2} /></StaggerItem>
+            <StaggerItem><StatCard label={d.platformFees} value={data.stats.platform_fees} suffix=" ₾" decimals={2} /></StaggerItem>
+            <StaggerItem><StatCard label={d.netVolume} value={data.stats.net_volume} suffix=" ₾" decimals={2} trend={d.afterFees} /></StaggerItem>
+            <StaggerItem><StatCard label={d.refunds} value={data.stats.refunds_succeeded} /></StaggerItem>
+          </Stagger>
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            <RevenueChart grossVolume={data.stats.gross_volume} />
+            <InfrastructurePanel
+              tbc={!!data.merchant.bank_configured?.tbc}
+              bog={!!data.merchant.bank_configured?.bog}
+              billingMode={data.merchant.billing_mode}
+            />
+          </div>
+        </>
+      )}
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <TransactionFeed payments={data.recent_payments} />
-
-        <div className="space-y-6">
-          <Card className="!p-5">
-            <h3 className="text-sm font-medium">{d.apiUsage}</h3>
-            <p className="mt-2 font-mono text-3xl font-semibold text-accent-cyan">
-              {data.stats.payments_succeeded * 3 + 12}
-            </p>
-            <p className="text-xs text-foreground-muted">{d.requestsToday}</p>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-foreground/[0.05]">
-              <motion.div
-                className="h-full bg-gradient-to-r from-accent-blue to-accent-cyan"
-                initial={{ width: 0 }}
-                animate={{ width: '68%' }}
-                transition={{ duration: 1.2, ease: 'easeOut' }}
-              />
-            </div>
-          </Card>
-
-          {data.api_keys.length > 0 && (
-            <Card className="!p-5">
-              <h3 className="text-sm font-medium">{d.apiKeys}</h3>
-              <ul className="mt-3 space-y-2">
-                {data.api_keys.map((k) => (
-                  <li key={k.id} className="flex items-center justify-between font-mono text-xs">
-                    <code className="text-foreground-muted">{k.prefix}…</code>
-                    <Badge variant="accent">{k.mode}</Badge>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-
+      {tab === 'transactions' && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TransactionFeed payments={data.recent_payments} />
           {data.recent_refunds.length > 0 && (
             <Card className="!p-5">
               <h3 className="text-sm font-medium">{d.refunds}</h3>
@@ -213,17 +188,61 @@ export default function DashboardContent() {
             </Card>
           )}
         </div>
-      </div>
+      )}
 
-      <Card className="mt-8 !p-5">
-        <h3 className="text-sm font-medium">{d.integration}</h3>
-        <p className="mt-2 font-mono text-xs text-foreground-muted">
-          POST /api/v1/checkout/sessions · PATCH /api/laripay/merchants/me
-        </p>
-        <Link href={href('/laripay/demo')} className="mt-4 inline-block text-sm text-accent-cyan hover:underline">
-          {d.runDemo}
-        </Link>
-      </Card>
+      {tab === 'api' && (
+        <>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card className="!p-5">
+              <h3 className="text-sm font-medium">{d.apiKeys}</h3>
+              <ul className="mt-3 space-y-2">
+                {data.api_keys.map((k) => (
+                  <li key={k.id} className="flex items-center justify-between font-mono text-xs">
+                    <code className="text-foreground-muted">{k.prefix}…</code>
+                    <Badge variant="accent">{k.mode}</Badge>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+            <Card className="!p-5">
+              <h3 className="text-sm font-medium">{d.integration}</h3>
+              <p className="mt-2 font-mono text-xs text-foreground-muted">
+                POST /api/v1/checkout/sessions
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                <Link href={route('playground')} className="text-accent-cyan hover:underline">
+                  {d.openPlayground}
+                </Link>
+                <Link href={route('docs')} className="text-accent-cyan hover:underline">
+                  {d.openDocs}
+                </Link>
+              </div>
+            </Card>
+          </div>
+          <PlatformToolsPanel />
+        </>
+      )}
+
+      {tab === 'billing' && (
+        <Card className="!p-5 max-w-lg">
+          <h3 className="text-sm font-medium">{d.billingTitle}</h3>
+          <p className="mt-2 text-sm text-foreground-muted">
+            {d.billingMode}: <strong>{data.merchant.billing_mode}</strong>
+          </p>
+          {data.merchant.subscription_plan && (
+            <p className="mt-1 text-sm text-foreground-muted">
+              {d.plan}: {data.merchant.subscription_plan}
+              {data.merchant.subscription_active ? ` (${d.active})` : ''}
+            </p>
+          )}
+          <p className="mt-1 text-sm text-foreground-muted">
+            {d.commission}: {(data.merchant.commission_rate_bps ?? 100) / 100}%
+          </p>
+          <Link href={route('pricing')} className="mt-4 inline-block text-sm text-accent-cyan hover:underline">
+            {d.viewPricing}
+          </Link>
+        </Card>
+      )}
     </motion.div>
   );
 }

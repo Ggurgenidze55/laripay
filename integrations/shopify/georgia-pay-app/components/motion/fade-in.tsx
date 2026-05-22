@@ -54,7 +54,12 @@ export function Stagger({ children, className }: { children: React.ReactNode; cl
 
 export function StaggerItem({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.div variants={item} className={className}>
+    <motion.div
+      variants={item}
+      whileHover={{ y: -2 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+      className={className}
+    >
       {children}
     </motion.div>
   );
