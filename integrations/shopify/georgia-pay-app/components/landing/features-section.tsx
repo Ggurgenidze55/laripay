@@ -35,7 +35,7 @@ const FEATURES = [
 
 export function FeaturesSection() {
   return (
-    <section className="border-t border-white/[0.06] py-28">
+    <section className="border-t border-border py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <FadeIn>
           <h2 className="text-3xl font-semibold tracking-tight">Why teams choose LariPay.ai</h2>
@@ -48,7 +48,7 @@ export function FeaturesSection() {
                   {f.icon}
                 </div>
                 <h3 className="text-lg font-medium">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/45">{f.desc}</p>
+                <p className="mt-2 text-sm leading-relaxed text-foreground-muted">{f.desc}</p>
               </Card>
             </StaggerItem>
           ))}

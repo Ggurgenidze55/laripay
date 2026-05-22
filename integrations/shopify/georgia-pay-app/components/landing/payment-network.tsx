@@ -149,7 +149,7 @@ export function PaymentNetwork() {
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute left-4 top-4 glass-panel glow-border rounded-xl px-3.5 py-2.5 font-mono text-[10px]"
       >
-        <span className="text-white/35">POST </span>
+        <span className="text-foreground-muted">POST </span>
         <span className="text-accent-cyan">/v1/checkout</span>
         <motion.div
           key={txAmount}
@@ -173,7 +173,7 @@ export function PaymentNetwork() {
           </span>
           live
         </div>
-        <motion.div key={eventIdx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-1 truncate text-white/55">
+        <motion.div key={eventIdx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-1 truncate text-foreground-muted">
           {EVENTS[eventIdx]}
         </motion.div>
       </motion.div>

@@ -9,12 +9,12 @@ type Size = 'sm' | 'md' | 'lg';
 
 export const buttonVariants: Record<Variant, string> = {
   primary:
-    'bg-gradient-to-r from-accent-blue to-accent-violet text-white shadow-glow hover:shadow-glow-violet border border-white/10',
+    'bg-gradient-to-r from-accent-blue to-accent-violet text-white shadow-glow hover:shadow-glow-violet border border-border',
   secondary:
-    'glass-panel text-white/90 hover:bg-white/[0.06] border-white/10',
-  ghost: 'text-white/70 hover:text-white hover:bg-white/[0.04]',
+    'border border-border-strong bg-canvas-card text-foreground shadow-card hover:bg-canvas-elevated dark:glass-panel dark:shadow-none dark:hover:bg-foreground/[0.06]',
+  ghost: 'text-foreground-muted hover:text-foreground hover:bg-surface-inset',
   outline:
-    'border border-white/15 text-white/80 hover:border-accent-blue/50 hover:text-white',
+    'border border-border-strong text-foreground hover:border-accent-blue/60 hover:bg-canvas-elevated',
 };
 
 const sizes: Record<Size, string> = {

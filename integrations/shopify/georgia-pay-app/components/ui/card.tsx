@@ -22,13 +22,13 @@ export function Card({
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       whileHover={hover ? { y: -4, transition: { duration: 0.2 } } : undefined}
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-white/[0.06] bg-canvas-card/80 p-6 shadow-card backdrop-blur-sm',
+        'relative overflow-hidden rounded-2xl border border-border-strong bg-canvas-card p-6 shadow-card',
         glow && 'glow-border',
-        hover && 'hover:border-white/10 hover:shadow-lift',
+        hover && 'hover:border-border-strong hover:shadow-lift',
         className,
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-foreground/[0.04] to-transparent dark:from-foreground/[0.02]" />
       <div className="relative">{children}</div>
     </motion.div>
   );

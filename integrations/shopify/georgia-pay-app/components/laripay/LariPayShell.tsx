@@ -3,17 +3,26 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LariPayLogo } from './Logo';
 import { MobileNav } from './MobileNav';
 import { SiteFooter } from './SiteFooter';
-import { SITE_NAV } from '@/lib/site-links';
+import { getSiteNav } from '@/lib/site-links';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { LanguageToggle } from '@/components/i18n/LanguageToggle';
+import { useLocale } from '@/components/i18n/LocaleProvider';
+import { localePath } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
+
+const LANDING_RE = /^\/laripay\/(en|ka)\/?$/;
 
 export function LariPayShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLanding = pathname === '/laripay';
+  const { locale, t } = useLocale();
+  const isLanding = LANDING_RE.test(pathname);
   const [scrolled, setScrolled] = useState(false);
+  const nav = useMemo(() => getSiteNav(locale), [locale]);
+  const homeHref = localePath(locale);
 
   useEffect(() => {
     if (!isLanding) return;
@@ -37,9 +46,9 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
           'sticky top-0 z-50 border-b backdrop-blur-2xl transition-all duration-500',
           isLanding
             ? scrolled
-              ? 'border-white/[0.08] bg-canvas/85 shadow-[0_8px_40px_rgba(0,0,0,0.45)]'
+              ? 'border-border-strong bg-canvas/95 shadow-glow-light dark:shadow-[0_8px_40px_rgba(0,0,0,0.45)]'
               : 'border-transparent bg-transparent'
-            : 'border-white/[0.06] bg-canvas/70',
+            : 'border-border-strong bg-canvas/90 backdrop-blur-xl',
         )}
       >
         <div
@@ -48,18 +57,18 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
             isLanding ? 'max-w-[90rem]' : 'max-w-7xl',
           )}
         >
-          <Link href="/laripay" className="flex shrink-0 items-center gap-3 transition-opacity hover:opacity-90">
-            <LariPayLogo size={32} variant="light" />
-            <span className="hidden text-sm font-medium tracking-tight text-white/80 sm:inline">
+          <Link href={homeHref} className="flex shrink-0 items-center gap-3 transition-opacity hover:opacity-90">
+            <LariPayLogo size={32} />
+            <span className="hidden text-sm font-medium tracking-tight text-foreground/80 sm:inline">
               LariPay.ai
             </span>
           </Link>
 
           <nav className="hidden items-center gap-1 sm:flex" aria-label="Main">
-            {SITE_NAV.map((item) => {
+            {nav.map((item) => {
               const active =
-                item.href === '/laripay'
-                  ? pathname === '/laripay'
+                item.href === homeHref
+                  ? isLanding
                   : pathname === item.href || pathname?.startsWith(`${item.href}/`);
               return (
                 <Link
@@ -67,13 +76,13 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={cn(
                     'relative rounded-lg px-3 py-2 text-sm transition-colors',
-                    active ? 'text-white' : 'text-white/45 hover:text-white/80',
+                    active ? 'font-medium text-foreground' : 'text-foreground-muted hover:text-foreground',
                   )}
                 >
                   {active && (
                     <motion.span
                       layoutId="nav-pill"
-                      className="absolute inset-0 rounded-lg bg-white/[0.06] ring-1 ring-white/10"
+                      className="absolute inset-0 rounded-lg bg-foreground/[0.06] ring-1 ring-border"
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -84,12 +93,14 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            <LanguageToggle className="hidden sm:inline-flex" />
+            <ThemeToggle className="hidden sm:inline-flex" />
             <MobileNav />
             <Link
-              href="/laripay/dashboard"
+              href={localePath(locale, 'dashboard')}
               className="rounded-xl bg-gradient-to-r from-accent-blue to-accent-violet px-4 py-2 text-xs font-medium text-white shadow-glow transition-transform hover:scale-[1.03] active:scale-[0.98]"
             >
-              Console
+              {t.nav.console}
             </Link>
           </div>
         </div>

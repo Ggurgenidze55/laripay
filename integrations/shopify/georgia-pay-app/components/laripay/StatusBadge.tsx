@@ -14,7 +14,7 @@ const map: Record<string, string> = {
 
 export function StatusBadge({ status }: { status: string }) {
   const s = status.toLowerCase();
-  const style = map[s] || 'bg-white/5 text-white/50 border-white/10';
+  const style = map[s] || 'bg-foreground/[0.05] text-foreground-muted border-border';
 
   return (
     <span

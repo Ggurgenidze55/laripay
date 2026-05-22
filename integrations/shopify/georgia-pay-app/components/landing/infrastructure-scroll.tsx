@@ -1,41 +1,28 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
 import { cn } from '@/lib/utils';
+import { useLocale } from '@/components/i18n/LocaleProvider';
 import { SectionHeader, SectionShell, AmbientOrbs } from './shared';
 
-const STEPS = [
-  {
-    title: 'Merchant connects',
-    body: 'Shops onboard via API or dashboard. API keys, webhooks, and billing mode activate instantly.',
-    label: '01',
-    node: 'API',
-  },
-  {
-    title: 'Checkout session created',
-    body: 'Your backend calls POST /v1/checkout/sessions. Customer redirects to TBC or BOG.',
-    label: '02',
-    node: 'TBC',
-  },
-  {
-    title: 'Payment authorized',
-    body: 'Bank confirms GEL settlement. Platform fee calculated — commission or subscription.',
-    label: '03',
-    node: 'BOG',
-  },
-  {
-    title: 'Webhooks & balance',
-    body: 'Signed events fire to your stack. Dashboard updates in realtime. Refunds ready.',
-    label: '04',
-    node: 'Webhook',
-  },
-];
-
+const STEP_NODES = ['API', 'TBC', 'BOG', 'Webhook'] as const;
 const ORBIT_NODES = ['API', 'TBC', 'BOG', 'Webhook', 'Ledger'];
 
 export function InfrastructureScroll() {
+  const { t } = useLocale();
+  const s = t.landing.infrastructure;
+  const STEPS = useMemo(
+    () =>
+      s.steps.map((step, i) => ({
+        ...step,
+        label: `0${i + 1}`,
+        node: STEP_NODES[i] ?? 'API',
+      })),
+    [s.steps],
+  );
+
   const containerRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -53,11 +40,10 @@ export function InfrastructureScroll() {
         start: 'top top',
         end: '+=260%',
         pin: pin,
-        scrub: 0.6,
-        anticipatePin: 1,
+        scrub: true,
         onUpdate: (self) => {
-          const step = Math.min(STEPS.length - 1, Math.floor(self.progress * STEPS.length));
-          setActiveStep(step);
+          const idx = Math.min(STEPS.length - 1, Math.floor(self.progress * STEPS.length));
+          setActiveStep(idx);
         },
       });
 
@@ -76,7 +62,7 @@ export function InfrastructureScroll() {
     }, container);
 
     return () => ctx.revert();
-  }, []);
+  }, [STEPS.length]);
 
   const activeNode = STEPS[activeStep]?.node ?? 'API';
 
@@ -87,13 +73,8 @@ export function InfrastructureScroll() {
         <div ref={pinRef} className="flex min-h-screen items-center py-24">
           <div className="grid w-full gap-20 lg:grid-cols-2 lg:gap-28">
             <div>
-              <SectionHeader
-                align="left"
-                eyebrow="How it works"
-                title="Infrastructure that scales with every transaction"
-                description="Scroll the lifecycle — watch each layer activate as payments move through the stack."
-              />
-              <div className="relative mt-14 h-1 overflow-hidden rounded-full bg-white/[0.04]">
+              <SectionHeader align="left" eyebrow={s.eyebrow} title={s.title} description={s.description} />
+              <div className="relative mt-14 h-1 overflow-hidden rounded-full bg-foreground/[0.04]">
                 <div
                   ref={progressRef}
                   className="h-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-accent-blue via-accent-cyan to-accent-violet"
@@ -111,15 +92,13 @@ export function InfrastructureScroll() {
                     className={cn(
                       'rounded-2xl border-l-2 py-4 pl-8 pr-4 transition-colors',
                       activeStep === i
-                        ? 'border-accent-cyan bg-white/[0.03]'
-                        : 'border-white/10 bg-transparent',
+                        ? 'border-accent-cyan bg-surface-inset'
+                        : 'border-border-strong bg-transparent',
                     )}
                   >
                     <span className="font-mono text-xs text-accent-cyan/90">{step.label}</span>
-                    <h3 className="mt-2 text-xl font-medium tracking-tight text-white/95">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 max-w-md text-sm leading-relaxed text-white/42">{step.body}</p>
+                    <h3 className="mt-2 text-xl font-medium tracking-tight text-foreground">{step.title}</h3>
+                    <p className="mt-2 max-w-md text-sm leading-relaxed text-foreground-muted">{step.body}</p>
                   </motion.div>
                 ))}
               </div>
@@ -133,7 +112,7 @@ export function InfrastructureScroll() {
                   transition={{ duration: 48, repeat: Infinity, ease: 'linear' }}
                 />
                 <motion.div
-                  className="absolute inset-10 rounded-full border border-dashed border-white/[0.08]"
+                  className="absolute inset-10 rounded-full border border-dashed border-border-strong"
                   animate={{ rotate: -360 }}
                   transition={{ duration: 64, repeat: Infinity, ease: 'linear' }}
                 />
@@ -149,8 +128,8 @@ export function InfrastructureScroll() {
                       className={cn(
                         'absolute rounded-xl px-3.5 py-2.5 font-mono text-[11px] backdrop-blur-xl transition-shadow',
                         isPrimary
-                          ? 'glass-panel glow-border text-white shadow-glow'
-                          : 'border border-white/[0.06] bg-white/[0.02] text-white/45',
+                          ? 'glass-panel glow-border text-foreground shadow-glow'
+                          : 'border border-border-strong bg-canvas-card text-foreground-muted shadow-card',
                       )}
                       style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}
                       animate={{ scale: isPrimary ? 1.08 : 1 }}
@@ -161,14 +140,13 @@ export function InfrastructureScroll() {
                 })}
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={activeStep}
+                    key={activeNode}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-accent-blue/40 to-accent-violet/25 font-mono text-sm text-white shadow-glow ring-1 ring-white/10"
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center"
                   >
-                    <span className="text-[10px] text-white/50">SETTLE</span>
-                    <span className="mt-1 text-lg font-semibold">GEL</span>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent-cyan">{activeNode}</p>
                   </motion.div>
                 </AnimatePresence>
               </div>

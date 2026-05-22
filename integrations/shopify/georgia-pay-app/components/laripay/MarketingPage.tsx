@@ -23,11 +23,11 @@ export function MarketingPage({
           {eyebrow}
         </Badge>
       ) : null}
-      <h1 className="text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl">{title}</h1>
+      <h1 className="text-4xl font-semibold tracking-[-0.02em] text-foreground sm:text-5xl">{title}</h1>
       {description ? (
-        <p className="mt-5 text-lg leading-relaxed text-white/50">{description}</p>
+        <p className="mt-5 text-lg leading-relaxed text-foreground-muted">{description}</p>
       ) : null}
-      <div className="prose-laripay mt-10 space-y-6 text-[15px] leading-relaxed text-white/65">
+      <div className="prose-laripay mt-10 space-y-6 text-[15px] leading-relaxed text-foreground/65">
         {children}
       </div>
     </article>
@@ -42,14 +42,14 @@ export function MarketingSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-3 border-t border-white/[0.06] pt-8 first:border-0 first:pt-0">
-      <h2 className="text-xl font-medium text-white/90">{title}</h2>
-      <div className="space-y-3 text-white/60">{children}</div>
+    <section className="space-y-3 border-t border-border pt-8 first:border-0 first:pt-0">
+      <h2 className="text-xl font-medium text-foreground">{title}</h2>
+      <div className="space-y-3 text-foreground/60">{children}</div>
     </section>
   );
 }
 
-export function MarketingList({ items }: { items: string[] }) {
+export function MarketingList({ items }: { items: readonly string[] }) {
   return (
     <ul className="list-disc space-y-2 pl-5 marker:text-accent-cyan/80">
       {items.map((item) => (

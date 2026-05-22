@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils';
 
 const styles = {
-  default: 'bg-white/5 text-white/70 border-white/10',
+  default: 'border-border-strong bg-surface-inset text-foreground-muted',
   live: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
   pending: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-  accent: 'bg-accent-blue/10 text-accent-cyan border-accent-blue/30',
+  accent: 'border-accent-blue/35 bg-accent-blue/12 text-accent-blue dark:text-accent-cyan',
 };
 
 export function Badge({

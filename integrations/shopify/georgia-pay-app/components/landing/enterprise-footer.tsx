@@ -6,8 +6,12 @@ import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SiteFooter } from '@/components/laripay/SiteFooter';
 import { PricingSection } from './pricing-section';
+import { useLocale } from '@/components/i18n/LocaleProvider';
 
 export function EnterpriseFooter() {
+  const { t, href } = useLocale();
+  const f = t.landing.footerCta;
+
   return (
     <>
       <PricingSection />
@@ -22,31 +26,29 @@ export function EnterpriseFooter() {
 
         <div className="relative mx-auto max-w-4xl px-6 text-center lg:px-8">
           <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
-            <span className="text-gradient">Ship payments</span>
+            <span className="text-gradient">{f.title1}</span>
             <br />
-            <span className="text-gradient-accent">like infrastructure</span>
+            <span className="text-gradient-accent">{f.title2}</span>
           </h2>
-          <p className="mx-auto mt-8 max-w-xl text-lg text-white/45">
-            Join merchants building on LariPay.ai — from startups to enterprise retail in Georgia.
-          </p>
+          <p className="mx-auto mt-8 max-w-xl text-lg text-foreground-muted">{f.subtitle}</p>
           <div className="mt-12 flex flex-wrap justify-center gap-4">
             <Link
-              href="/laripay/onboard"
+              href={href('/laripay/onboard')}
               className={cn(
                 'inline-flex h-14 items-center rounded-2xl px-10 text-sm font-medium',
                 buttonVariants.primary,
               )}
             >
-              Start building
+              {f.startBuilding}
             </Link>
             <Link
-              href="/laripay/dashboard"
+              href={href('/laripay/dashboard')}
               className={cn(
                 'inline-flex h-14 items-center rounded-2xl px-10 text-sm font-medium',
                 buttonVariants.secondary,
               )}
             >
-              Open console
+              {f.openConsole}
             </Link>
           </div>
         </div>

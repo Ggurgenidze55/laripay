@@ -4,9 +4,86 @@
 
 @layer base {
   :root {
+    color-scheme: light;
+
+    --accent-blue: 37 99 235;
+    --accent-violet: 124 58 237;
+    --accent-cyan: 8 145 178;
+
+    --canvas: 255 255 255;
+    --canvas-elevated: 248 250 252;
+    --canvas-card: 255 255 255;
+    --surface-code: 241 245 249;
+    --surface-inset: 241 245 249;
+
+    --foreground: 15 23 42;
+    --foreground-muted: 71 85 105;
+    --border-rgb: 100 116 139;
+    --border-alpha: 0.42;
+    --border-alpha-strong: 0.62;
+
+    --mesh-gradient:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(59, 130, 246, 0.14), transparent 52%),
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(139, 92, 246, 0.1), transparent 48%),
+      radial-gradient(ellipse 50% 40% at 50% 100%, rgba(34, 211, 238, 0.08), transparent 50%);
+    --grid-fade:
+      linear-gradient(rgba(15, 23, 42, 0.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.09) 1px, transparent 1px);
+    --vignette-color: rgba(248, 250, 252, 0.35);
+    --selection-bg: rgba(59, 130, 246, 0.22);
+    --selection-fg: 15 23 42;
+    --gradient-text-from: 15 23 42;
+    --gradient-text-via: 30 41 59;
+    --gradient-text-to: 71 85 105;
+    --glass-bg: rgba(255, 255, 255, 0.88);
+    --glass-border: rgba(100, 116, 139, 0.28);
+    --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px -6px rgba(15, 23, 42, 0.1),
+      0 0 0 1px rgba(100, 116, 139, 0.18);
+    --shadow-lift: 0 16px 40px -12px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(100, 116, 139, 0.2);
+    --glow-border: 0 0 0 1px rgba(100, 116, 139, 0.22), 0 0 28px -6px rgba(59, 130, 246, 0.2);
+    --line-highlight: rgba(15, 23, 42, 0.12);
+    --noise-opacity: 0.04;
+  }
+
+  html.dark {
+    color-scheme: dark;
+
     --accent-blue: 59 130 246;
     --accent-violet: 139 92 246;
     --accent-cyan: 34 211 238;
+
+    --canvas: 5 5 8;
+    --canvas-elevated: 10 10 16;
+    --canvas-card: 15 15 22;
+    --surface-code: 3 3 8;
+    --surface-inset: 10 10 16;
+
+    --foreground: 255 255 255;
+    --foreground-muted: 148 163 184;
+    --border-rgb: 255 255 255;
+    --border-alpha: 0.08;
+    --border-alpha-strong: 0.14;
+
+    --mesh-gradient:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(59, 130, 246, 0.15), transparent 50%),
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(139, 92, 246, 0.12), transparent 45%),
+      radial-gradient(ellipse 50% 40% at 50% 100%, rgba(34, 211, 238, 0.08), transparent 50%);
+    --grid-fade:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    --vignette-color: rgba(5, 5, 8, 0.85);
+    --selection-bg: rgba(59, 130, 246, 0.3);
+    --selection-fg: 255 255 255;
+    --gradient-text-from: 255 255 255;
+    --gradient-text-via: 255 255 255;
+    --gradient-text-to: 255 255 255;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --shadow-card: 0 4px 24px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --shadow-lift: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+    --glow-border: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 32px -8px rgba(59, 130, 246, 0.25);
+    --line-highlight: rgba(255, 255, 255, 0.2);
+    --noise-opacity: 0.025;
   }
 
   html {
@@ -14,23 +91,21 @@
     scroll-behavior: smooth;
   }
 
-  html.dark,
-  html {
-    @apply bg-canvas text-white/90;
-  }
-
+  html,
   body {
     @apply min-h-screen bg-canvas font-sans;
+    color: rgb(var(--foreground));
   }
 
   ::selection {
-    @apply bg-accent-blue/30 text-white;
+    background: var(--selection-bg);
+    color: rgb(var(--selection-fg));
   }
 }
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[rgb(var(--gradient-text-from))] via-[rgb(var(--gradient-text-via))] to-[rgb(var(--gradient-text-to))] bg-clip-text text-transparent;
   }
 
   .text-gradient-accent {
@@ -42,24 +117,58 @@
   }
 
   .prose-laripay strong {
-    @apply font-medium text-white/85;
+    @apply font-semibold;
+    color: rgb(var(--foreground));
   }
 
   .glass-panel {
-    @apply border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    @apply backdrop-blur-xl;
   }
 
   .glow-border {
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.06),
-      0 0 32px -8px rgba(59, 130, 246, 0.25);
+    box-shadow: var(--glow-border);
   }
 
   .vignette {
     background: radial-gradient(
       ellipse 85% 70% at 50% 50%,
       transparent 35%,
-      rgba(5, 5, 8, 0.85) 100%
+      var(--vignette-color) 100%
+    );
+  }
+
+  .bg-mesh-gradient {
+    background-image: var(--mesh-gradient);
+  }
+
+  .bg-grid-fade {
+    background-image: var(--grid-fade);
+  }
+
+  .bg-surface-code {
+    background-color: rgb(var(--surface-code));
+  }
+
+  .bg-surface-inset {
+    background-color: rgb(var(--surface-inset));
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-lift {
+    box-shadow: var(--shadow-lift);
+  }
+
+  .line-highlight {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--line-highlight),
+      transparent
     );
   }
 
@@ -67,7 +176,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.06),
+      rgba(128, 128, 128, 0.12),
       transparent
     );
     background-size: 200% 100%;
@@ -88,7 +197,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    opacity: 0.025;
+    opacity: var(--noise-opacity);
     pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }

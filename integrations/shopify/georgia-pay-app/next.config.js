@@ -7,8 +7,12 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/', destination: '/laripay', permanent: false },
+      { source: '/pay', destination: '/laripay', permanent: false },
+      { source: '/pay/:path*', destination: '/laripay/:path*', permanent: false },
       { source: '/payka', destination: '/laripay', permanent: true },
       { source: '/payka/:path*', destination: '/laripay/:path*', permanent: true },
+      { source: '/en', destination: '/laripay/en', permanent: false },
+      { source: '/ka', destination: '/laripay/ka', permanent: false },
       { source: '/api/payka/:path*', destination: '/api/laripay/:path*', permanent: true },
     ];
   },

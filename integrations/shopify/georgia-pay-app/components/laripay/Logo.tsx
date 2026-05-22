@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 type LogoProps = {
   size?: number;
   showWordmark?: boolean;
-  variant?: 'default' | 'light';
+  variant?: 'default' | 'light' | 'auto';
   className?: string;
 };
 
@@ -14,8 +14,8 @@ export function LariPayLogo({
   variant = 'default',
   className,
 }: LogoProps) {
-  const textColor = variant === 'light' ? 'text-white' : 'text-white/90';
-  const subColor = variant === 'light' ? 'text-white/50' : 'text-white/40';
+  const textColor = variant === 'light' ? 'text-foreground' : 'text-foreground';
+  const subColor = 'text-foreground-muted';
 
   return (
     <span className={cn('inline-flex items-center gap-3', className)}>

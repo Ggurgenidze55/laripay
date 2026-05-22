@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useLocale } from '@/components/i18n/LocaleProvider';
 
 export function CodeBlock({
   children,
@@ -16,21 +17,21 @@ export function CodeBlock({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-2xl border border-white/[0.08] bg-[#030308]/90 font-mono text-[13px] leading-relaxed shadow-lift backdrop-blur-xl',
+        'overflow-hidden rounded-2xl border border-border-strong bg-surface-code font-mono text-[13px] leading-relaxed shadow-lift',
         className,
       )}
     >
-      <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
         <span className="h-2.5 w-2.5 rounded-full bg-amber-500/70" />
         <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/70" />
-        {title && <span className="ml-3 text-[10px] uppercase tracking-widest text-white/30">{title}</span>}
+        {title && <span className="ml-3 text-[10px] uppercase tracking-widest text-foreground-muted/80">{title}</span>}
       </div>
       <pre className="overflow-x-auto p-4">
         {lines.map((line, i) => (
           <div key={i} className="flex gap-4">
-            <span className="select-none text-white/15 w-6 text-right text-[11px]">{i + 1}</span>
-            <code className="text-white/75">
+            <span className="select-none w-6 text-right text-[11px] text-foreground-muted/60">{i + 1}</span>
+            <code className="text-foreground">
               <SyntaxLine line={line} />
             </code>
           </div>
@@ -42,7 +43,7 @@ export function CodeBlock({
 
 function SyntaxLine({ line }: { line: string }) {
   if (line.startsWith('//') || line.startsWith('#')) {
-    return <span className="text-white/30">{line}</span>;
+    return <span className="text-foreground-muted/80">{line}</span>;
   }
   const parts = line.split(/(".*?"|'.*?'|`.*?`)/g);
   return (
@@ -50,7 +51,7 @@ function SyntaxLine({ line }: { line: string }) {
       {parts.map((part, i) => {
         if (part.startsWith('"') || part.startsWith("'")) {
           return (
-            <span key={i} className="text-emerald-400/90">
+            <span key={i} className="text-emerald-700 dark:text-emerald-400/90">
               {part}
             </span>
           );
@@ -98,10 +99,12 @@ export function RequestStatus({
 }: {
   phase: 'idle' | 'sending' | 'success';
 }) {
+  const { t } = useLocale();
+  const rs = t.landing.requestStatus;
   const label =
-    phase === 'sending' ? 'Sending request…' : phase === 'success' ? '200 OK · 42ms' : 'Ready';
+    phase === 'sending' ? rs.sending : phase === 'success' ? rs.success : rs.ready;
   const color =
-    phase === 'success' ? 'text-emerald-400' : phase === 'sending' ? 'text-amber-400' : 'text-white/40';
+    phase === 'success' ? 'text-emerald-400' : phase === 'sending' ? 'text-amber-400' : 'text-foreground-muted';
 
   return (
     <div className={cn('flex items-center gap-2 font-mono text-[11px]', color)}>

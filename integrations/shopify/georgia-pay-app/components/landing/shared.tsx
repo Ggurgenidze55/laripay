@@ -19,7 +19,7 @@ export function SectionShell({
     <section
       id={id}
       className={cn(
-        'relative border-t border-white/[0.04] py-32 md:py-44',
+        'relative border-t border-border py-32 md:py-44',
         className,
       )}
     >
@@ -57,12 +57,12 @@ export function SectionHeader({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-80px' }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="text-4xl font-semibold tracking-[-0.02em] text-white sm:text-5xl md:text-[3.35rem] md:leading-[1.06]"
+        className="text-4xl font-semibold tracking-[-0.02em] text-foreground sm:text-5xl md:text-[3.35rem] md:leading-[1.06]"
       >
         {title}
       </motion.h2>
       {description && (
-        <p className="mt-6 text-lg leading-relaxed text-white/45 md:text-xl">{description}</p>
+        <p className="mt-6 text-lg leading-relaxed text-foreground-muted md:text-xl">{description}</p>
       )}
     </div>
   );

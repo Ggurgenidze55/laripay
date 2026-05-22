@@ -49,11 +49,11 @@ export function PaymentFlow() {
                   <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-blue/20 to-accent-violet/20 font-mono text-xs text-accent-cyan lg:mx-0">
                     {step.icon}
                   </div>
-                  <h3 className="font-medium text-white/90">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/40">{step.desc}</p>
+                  <h3 className="font-medium text-foreground">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-foreground-muted">{step.desc}</p>
                   {i < STEPS.length - 1 && (
                     <motion.div
-                      className="mt-4 hidden h-1 overflow-hidden rounded-full bg-white/5 lg:block"
+                      className="mt-4 hidden h-1 overflow-hidden rounded-full bg-foreground/[0.05] lg:block"
                       initial={{ width: 0 }}
                       whileInView={{ width: '100%' }}
                       viewport={{ once: true }}
@@ -81,10 +81,10 @@ export function PaymentFlow() {
                 { name: 'BOG Pay', status: 'Connected', color: 'text-accent-violet' },
                 { name: 'Webhooks', status: 'Healthy', color: 'text-emerald-400' },
               ].map((p) => (
-                <div key={p.name} className="flex items-center justify-between border-b border-white/5 pb-4 md:border-0 md:pb-0">
+                <div key={p.name} className="flex items-center justify-between border-b border-border pb-4 md:border-0 md:pb-0">
                   <div>
                     <p className={`font-medium ${p.color}`}>{p.name}</p>
-                    <p className="mt-1 font-mono text-xs text-white/35">GEL · Georgia</p>
+                    <p className="mt-1 font-mono text-xs text-foreground-muted">GEL · Georgia</p>
                   </div>
                   <Badge variant="live" pulse>
                     {p.status}

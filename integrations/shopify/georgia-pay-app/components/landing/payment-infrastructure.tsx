@@ -1,17 +1,18 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
+import { useLocale } from '@/components/i18n/LocaleProvider';
 import { SectionHeader, SectionShell, AmbientOrbs } from './shared';
 
-const NODES = [
-  { id: 'merchant', label: 'Merchants', x: 12, y: 50 },
-  { id: 'api', label: 'LariPay API', x: 35, y: 28 },
-  { id: 'tbc', label: 'TBC Pay', x: 62, y: 18 },
-  { id: 'bog', label: 'BOG Pay', x: 62, y: 72 },
-  { id: 'webhook', label: 'Webhooks', x: 88, y: 38 },
-  { id: 'settle', label: 'Settlement', x: 88, y: 62 },
+const NODE_LAYOUT = [
+  { id: 'merchant', key: 'merchants' as const, x: 12, y: 50 },
+  { id: 'api', key: 'api' as const, x: 35, y: 28 },
+  { id: 'tbc', key: 'tbc' as const, x: 62, y: 18 },
+  { id: 'bog', key: 'bog' as const, x: 62, y: 72 },
+  { id: 'webhook', key: 'webhooks' as const, x: 88, y: 38 },
+  { id: 'settle', key: 'settlement' as const, x: 88, y: 62 },
 ];
 
 const EDGES: [string, string][] = [
@@ -25,6 +26,20 @@ const EDGES: [string, string][] = [
 ];
 
 export function PaymentInfrastructure() {
+  const { t } = useLocale();
+  const s = t.landing.paymentInfrastructure;
+
+  const NODES = useMemo(
+    () =>
+      NODE_LAYOUT.map((n) => ({
+        id: n.id,
+        label: s.nodes[n.key],
+        x: n.x,
+        y: n.y,
+      })),
+    [s.nodes],
+  );
+
   const sectionRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<SVGPathElement[]>([]);
 
@@ -58,13 +73,12 @@ export function PaymentInfrastructure() {
   return (
     <SectionShell id="payment-flow" wide>
       <AmbientOrbs />
-      <SectionHeader
-        eyebrow="Payment rails"
-        title="Serious financial infrastructure"
-        description="TBC Pay, BOG Pay, checkout sessions, refunds, and webhook delivery — one coherent system."
-      />
+      <SectionHeader eyebrow={s.eyebrow} title={s.title} description={s.description} />
 
-      <div ref={sectionRef} className="relative mx-auto aspect-[16/9] max-w-5xl overflow-hidden rounded-[2rem] border border-white/[0.08] bg-canvas-elevated/40 p-8 shadow-lift backdrop-blur-xl glow-border md:aspect-[2/1]">
+      <div
+        ref={sectionRef}
+        className="relative mx-auto aspect-[16/9] max-w-5xl overflow-hidden rounded-[2rem] border border-border-strong bg-canvas-card p-8 shadow-lift glow-border md:aspect-[2/1]"
+      >
         <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
           <defs>
             <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -85,8 +99,7 @@ export function PaymentInfrastructure() {
                 d={`M ${n1.x} ${n1.y} Q ${(n1.x + n2.x) / 2} ${(n1.y + n2.y) / 2 - 8} ${n2.x} ${n2.y}`}
                 fill="none"
                 stroke="url(#flowGrad)"
-                strokeWidth="0.25"
-                strokeLinecap="round"
+                strokeWidth="0.4"
               />
             );
           })}
@@ -95,7 +108,7 @@ export function PaymentInfrastructure() {
         {NODES.map((node, i) => (
           <motion.div
             key={node.id}
-            className="absolute glass-panel rounded-xl px-3 py-2 font-mono text-[10px] text-white/75 md:text-xs"
+            className="absolute glass-panel rounded-xl px-3 py-2 font-mono text-[10px] text-foreground md:text-xs"
             style={{ left: `${node.x}%`, top: `${node.y}%`, transform: 'translate(-50%, -50%)' }}
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -115,17 +128,10 @@ export function PaymentInfrastructure() {
       </div>
 
       <div className="mt-16 grid gap-6 sm:grid-cols-3">
-        {[
-          { t: 'Checkout sessions', d: '30min TTL · idempotent create' },
-          { t: 'Refunds', d: 'Partial & full · ledger sync' },
-          { t: 'Settlement', d: 'Net volume · fee reporting' },
-        ].map((item) => (
-          <div
-            key={item.t}
-            className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-6 py-5"
-          >
-            <h4 className="font-medium text-white/85">{item.t}</h4>
-            <p className="mt-2 text-sm text-white/40">{item.d}</p>
+        {s.features.map((item) => (
+          <div key={item.title} className="rounded-2xl border border-border-strong bg-surface-inset px-6 py-5">
+            <h4 className="font-medium text-foreground">{item.title}</h4>
+            <p className="mt-2 text-sm text-foreground-muted">{item.desc}</p>
           </div>
         ))}
       </div>

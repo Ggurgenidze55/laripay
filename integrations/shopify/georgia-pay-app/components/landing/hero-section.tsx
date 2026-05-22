@@ -6,17 +6,22 @@ import { buttonVariants } from '@/components/ui/button';
 import { MagneticLink } from '@/components/ui/magnetic-link';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useLocale } from '@/components/i18n/LocaleProvider';
 import { PaymentNetwork } from './payment-network';
 import { ParticleField } from './particle-field';
 
-const STATS = [
-  { k: 'Latency', v: '<50ms' },
-  { k: 'Providers', v: 'TBC + BOG' },
-  { k: 'Currency', v: 'GEL' },
-];
+const STAT_VALUES = [
+  { v: '<50ms' },
+  { v: 'TBC + BOG' },
+  { v: 'GEL' },
+] as const;
 
 export function HeroSection() {
   const reduced = useReducedMotion();
+  const { t, href } = useLocale();
+  const h = t.landing.hero;
+  const statKeys = [h.stats.latency, h.stats.providers, h.stats.currency] as const;
+
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const sx = useSpring(mx, { stiffness: 50, damping: 24 });
@@ -26,7 +31,7 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-grid-fade bg-grid opacity-[0.18] [mask-image:radial-gradient(ellipse_90%_80%_at_50%_0%,black,transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-grid-fade bg-grid opacity-[0.35] dark:opacity-[0.18] [mask-image:radial-gradient(ellipse_90%_80%_at_50%_0%,black,transparent)]" />
       {!reduced && <ParticleField />}
 
       <div
@@ -50,12 +55,12 @@ export function HeroSection() {
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             >
               <Badge variant="accent" pulse className="mb-10">
-                Payments infrastructure · Georgia
+                {h.badge}
               </Badge>
             </motion.div>
 
             <h1 className="max-w-2xl text-[2.85rem] font-semibold leading-[1.02] tracking-[-0.03em] sm:text-6xl lg:text-[4.5rem]">
-              {['The Modern API', 'for Georgian Commerce'].map((line, i) => (
+              {[h.title1, h.title2].map((line, i) => (
                 <motion.span
                   key={line}
                   initial={{ opacity: 0, y: 32, filter: 'blur(10px)' }}
@@ -72,10 +77,9 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.7 }}
-              className="mt-10 max-w-xl text-lg leading-[1.7] text-white/50 md:text-xl"
+              className="mt-10 max-w-xl text-lg leading-[1.7] text-foreground-muted md:text-xl"
             >
-              Accept payments, manage merchants, automate billing, and ship commerce infrastructure
-              that feels global — built for Georgia.
+              {h.subtitle}
             </motion.p>
 
             <motion.div
@@ -85,25 +89,23 @@ export function HeroSection() {
               className="mt-14 flex flex-wrap items-center gap-4"
             >
               <MagneticLink
-                href="/laripay/onboard"
+                href={href('/laripay/onboard')}
                 className={cn(
                   'group relative inline-flex h-12 items-center overflow-hidden rounded-2xl px-9 text-sm font-medium',
                   buttonVariants.primary,
                 )}
               >
-                <span className="relative z-10">Start building</span>
-                {!reduced && (
-                  <span className="absolute inset-0 shimmer-line opacity-40" />
-                )}
+                <span className="relative z-10">{h.startBuilding}</span>
+                {!reduced && <span className="absolute inset-0 shimmer-line opacity-40" />}
               </MagneticLink>
               <MagneticLink
-                href="/laripay/docs"
+                href={href('/laripay/docs')}
                 className={cn(
                   'inline-flex h-12 items-center rounded-2xl px-9 text-sm font-medium',
                   buttonVariants.secondary,
                 )}
               >
-                Explore API
+                {h.exploreApi}
               </MagneticLink>
             </motion.div>
 
@@ -111,19 +113,19 @@ export function HeroSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="mt-24 grid grid-cols-3 gap-10 border-t border-white/[0.06] pt-14"
+              className="mt-24 grid grid-cols-3 gap-10 border-t border-border pt-14"
             >
-              {STATS.map((s, i) => (
+              {STAT_VALUES.map((s, i) => (
                 <motion.div
-                  key={s.k}
+                  key={statKeys[i]}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.65 + i * 0.06 }}
                 >
-                  <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-white/28">
-                    {s.k}
+                  <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-foreground-muted/80">
+                    {statKeys[i]}
                   </p>
-                  <p className="mt-2.5 font-mono text-xl tracking-tight text-white/90">{s.v}</p>
+                  <p className="mt-2.5 font-mono text-xl tracking-tight text-foreground">{s.v}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -137,8 +139,8 @@ export function HeroSection() {
             className="relative"
           >
             <div className="absolute -inset-16 rounded-[3rem] bg-gradient-to-br from-accent-blue/30 via-accent-violet/10 to-accent-cyan/20 blur-[80px]" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/[0.1] bg-canvas-elevated/40 p-8 shadow-lift backdrop-blur-2xl glow-border">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-border-strong bg-canvas-card p-8 shadow-lift glow-border">
+              <div className="absolute inset-x-0 top-0 h-px line-highlight" />
               <PaymentNetwork />
             </div>
           </motion.div>
@@ -147,11 +149,11 @@ export function HeroSection() {
 
       <motion.a
         href="#infrastructure"
-        className="absolute bottom-12 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 text-white/30 transition-colors hover:text-white/50"
+        className="absolute bottom-12 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 text-foreground-muted/80 transition-colors hover:text-foreground-muted"
         animate={reduced ? undefined : { y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2.2 }}
       >
-        <span className="text-[10px] font-medium uppercase tracking-[0.35em]">Explore</span>
+        <span className="text-[10px] font-medium uppercase tracking-[0.35em]">{h.explore}</span>
         <span className="h-10 w-px bg-gradient-to-b from-accent-cyan/60 to-transparent" />
       </motion.a>
     </section>

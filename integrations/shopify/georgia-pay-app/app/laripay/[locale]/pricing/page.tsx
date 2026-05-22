@@ -1,0 +1,49 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { PricingSection } from '@/components/landing/pricing-section';
+import { MarketingPage, MarketingSection } from '@/components/laripay/MarketingPage';
+import { getDictionary } from '@/lib/i18n/get-dictionary';
+import { localePath } from '@/lib/i18n/routing';
+import { resolveLocaleParam } from '@/lib/i18n/resolve-locale';
+
+type Props = { params: { locale: string } };
+
+export function generateMetadata({ params }: Props): Metadata {
+  const locale = resolveLocaleParam(params.locale);
+  const p = getDictionary(locale).pages.pricing;
+  return { title: p.metaTitle, description: p.metaDescription };
+}
+
+export default function PricingPage({ params }: Props) {
+  const locale = resolveLocaleParam(params.locale);
+  const p = getDictionary(locale).pages.pricing;
+
+  return (
+    <div className="-mx-6 space-y-16 lg:-mx-8">
+      <div className="px-6 lg:px-8">
+        <MarketingPage eyebrow={p.eyebrow} title={p.title} description={p.description}>
+          <p className="text-foreground-muted">{p.includes}</p>
+        </MarketingPage>
+      </div>
+      <PricingSection />
+      <div className="mx-auto max-w-3xl px-6 lg:px-8">
+        <MarketingSection title={p.faqTitle}>
+          <dl className="space-y-6">
+            {p.faq.map((item) => (
+              <div key={item.q}>
+                <dt className="font-medium text-foreground/85">{item.q}</dt>
+                <dd className="mt-2 text-foreground-muted">{item.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </MarketingSection>
+        <p className="mt-8 text-sm text-foreground-muted">
+          {p.questions}{' '}
+          <Link href={localePath(locale, 'contact')} className="text-accent-cyan hover:underline">
+            {p.contactSales}
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}

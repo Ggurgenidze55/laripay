@@ -14,9 +14,9 @@ export function AuroraBackground() {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div className="absolute inset-0 bg-[#050508]" />
+      <div className="absolute inset-0 bg-canvas" />
       <motion.div
-        className="absolute -left-[20%] top-[-30%] h-[70vh] w-[70vw] rounded-full bg-accent-blue/25 blur-[120px]"
+        className="absolute -left-[20%] top-[-30%] h-[70vh] w-[70vw] rounded-full bg-accent-blue/20 blur-[120px] dark:bg-accent-blue/25"
         animate={{ x: [0, 80, 0], y: [0, 40, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
       />

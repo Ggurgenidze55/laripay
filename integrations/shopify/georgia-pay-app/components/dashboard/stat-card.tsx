@@ -23,8 +23,8 @@ export function StatCard({
 }) {
   return (
     <Card className={cn('!p-5', className)} glow={pulse}>
-      <p className="text-[11px] font-medium uppercase tracking-widest text-white/35">{label}</p>
-      <p className="mt-2 font-mono text-2xl font-semibold tracking-tight text-white">
+      <p className="text-[11px] font-medium uppercase tracking-widest text-foreground-muted">{label}</p>
+      <p className="mt-2 font-mono text-2xl font-semibold tracking-tight text-foreground">
         <AnimatedCounter value={value} decimals={decimals} suffix={suffix} />
       </p>
       {trend && <p className="mt-2 text-xs text-emerald-400/80">{trend}</p>}

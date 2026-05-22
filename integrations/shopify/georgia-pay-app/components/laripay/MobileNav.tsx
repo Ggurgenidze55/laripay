@@ -2,13 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { SITE_NAV } from '@/lib/site-links';
+import { useMemo, useState } from 'react';
+import { getSiteNav } from '@/lib/site-links';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { LanguageToggle } from '@/components/i18n/LanguageToggle';
+import { useLocale } from '@/components/i18n/LocaleProvider';
+import { localePath } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
+
+const LANDING_RE = /^\/laripay\/(en|ka)\/?$/;
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { locale, t } = useLocale();
+  const nav = useMemo(() => getSiteNav(locale), [locale]);
+  const homeHref = localePath(locale);
 
   return (
     <div className="sm:hidden">
@@ -17,20 +26,27 @@ export function MobileNav() {
         aria-expanded={open}
         aria-label="Open menu"
         onClick={() => setOpen((v) => !v)}
-        className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/70"
+        className="rounded-lg border border-border-strong bg-canvas-card px-3 py-2 text-xs font-medium text-foreground-muted"
       >
-        Menu
+        {t.nav.menu}
       </button>
       {open ? (
         <nav
-          className="absolute left-0 right-0 top-16 z-50 border-b border-white/[0.08] bg-canvas/95 px-6 py-4 backdrop-blur-xl"
+          className="absolute left-0 right-0 top-16 z-50 border-b border-border-strong bg-canvas px-6 py-4 shadow-lift backdrop-blur-xl"
           aria-label="Mobile"
         >
+          <div className="mb-4 flex items-center justify-between">
+            <span className="text-xs text-foreground-muted">{t.nav.navigation}</span>
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
+          </div>
           <ul className="space-y-1">
-            {SITE_NAV.map((item) => {
+            {nav.map((item) => {
               const active =
-                item.href === '/laripay'
-                  ? pathname === '/laripay'
+                item.href === homeHref
+                  ? LANDING_RE.test(pathname)
                   : pathname === item.href || pathname?.startsWith(`${item.href}/`);
               return (
                 <li key={item.href}>
@@ -39,7 +55,7 @@ export function MobileNav() {
                     onClick={() => setOpen(false)}
                     className={cn(
                       'block rounded-lg px-3 py-2.5 text-sm',
-                      active ? 'bg-white/[0.06] text-white' : 'text-white/55 hover:text-white/80',
+                      active ? 'bg-foreground/[0.06] text-foreground' : 'text-foreground-muted hover:text-foreground/80',
                     )}
                   >
                     {item.label}

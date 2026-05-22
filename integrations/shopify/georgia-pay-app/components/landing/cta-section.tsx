@@ -11,7 +11,7 @@ export function CtaSection() {
     <section className="py-24">
       <FadeIn>
         <motion.div
-          className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-white/[0.08] px-8 py-16 text-center shadow-lift"
+          className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-border px-8 py-16 text-center shadow-lift"
           whileInView={{ scale: [0.98, 1] }}
           viewport={{ once: true }}
         >
@@ -20,7 +20,7 @@ export function CtaSection() {
             <h2 className="text-2xl font-semibold sm:text-3xl">
               Ready to ship payments in Georgia?
             </h2>
-            <p className="mx-auto mt-4 max-w-md text-white/45">
+            <p className="mx-auto mt-4 max-w-md text-foreground-muted">
               Get your API keys in minutes. Docs, sandbox, and production-ready infrastructure.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
