@@ -1,0 +1,20 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+name = "georgia-pay"
+client_id = "YOUR_CLIENT_ID"
+application_url = "https://laurel-oversold-unlovely.ngrok-free.dev"
+embedded = false
+
+[access_scopes]
+scopes = "write_payment_sessions,read_payment_sessions,write_payment_gateways,read_payment_gateways"
+
+[auth]
+redirect_urls = [
+  "https://laurel-oversold-unlovely.ngrok-free.dev/api/auth/callback",
+]
+
+[webhooks]
+api_version = "2024-10"
+
+[pos]
+embedded = false

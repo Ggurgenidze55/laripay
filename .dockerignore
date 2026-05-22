@@ -1,0 +1,12 @@
+**/node_modules
+**/.next
+**/prisma/dev.db
+**/.env
+**/.env.local
+**/deploy/.env.production
+.git
+*.md
+integrations/wordpress
+examples
+terminals
+agent-transcripts

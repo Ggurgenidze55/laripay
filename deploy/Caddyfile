@@ -1,0 +1,10 @@
+# LariPay.ai production HTTPS (DNS A record → server IP)
+
+laripay.ai {
+	encode gzip
+	reverse_proxy laripay:3000
+}
+
+www.laripay.ai {
+	redir https://laripay.ai{uri}
+}

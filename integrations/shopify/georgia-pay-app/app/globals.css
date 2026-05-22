@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --accent-blue: 59 130 246;
+    --accent-violet: 139 92 246;
+    --accent-cyan: 34 211 238;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+    scroll-behavior: smooth;
+  }
+
+  html.dark,
+  html {
+    @apply bg-canvas text-white/90;
+  }
+
+  body {
+    @apply min-h-screen bg-canvas font-sans;
+  }
+
+  ::selection {
+    @apply bg-accent-blue/30 text-white;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-accent {
+    @apply bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-violet bg-clip-text text-transparent;
+  }
+
+  .glass-panel {
+    @apply border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl;
+  }
+
+  .glow-border {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 0 32px -8px rgba(59, 130, 246, 0.25);
+  }
+
+  .vignette {
+    background: radial-gradient(
+      ellipse 85% 70% at 50% 50%,
+      transparent 35%,
+      rgba(5, 5, 8, 0.85) 100%
+    );
+  }
+
+  .shimmer-line {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.8s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shimmer-line {
+      animation: none;
+    }
+  }
+
+  .section-fade-top {
+    mask-image: linear-gradient(to bottom, transparent, black 12%);
+  }
+
+  .noise-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.025;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}

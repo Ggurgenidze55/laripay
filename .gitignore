@@ -1,0 +1,8 @@
+vendor/
+node_modules/
+.env
+*.log
+.next/
+integrations/shopify/georgia-pay-app/prisma/dev.db
+integrations/shopify/georgia-pay-app/prisma/dev.db-journal
+deploy/.env.production

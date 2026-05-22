@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Shop {
+  id          String        @id @default(cuid())
+  domain      String        @unique
+  accessToken String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  settings    ShopSettings?
+}
+
+model ShopSettings {
+  id                   String  @id @default(cuid())
+  shopId               String  @unique
+  shop                 Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  provider             String  @default("tbc")
+  testMode             Boolean @default(true)
+  tbcApiKey            String?
+  tbcClientId          String?
+  tbcClientSecret      String?
+  bogPublicKey         String?
+  bogSecretKey         String?
+  bogCallbackPublicKey String?
+  paykaApiKey          String?
+}
+
+model PaymentRecord {
+  id                     String   @id @default(cuid())
+  shopDomain             String
+  shopifyPaymentId       String   @unique
+  shopifyPaymentGid      String
+  shopifyGroup           String?
+  bank                   String
+  bankReference          String?
+  amount                 String
+  currency               String
+  status                 String   @default("pending")
+  cancelUrl              String?
+  test                   Boolean  @default(false)
+  shopifyRequestId       String?
+  authorizationExpiresAt DateTime?
+  networkTransactionId   String?
+  rawSession             String?
+  errorMessage           String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([shopDomain])
+  @@index([bankReference])
+  @@index([status])
+}
+
+model RefundRecord {
+  id                String   @id @default(cuid())
+  shopDomain        String
+  shopifyRefundId   String   @unique
+  shopifyRefundGid  String
+  shopifyPaymentId  String
+  amount            String
+  currency          String
+  status            String   @default("pending")
+  bankReference     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([shopifyPaymentId])
+}
+
+// ── Payka platform (Stripe-style for Georgia) ─────────────────────
+
+model Merchant {
+  id                      String            @id @default(cuid())
+  name                    String
+  email                   String            @unique
+  slug                    String            @unique
+  status                  String            @default("active")
+  billingMode             String            @default("COMMISSION")
+  commissionRateBps       Int               @default(100)
+  subscriptionPlanId      String?
+  subscriptionPlan        SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id])
+  subscriptionActiveUntil DateTime?
+  webhookSecret           String
+  defaultProvider         String            @default("tbc")
+  tbcClientId             String?
+  tbcClientSecret         String?
+  tbcApiKey               String?
+  bogPublicKey            String?
+  bogSecretKey            String?
+  bogCallbackPublicKey    String?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  apiKeys                 ApiKey[]
+  checkoutSessions        CheckoutSession[]
+  paykaPayments           PaykaPayment[]
+  paykaRefunds            PaykaRefund[]
+  webhookEndpoints        WebhookEndpoint[]
+
+  @@index([slug])
+}
+
+model SubscriptionPlan {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  name        String
+  priceGel    Float
+  interval    String     @default("month")
+  description String?
+  active      Boolean    @default(true)
+  merchants   Merchant[]
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  merchantId String
+  merchant   Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  keyPrefix  String
+  keyHash    String    @unique
+  mode       String
+  name       String?
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([merchantId])
+  @@index([keyHash])
+}
+
+model CheckoutSession {
+  id                String        @id @default(cuid())
+  merchantId        String
+  merchant          Merchant      @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  amount            Float
+  currency          String        @default("GEL")
+  provider          String
+  status            String        @default("open")
+  successUrl        String
+  cancelUrl         String?
+  clientReferenceId String?
+  idempotencyKey    String?
+  metadata          String?
+  bankReference     String?
+  redirectUrl       String?
+  paykaPaymentId    String?       @unique
+  paykaPayment      PaykaPayment? @relation(fields: [paykaPaymentId], references: [id])
+  expiresAt         DateTime
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([merchantId, idempotencyKey])
+  @@index([merchantId])
+  @@index([status])
+}
+
+model PaykaPayment {
+  id                String           @id @default(cuid())
+  merchantId        String
+  merchant          Merchant         @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  checkoutSession   CheckoutSession?
+  amount            Float
+  currency          String           @default("GEL")
+  grossAmount       Float
+  platformFee       Float
+  netAmount         Float
+  feeMode           String
+  provider          String
+  bankReference     String?
+  status            String           @default("pending")
+  clientReferenceId String?
+  metadata          String?
+  refunds           PaykaRefund[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([merchantId])
+  @@index([bankReference])
+  @@index([status])
+}
+
+model PaykaRefund {
+  id             String       @id @default(cuid())
+  merchantId     String
+  merchant       Merchant     @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  paymentId      String
+  payment        PaykaPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amount         Float
+  currency       String       @default("GEL")
+  status         String       @default("pending")
+  reason         String?
+  bankReference  String?
+  idempotencyKey String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([merchantId, idempotencyKey])
+  @@index([paymentId])
+  @@index([merchantId])
+}
+
+model WebhookEndpoint {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  url        String
+  events     String
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([merchantId])
+}
+
+model WebhookDelivery {
+  id           String   @id @default(cuid())
+  merchantId   String
+  endpointId   String?
+  event        String
+  payload      String
+  status       String   @default("pending")
+  attempts     Int      @default(0)
+  responseCode Int?
+  lastError    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([merchantId])
+  @@index([status])
+}

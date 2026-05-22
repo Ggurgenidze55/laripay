@@ -1,0 +1,550 @@
+/* LariPay.ai design system — minimal fintech (laripay.ai) */
+
+.laripay-root {
+  --pk-ink: #0c1222;
+  --pk-ink-soft: #1e293b;
+  --pk-muted: #64748b;
+  --pk-muted-light: #94a3b8;
+  --pk-border: #e2e8f0;
+  --pk-surface: #ffffff;
+  --pk-bg: #f1f5f9;
+  --pk-bg-warm: #faf9f7;
+  --pk-accent: #1d4ed8;
+  --pk-accent-hover: #1e40af;
+  --pk-accent-soft: #dbeafe;
+  --pk-red: #b91c1c;
+  --pk-red-soft: #fef2f2;
+  --pk-green: #047857;
+  --pk-green-soft: #ecfdf5;
+  --pk-radius: 12px;
+  --pk-radius-lg: 20px;
+  --pk-shadow: 0 1px 2px rgba(12, 18, 34, 0.06), 0 8px 24px rgba(12, 18, 34, 0.06);
+  --pk-shadow-lg: 0 24px 48px rgba(12, 18, 34, 0.1);
+  --pk-font: var(--font-dm), system-ui, sans-serif;
+  --pk-font-ka: var(--font-noto), var(--font-dm), system-ui, sans-serif;
+  --pk-max: 1120px;
+  --pk-nav-h: 64px;
+
+  font-family: var(--pk-font-ka);
+  color: var(--pk-ink);
+  background: var(--pk-bg-warm);
+  min-height: 100vh;
+}
+
+.laripay-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.laripay-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--pk-nav-h);
+  border-bottom: 1px solid var(--pk-border);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+.laripay-nav-inner {
+  max-width: var(--pk-max);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.laripay-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.laripay-nav-link {
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--pk-muted);
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.laripay-nav-link:hover {
+  color: var(--pk-ink);
+  background: var(--pk-bg);
+}
+
+.laripay-nav-link--active {
+  color: var(--pk-accent);
+  background: var(--pk-accent-soft);
+}
+
+.laripay-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--pk-max);
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.laripay-footer {
+  border-top: 1px solid var(--pk-border);
+  padding: 24px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--pk-muted);
+  background: var(--pk-surface);
+}
+
+/* Logo lockup */
+.laripay-logo-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--pk-ink);
+}
+
+.laripay-logo-text {
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.03em;
+}
+
+.laripay-logo-tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--pk-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Typography */
+.laripay-hero-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 0 0 16px;
+}
+
+.laripay-hero-sub {
+  font-size: 1.125rem;
+  color: var(--pk-muted);
+  line-height: 1.6;
+  max-width: 540px;
+  margin: 0 0 32px;
+}
+
+.laripay-h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+
+.laripay-section {
+  margin-top: 48px;
+}
+
+/* Card */
+.laripay-card {
+  background: var(--pk-surface);
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius);
+  padding: 24px;
+  box-shadow: var(--pk-shadow);
+}
+
+.laripay-card--lg {
+  border-radius: var(--pk-radius-lg);
+  padding: 32px;
+}
+
+.laripay-card--flat {
+  box-shadow: none;
+}
+
+/* Buttons */
+.laripay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.12s, box-shadow 0.15s, background 0.15s;
+}
+
+.laripay-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.laripay-btn--primary {
+  background: var(--pk-accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.35);
+}
+
+.laripay-btn--primary:hover:not(:disabled) {
+  background: var(--pk-accent-hover);
+  transform: translateY(-1px);
+}
+
+.laripay-btn--secondary {
+  background: var(--pk-surface);
+  color: var(--pk-ink);
+  border: 1px solid var(--pk-border);
+}
+
+.laripay-btn--secondary:hover:not(:disabled) {
+  background: var(--pk-bg);
+  border-color: var(--pk-muted-light);
+}
+
+.laripay-btn--ghost {
+  background: transparent;
+  color: var(--pk-muted);
+  padding: 8px 12px;
+}
+
+.laripay-btn--ghost:hover:not(:disabled) {
+  color: var(--pk-ink);
+  background: var(--pk-bg);
+}
+
+.laripay-btn--danger {
+  background: var(--pk-red-soft);
+  color: var(--pk-red);
+  border: 1px solid #fecaca;
+}
+
+.laripay-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Form */
+.laripay-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--pk-ink-soft);
+}
+
+.laripay-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 0.9375rem;
+  border: 1px solid var(--pk-border);
+  border-radius: 10px;
+  background: var(--pk-surface);
+  color: var(--pk-ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.laripay-input:focus {
+  outline: none;
+  border-color: var(--pk-accent);
+  box-shadow: 0 0 0 3px var(--pk-accent-soft);
+}
+
+.laripay-input--mono {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.875rem;
+}
+
+.laripay-field {
+  margin-bottom: 16px;
+}
+
+.laripay-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Badge */
+.laripay-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.laripay-badge--success {
+  background: var(--pk-green-soft);
+  color: var(--pk-green);
+}
+
+.laripay-badge--pending {
+  background: var(--pk-accent-soft);
+  color: var(--pk-accent);
+}
+
+.laripay-badge--failed {
+  background: var(--pk-red-soft);
+  color: var(--pk-red);
+}
+
+.laripay-badge--muted {
+  background: var(--pk-bg);
+  color: var(--pk-muted);
+}
+
+/* Stats grid */
+.laripay-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.laripay-stat {
+  background: var(--pk-surface);
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius);
+  padding: 20px;
+}
+
+.laripay-stat-label {
+  font-size: 0.8125rem;
+  color: var(--pk-muted);
+  font-weight: 500;
+}
+
+.laripay-stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Table */
+.laripay-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius);
+  background: var(--pk-surface);
+}
+
+.laripay-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.laripay-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--pk-muted);
+  border-bottom: 1px solid var(--pk-border);
+  background: var(--pk-bg);
+}
+
+.laripay-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--pk-border);
+}
+
+.laripay-table tr:last-child td {
+  border-bottom: none;
+}
+
+.laripay-table code {
+  font-size: 0.75rem;
+  color: var(--pk-muted);
+}
+
+/* Hero */
+.laripay-hero {
+  display: grid;
+  gap: 40px;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .laripay-hero {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.laripay-hero-visual {
+  background: linear-gradient(145deg, #0c1222 0%, #1e3a5f 55%, #1d4ed8 100%);
+  border-radius: var(--pk-radius-lg);
+  padding: 40px;
+  color: #fff;
+  box-shadow: var(--pk-shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.laripay-hero-visual::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.12), transparent 50%);
+}
+
+.laripay-hero-visual-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.laripay-feature-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.laripay-feature {
+  padding: 20px;
+  border-radius: var(--pk-radius);
+  border: 1px solid var(--pk-border);
+  background: var(--pk-surface);
+}
+
+.laripay-feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--pk-accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 1.25rem;
+}
+
+.laripay-code {
+  background: var(--pk-ink);
+  color: #e2e8f0;
+  padding: 20px;
+  border-radius: var(--pk-radius);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  font-family: ui-monospace, Menlo, monospace;
+}
+
+.laripay-alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+
+.laripay-alert--error {
+  background: var(--pk-red-soft);
+  color: var(--pk-red);
+  border: 1px solid #fecaca;
+}
+
+.laripay-alert--success {
+  background: var(--pk-green-soft);
+  color: var(--pk-green);
+  border: 1px solid #a7f3d0;
+}
+
+.laripay-empty {
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--pk-muted);
+}
+
+.laripay-dashboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.laripay-meta {
+  font-size: 0.875rem;
+  color: var(--pk-muted);
+}
+
+.laripay-bank-pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.laripay-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--pk-bg);
+  color: var(--pk-muted);
+}
+
+.laripay-pill--on {
+  background: var(--pk-green-soft);
+  color: var(--pk-green);
+}
+
+.laripay-demo-grid {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .laripay-demo-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.laripay-pricing {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.laripay-price-card {
+  border: 1px solid var(--pk-border);
+  border-radius: var(--pk-radius);
+  padding: 24px;
+  background: var(--pk-surface);
+}
+
+.laripay-price-card--highlight {
+  border-color: var(--pk-accent);
+  box-shadow: 0 0 0 1px var(--pk-accent);
+}
+
+.laripay-price-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.laripay-onboard-success {
+  margin-top: 24px;
+}
+
+.laripay-onboard-success pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

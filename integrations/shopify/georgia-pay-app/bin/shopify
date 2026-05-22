@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Always use project-local Shopify CLI (>= 3.64.1)
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+exec "$DIR/node_modules/.bin/shopify" "$@"

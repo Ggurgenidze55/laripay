@@ -1,0 +1,55 @@
+import { platformEnv } from '@/lib/laripay-env';
+import { NextRequest, NextResponse } from 'next/server';
+import { createMerchant } from '@/lib/laripay/onboard';
+import { laripayError, laripayJson } from '@/lib/laripay/api-response';
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * Public merchant signup when LARIPAY_ALLOW_SIGNUP=1
+ */
+export async function POST(request: NextRequest) {
+  if (platformEnv('ALLOW_SIGNUP') !== '1') {
+    return laripayError('Public signup disabled', 403);
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return laripayError('Invalid JSON');
+  }
+
+  const name = String(body.name || '').trim();
+  const email = String(body.email || '').trim();
+  if (!name || !email) {
+    return laripayError('name and email are required');
+  }
+
+  try {
+    const { merchant, secretKey } = await createMerchant({
+      name,
+      email,
+      slug: body.slug ? String(body.slug) : undefined,
+      billingMode: 'COMMISSION',
+      defaultProvider: (body.default_provider as 'tbc' | 'bog') || 'tbc',
+    });
+
+    return laripayJson(
+      {
+        merchant: {
+          id: merchant.id,
+          slug: merchant.slug,
+          billing_mode: merchant.billingMode,
+        },
+        api_key: secretKey,
+        webhook_secret: merchant.webhookSecret,
+        docs: '/LARIPAY-INTEGRATIONS.md',
+      },
+      201,
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Signup failed';
+    return laripayError(message, 422);
+  }
+}

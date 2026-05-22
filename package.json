@@ -1,0 +1,44 @@
+{
+  "name": "georgian-payments",
+  "version": "2.0.0",
+  "description": "LariPay.ai — Georgian payments (TBC Pay & BOG Pay, GEL)",
+  "type": "module",
+  "main": "./src/georgian-payments.cjs",
+  "module": "./src/georgian-payments.js",
+  "exports": {
+    ".": {
+      "import": "./src/georgian-payments.js",
+      "require": "./src/georgian-payments.cjs",
+      "default": "./src/georgian-payments.js"
+    },
+    "./webhooks": {
+      "import": "./src/webhooks.js",
+      "require": "./src/webhooks.cjs"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "georgia",
+    "payments",
+    "tbc",
+    "bog",
+    "gel",
+    "fintech",
+    "georgian-payments"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "start": "bash scripts/go.sh",
+    "dev:laripay": "bash scripts/dev-all.sh",
+    "sync:ngrok": "bash scripts/sync-ngrok-url.sh",
+    "health": "bash scripts/health-check.sh",
+    "test:phase1": "bash scripts/phase1-test.sh",
+    "test:phase2": "bash scripts/phase2-test.sh",
+    "test:docker": "bash scripts/docker-test.sh",
+    "docker:up": "docker compose -f deploy/docker-compose.yml up -d --build",
+    "docker:down": "docker compose -f deploy/docker-compose.yml down",
+    "docker:logs": "docker compose -f deploy/docker-compose.yml logs -f laripay"
+  }
+}
