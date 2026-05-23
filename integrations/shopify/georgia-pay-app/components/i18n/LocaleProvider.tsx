@@ -61,5 +61,11 @@ export function LocaleProvider({
 export function useLocale() {
   const ctx = useContext(LocaleContext);
   if (!ctx) throw new Error('useLocale must be used within LocaleProvider');
-  return ctx;
+
+  const route = useCallback(
+    (key: SiteRouteKey | ApiRouteKey) => resolveSiteHref(ctx.locale, key),
+    [ctx.locale],
+  );
+
+  return { ...ctx, route };
 }

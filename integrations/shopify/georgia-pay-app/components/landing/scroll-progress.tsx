@@ -1,8 +1,9 @@
 'use client';
 
 import { motion, useScroll, useSpring } from 'framer-motion';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 
-export function ScrollProgress() {
+function ScrollProgressBar() {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, restDelta: 0.001 });
 
@@ -12,4 +13,10 @@ export function ScrollProgress() {
       style={{ scaleX }}
     />
   );
+}
+
+export function ScrollProgress() {
+  const { lite } = useLandingPerformance();
+  if (lite) return null;
+  return <ScrollProgressBar />;
 }

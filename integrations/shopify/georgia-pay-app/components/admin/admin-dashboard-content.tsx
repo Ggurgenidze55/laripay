@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { localePath } from '@/lib/i18n/routing';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -49,7 +50,7 @@ type AdminData = {
 };
 
 export function AdminDashboardContent() {
-  const { t, route } = useLocale();
+  const { t, route, locale } = useLocale();
   const a = t.admin;
   const [loggedIn, setLoggedIn] = useState(false);
   const [data, setData] = useState<AdminData | null>(null);
@@ -116,7 +117,12 @@ export function AdminDashboardContent() {
             {a.subtitle} · Core: {String(data.platform.core?.mode || 'legacy')}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Link href={localePath(locale, 'admin/merchants')}>
+            <Button variant="secondary" size="sm">
+              {a.merchantsManage.manageButton}
+            </Button>
+          </Link>
           <Link href={route('dashboard')}>
             <Button variant="ghost" size="sm">
               {a.merchantConsole}
@@ -206,7 +212,13 @@ export function AdminDashboardContent() {
                     <Badge variant={m.status === 'active' ? 'live' : 'default'}>{m.status}</Badge>
                   </td>
                   <td>{m.payments_count}</td>
-                  <td>
+                  <td className="space-x-3">
+                    <Link
+                      href={localePath(locale, `admin/merchants/${m.id}`)}
+                      className="text-xs text-accent-cyan hover:underline"
+                    >
+                      {a.merchantsManage.openDetail}
+                    </Link>
                     {m.status === 'active' ? (
                       <button
                         type="button"

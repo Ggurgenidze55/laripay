@@ -1,23 +1,24 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 
 export function ParticleField() {
-  const reduced = useReducedMotion();
+  const { lite } = useLandingPerformance();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (reduced) return;
+    if (lite) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     let raf = 0;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let visible = true;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
-    const particles = Array.from({ length: 48 }, () => ({
+    const particles = Array.from({ length: 28 }, () => ({
       x: Math.random(),
       y: Math.random(),
       vx: (Math.random() - 0.5) * 0.0004,
@@ -37,6 +38,10 @@ export function ParticleField() {
     };
 
     const draw = () => {
+      if (!visible) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
       const w = canvas.width / dpr;
       const h = canvas.height / dpr;
       ctx.clearRect(0, 0, w, h);
@@ -73,16 +78,25 @@ export function ParticleField() {
       raf = requestAnimationFrame(draw);
     };
 
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry?.isIntersecting ?? true;
+      },
+      { rootMargin: '80px' },
+    );
+    io.observe(canvas);
+
     resize();
     draw();
     window.addEventListener('resize', resize);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
+      io.disconnect();
     };
-  }, [reduced]);
+  }, [lite]);
 
-  if (reduced) return null;
+  if (lite) return null;
 
   return (
     <canvas

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { registerGsap, ScrollTrigger } from '@/lib/gsap-client';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 import { AuroraBackground } from './aurora-background';
 import { ScrollProgress } from './scroll-progress';
 import { HeroSection } from './hero-section';
@@ -18,7 +19,10 @@ import { SecuritySection } from './security-section';
 import { EnterpriseFooter } from './enterprise-footer';
 
 export function LandingExperience() {
+  const { lite } = useLandingPerformance();
+
   useEffect(() => {
+    if (lite) return;
     registerGsap();
     const t = setTimeout(() => ScrollTrigger.refresh(), 400);
     const onResize = () => ScrollTrigger.refresh();
@@ -27,7 +31,7 @@ export function LandingExperience() {
       clearTimeout(t);
       window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [lite]);
 
   return (
     <>

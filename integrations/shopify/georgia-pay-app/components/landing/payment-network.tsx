@@ -2,7 +2,7 @@
 
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 import { cn } from '@/lib/utils';
 
 type Node = { id: number; x: number; y: number; label: string };
@@ -33,7 +33,7 @@ const EVENTS = [
 ];
 
 export function PaymentNetwork() {
-  const reduced = useReducedMotion();
+  const { lite, reduced } = useLandingPerformance();
   const ref = useRef<HTMLDivElement>(null);
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
@@ -63,14 +63,14 @@ export function PaymentNetwork() {
   }, [hoveredNode, pulseEdge]);
 
   const focusNode = useCallback((id: number) => {
-    if (reduced) return;
+    if (lite) return;
     setHoveredNode(id);
     const edgeIdx = EDGES.findIndex(([a, b]) => a === id || b === id);
     if (edgeIdx >= 0) setPulseEdge(edgeIdx);
-  }, [reduced]);
+  }, [lite]);
 
   useEffect(() => {
-    if (reduced) return;
+    if (lite) return;
     const t = setInterval(() => {
       if (hoveredNode !== null) return;
       setPulseEdge((e) => (e + 1) % EDGES.length);
@@ -78,7 +78,7 @@ export function PaymentNetwork() {
       setTxAmount((24 + Math.random() * 180).toFixed(2));
     }, 2200);
     return () => clearInterval(t);
-  }, [reduced, hoveredNode]);
+  }, [lite, hoveredNode]);
 
   const [flowA, flowB] = EDGES[pulseEdge];
   const flowFrom = NODES[flowA];
@@ -88,7 +88,7 @@ export function PaymentNetwork() {
     <motion.div
       ref={ref}
       onMouseMove={(e) => {
-        if (reduced) return;
+        if (lite) return;
         const el = ref.current;
         if (!el) return;
         const r = el.getBoundingClientRect();
@@ -100,7 +100,7 @@ export function PaymentNetwork() {
         my.set(0);
         setHoveredNode(null);
       }}
-      style={reduced ? undefined : { rotateX, rotateY, transformPerspective: 900 }}
+      style={lite ? undefined : { rotateX, rotateY, transformPerspective: 900 }}
       className="relative aspect-[4/3] w-full max-w-lg cursor-default select-none"
     >
       <div className="pointer-events-none absolute inset-0 rounded-[1.25rem] bg-gradient-to-br from-accent-cyan/10 via-transparent to-accent-violet/10 opacity-80" />
@@ -137,9 +137,9 @@ export function PaymentNetwork() {
                 strokeLinecap="round"
                 animate={{ opacity: active ? 1 : 0.18 }}
                 transition={{ duration: 0.3 }}
-                className={active && !reduced ? 'svg-edge-flow' : undefined}
+                className={active && !lite ? 'svg-edge-flow' : undefined}
               />
-              {active && i === pulseEdge && !reduced && (
+              {active && i === pulseEdge && !lite && (
                 <motion.circle
                   r={0.9}
                   fill="#22d3ee"
@@ -171,7 +171,7 @@ export function PaymentNetwork() {
                 if (e.key === 'Enter' || e.key === ' ') focusNode(n.id);
               }}
             >
-              {primary && !reduced && (
+              {primary && !lite && (
                 <motion.circle
                   cx={n.x}
                   cy={n.y}
@@ -212,7 +212,7 @@ export function PaymentNetwork() {
       </svg>
 
       <motion.div
-        animate={reduced ? undefined : { y: [0, -6, 0] }}
+        animate={lite ? undefined : { y: [0, -6, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         className={cn(
           'absolute left-4 top-4 rounded-xl px-3.5 py-2.5 font-mono text-[10px]',

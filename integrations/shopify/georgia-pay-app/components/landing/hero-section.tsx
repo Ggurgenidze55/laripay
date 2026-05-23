@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { MagneticLink } from '@/components/ui/magnetic-link';
 import { cn } from '@/lib/utils';
-import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { PaymentBrandLogo } from '@/components/laripay/payment-brand-logo';
 import type { PaymentBrandId } from '@/lib/payment-brands';
@@ -19,7 +19,7 @@ const STAT_VALUES = [
 ] as const;
 
 export function HeroSection() {
-  const reduced = useReducedMotion();
+  const { lite, reduced } = useLandingPerformance();
   const { t, route } = useLocale();
   const h = t.landing.hero;
   const statKeys = [h.stats.latency, h.stats.providers, h.stats.currency] as const;
@@ -34,12 +34,12 @@ export function HeroSection() {
   return (
     <section className="relative min-h-[100svh] overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-grid-fade bg-grid opacity-[0.35] dark:opacity-[0.18] [mask-image:radial-gradient(ellipse_90%_80%_at_50%_0%,black,transparent)]" />
-      {!reduced && <ParticleField />}
+      {!lite && <ParticleField />}
 
       <div
         className="relative mx-auto flex min-h-[100svh] max-w-[90rem] flex-col justify-center px-6 pb-36 pt-24 lg:px-8 lg:pt-32"
         onMouseMove={(e) => {
-          if (reduced) return;
+          if (lite) return;
           const r = e.currentTarget.getBoundingClientRect();
           mx.set((e.clientX - r.left) / r.width - 0.5);
           my.set((e.clientY - r.top) / r.height - 0.5);
@@ -65,9 +65,9 @@ export function HeroSection() {
               {[h.title1, h.title2].map((line, i) => (
                 <motion.span
                   key={line}
-                  initial={{ opacity: 0, y: 32, filter: 'blur(10px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  transition={{ duration: 0.85, delay: 0.12 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, y: lite ? 12 : 32, ...(lite ? {} : { filter: 'blur(10px)' }) }}
+                  animate={{ opacity: 1, y: 0, ...(lite ? {} : { filter: 'blur(0px)' }) }}
+                  transition={{ duration: lite ? 0.45 : 0.85, delay: lite ? 0.05 + i * 0.05 : 0.12 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
                   className={cn('block', i === 0 ? 'text-gradient' : 'mt-2 text-gradient-accent')}
                 >
                   {line}
@@ -155,13 +155,18 @@ export function HeroSection() {
           </div>
 
           <motion.div
-            style={reduced ? undefined : { x: visualX, y: visualY }}
+            style={lite ? undefined : { x: visualX, y: visualY }}
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative"
           >
-            <div className="absolute -inset-16 rounded-[3rem] bg-gradient-to-br from-accent-blue/30 via-accent-violet/10 to-accent-cyan/20 blur-[80px]" />
+            <div
+              className={cn(
+                'absolute -inset-16 rounded-[3rem] bg-gradient-to-br from-accent-blue/30 via-accent-violet/10 to-accent-cyan/20',
+                lite ? 'blur-3xl opacity-80' : 'blur-[80px]',
+              )}
+            />
             <div className="group relative overflow-hidden rounded-[1.5rem] border border-border-strong bg-canvas-card p-4 shadow-lift glow-border transition-shadow duration-500 sm:rounded-[2rem] sm:p-8 hover:shadow-glow-violet">
               <div className="absolute inset-x-0 top-0 h-px line-highlight" />
               <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(ellipse_80%_70%_at_50%_50%,rgba(34,211,238,0.08),transparent)]" />

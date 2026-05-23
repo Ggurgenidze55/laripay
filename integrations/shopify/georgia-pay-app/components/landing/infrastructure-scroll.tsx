@@ -4,8 +4,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
 import { cn } from '@/lib/utils';
-import { useBelowLg } from '@/hooks/use-mobile';
-import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { SectionHeader, SectionShell, AmbientOrbs } from './shared';
 
@@ -28,9 +27,8 @@ function orbitPosition(i: number, total: number) {
 }
 
 export function InfrastructureScroll() {
-  const reduced = useReducedMotion();
-  const belowLg = useBelowLg();
-  const useScrollPin = !reduced && !belowLg;
+  const { lite, reduced } = useLandingPerformance();
+  const useScrollPin = !lite;
   const { t } = useLocale();
   const s = t.landing.infrastructure;
   const STEPS = useMemo(
@@ -164,19 +162,28 @@ export function InfrastructureScroll() {
 
             <div className="order-1 flex flex-col items-center justify-center lg:order-2">
               <div className="relative aspect-square w-full max-w-[420px]">
-                <motion.div
-                  className="absolute inset-0 rounded-full border border-accent-blue/30"
-                  animate={{ rotate: 360, scale: [1, 1.02, 1] }}
-                  transition={{
-                    rotate: { duration: 48, repeat: Infinity, ease: 'linear' },
-                    scale: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
-                  }}
-                />
-                <motion.div
-                  className="absolute inset-10 rounded-full border border-dashed border-border-strong"
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 64, repeat: Infinity, ease: 'linear' }}
-                />
+                {lite ? (
+                  <>
+                    <div className="absolute inset-0 rounded-full border border-accent-blue/30" />
+                    <div className="absolute inset-10 rounded-full border border-dashed border-border-strong" />
+                  </>
+                ) : (
+                  <>
+                    <motion.div
+                      className="absolute inset-0 rounded-full border border-accent-blue/30"
+                      animate={{ rotate: 360, scale: [1, 1.02, 1] }}
+                      transition={{
+                        rotate: { duration: 48, repeat: Infinity, ease: 'linear' },
+                        scale: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
+                      }}
+                    />
+                    <motion.div
+                      className="absolute inset-10 rounded-full border border-dashed border-border-strong"
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: 64, repeat: Infinity, ease: 'linear' }}
+                    />
+                  </>
+                )}
 
                 <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full overflow-visible">
                   <defs>
@@ -208,11 +215,11 @@ export function InfrastructureScroll() {
                         strokeLinecap="round"
                         animate={{ opacity: lit ? 1 : 0.12 }}
                         transition={{ duration: 0.4 }}
-                        className={lit && !reduced ? 'svg-edge-flow' : undefined}
+                        className={lit && !lite ? 'svg-edge-flow' : undefined}
                       />
                     );
                   })}
-                  {!reduced && (() => {
+                  {!lite && (() => {
                     const idx = Math.max(0, ORBIT_NODES.indexOf(primaryNode));
                     const hub = orbitPosition(idx, ORBIT_NODES.length);
                     return (
@@ -227,14 +234,20 @@ export function InfrastructureScroll() {
                 </svg>
 
                 <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
-                  <motion.div
-                    className="flex size-14 shrink-0 items-center justify-center rounded-full border border-accent-cyan/40 bg-canvas-card/90 font-mono text-[10px] uppercase tracking-wide text-accent-cyan shadow-glow backdrop-blur-md"
-                    animate={{ scale: [1, 1.06, 1] }}
-                    transition={{ duration: 2.5, repeat: Infinity }}
-                    style={{ transformOrigin: 'center center' }}
-                  >
-                    hub
-                  </motion.div>
+                  {lite ? (
+                    <div className="flex size-14 shrink-0 items-center justify-center rounded-full border border-accent-cyan/40 bg-canvas-card/90 font-mono text-[10px] uppercase tracking-wide text-accent-cyan shadow-glow">
+                      hub
+                    </div>
+                  ) : (
+                    <motion.div
+                      className="flex size-14 shrink-0 items-center justify-center rounded-full border border-accent-cyan/40 bg-canvas-card/90 font-mono text-[10px] uppercase tracking-wide text-accent-cyan shadow-glow backdrop-blur-md"
+                      animate={{ scale: [1, 1.06, 1] }}
+                      transition={{ duration: 2.5, repeat: Infinity }}
+                      style={{ transformOrigin: 'center center' }}
+                    >
+                      hub
+                    </motion.div>
+                  )}
                 </div>
 
                 {ORBIT_NODES.map((node, i) => {

@@ -1,14 +1,19 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 
 export function AuroraBackground() {
-  const reduced = useReducedMotion();
+  const { lite } = useLandingPerformance();
 
-  if (reduced) {
+  if (lite) {
     return (
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-mesh-gradient opacity-100" />
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-canvas" />
+        <div className="absolute -left-[20%] top-[-30%] h-[55vh] w-[70vw] rounded-full bg-accent-blue/15 blur-3xl dark:bg-accent-blue/20" />
+        <div className="absolute -right-[15%] top-[10%] h-[45vh] w-[55vw] rounded-full bg-accent-violet/12 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(59,130,246,0.1),transparent_55%)]" />
+      </div>
     );
   }
 

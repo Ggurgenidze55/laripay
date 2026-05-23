@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 
 const item: Variants = {
   hidden: { opacity: 0, y: 24, filter: 'blur(8px)' },
@@ -21,6 +22,12 @@ export function FadeIn({
   delay?: number;
   className?: string;
 }) {
+  const { lite } = useLandingPerformance();
+
+  if (lite) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       variants={item}

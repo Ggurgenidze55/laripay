@@ -70,6 +70,7 @@ export function PaymentInfrastructure() {
   );
 
   useEffect(() => {
+    if (reduced || belowLg) return;
     registerGsap();
     const section = sectionRef.current;
     if (!section) return;
@@ -92,7 +93,7 @@ export function PaymentInfrastructure() {
     }, section);
 
     return () => ctx.revert();
-  }, [reduced]);
+  }, [reduced, belowLg]);
 
   const nodeMap = Object.fromEntries(NODES.map((n) => [n.id, n]));
 

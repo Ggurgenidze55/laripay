@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { useBelowLg } from '@/hooks/use-mobile';
 
-export function MagneticLink({
+function MagneticLinkDesktop({
   href,
   children,
   className,
@@ -41,5 +42,31 @@ export function MagneticLink({
         {children}
       </Link>
     </motion.div>
+  );
+}
+
+export function MagneticLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const belowLg = useBelowLg();
+
+  if (belowLg) {
+    return (
+      <Link href={href} className={cn(className)}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <MagneticLinkDesktop href={href} className={className}>
+      {children}
+    </MagneticLinkDesktop>
   );
 }

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useLandingPerformance } from '@/hooks/use-landing-performance';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -51,7 +52,9 @@ export function SectionHeader({
   align?: 'center' | 'left';
   className?: string;
 }) {
+  const { lite } = useLandingPerformance();
   const centered = align === 'center';
+  const badgeWrapClass = cn(centered && 'flex justify-center');
 
   return (
     <div
@@ -61,45 +64,80 @@ export function SectionHeader({
         className,
       )}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.5, ease: EASE }}
-        className={cn(centered && 'flex justify-center')}
-      >
-        <Badge variant="accent" className="mb-6">
-          {eyebrow}
-        </Badge>
-      </motion.div>
-      <motion.h2
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.7, ease: EASE }}
-        className="text-4xl font-semibold tracking-[-0.02em] text-foreground sm:text-5xl md:text-[3.35rem] md:leading-[1.06]"
-      >
-        {title}
-      </motion.h2>
-      {description && (
-        <motion.p
-          initial={{ opacity: 0, y: 14 }}
+      {lite ? (
+        <div className={badgeWrapClass}>
+          <Badge variant="accent" className="mb-6">
+            {eyebrow}
+          </Badge>
+        </div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
-          className={cn(
-            'mt-6 text-lg leading-relaxed text-foreground-muted md:text-xl',
-            centered && 'mx-auto',
-          )}
+          transition={{ duration: 0.5, ease: EASE }}
+          className={badgeWrapClass}
         >
-          {description}
-        </motion.p>
+          <Badge variant="accent" className="mb-6">
+            {eyebrow}
+          </Badge>
+        </motion.div>
       )}
+      {lite ? (
+        <h2 className="text-4xl font-semibold tracking-[-0.02em] text-foreground sm:text-5xl md:text-[3.35rem] md:leading-[1.06]">
+          {title}
+        </h2>
+      ) : (
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="text-4xl font-semibold tracking-[-0.02em] text-foreground sm:text-5xl md:text-[3.35rem] md:leading-[1.06]"
+        >
+          {title}
+        </motion.h2>
+      )}
+      {description &&
+        (lite ? (
+          <p
+            className={cn(
+              'mt-6 text-lg leading-relaxed text-foreground-muted md:text-xl',
+              centered && 'mx-auto',
+            )}
+          >
+            {description}
+          </p>
+        ) : (
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
+            className={cn(
+              'mt-6 text-lg leading-relaxed text-foreground-muted md:text-xl',
+              centered && 'mx-auto',
+            )}
+          >
+            {description}
+          </motion.p>
+        ))}
     </div>
   );
 }
 
 export function AmbientOrbs() {
+  const { lite } = useLandingPerformance();
+
+  if (lite) {
+    return (
+      <>
+        <div className="pointer-events-none absolute -left-40 top-16 h-[18rem] w-[18rem] rounded-full bg-accent-blue/12 blur-3xl" />
+        <div className="pointer-events-none absolute -right-40 top-1/4 h-[16rem] w-[16rem] rounded-full bg-accent-violet/10 blur-3xl" />
+      </>
+    );
+  }
+
   return (
     <>
       <motion.div

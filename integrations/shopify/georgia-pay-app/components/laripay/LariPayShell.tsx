@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PageTransition } from '@/components/motion/interactive';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useBelowLg } from '@/hooks/use-mobile';
 import { LariPayLogo } from './Logo';
 import { MobileNav } from './MobileNav';
 import { SiteFooter } from './SiteFooter';
@@ -20,16 +21,33 @@ const LANDING_RE = /^\/laripay\/(en|ka)\/?$/;
 
 export function LariPayShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { locale, t, route } = useLocale();
+  const { locale, t } = useLocale();
   const isLanding = LANDING_RE.test(pathname);
+  const belowLg = useBelowLg();
   const [scrolled, setScrolled] = useState(false);
+  const scrolledRef = useRef(false);
   const nav = useMemo(() => getSiteNav(locale), [locale]);
   const homeHref = localePath(locale);
+  const dashboardHref = localePath(locale, 'dashboard');
 
   useEffect(() => {
     if (!isLanding) return;
-    const onScroll = () => setScrolled(window.scrollY > 48);
-    onScroll();
+    let ticking = false;
+    const update = () => {
+      const next = window.scrollY > 48;
+      if (next === scrolledRef.current) return;
+      scrolledRef.current = next;
+      setScrolled(next);
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        update();
+        ticking = false;
+      });
+    };
+    update();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [isLanding]);
@@ -45,12 +63,15 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
 
       <header
         className={cn(
-          'sticky top-0 z-50 border-b backdrop-blur-2xl transition-all duration-500',
+          'sticky top-0 z-50 border-b transition-all duration-500',
           isLanding
             ? scrolled
-              ? 'border-border-strong bg-canvas/95 shadow-glow-light dark:shadow-[0_8px_40px_rgba(0,0,0,0.45)]'
+              ? cn(
+                  'border-border-strong bg-canvas/95 shadow-glow-light dark:shadow-[0_8px_40px_rgba(0,0,0,0.45)]',
+                  belowLg ? 'backdrop-blur-md' : 'backdrop-blur-2xl',
+                )
               : 'border-transparent bg-transparent'
-            : 'border-border-strong bg-canvas/90 backdrop-blur-xl',
+            : cn('border-border-strong bg-canvas/90', belowLg ? 'backdrop-blur-md' : 'backdrop-blur-xl'),
         )}
       >
         <div
@@ -78,13 +99,16 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
                     active ? 'font-medium text-foreground' : 'text-foreground-muted hover:text-foreground',
                   )}
                 >
-                  {active && (
-                    <motion.span
-                      layoutId="nav-pill"
-                      className="absolute inset-0 rounded-lg bg-foreground/[0.06] ring-1 ring-border"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                    />
-                  )}
+                  {active &&
+                    (belowLg ? (
+                      <span className="absolute inset-0 rounded-lg bg-foreground/[0.06] ring-1 ring-border" />
+                    ) : (
+                      <motion.span
+                        layoutId="nav-pill"
+                        className="absolute inset-0 rounded-lg bg-foreground/[0.06] ring-1 ring-border"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    ))}
                   <span className="relative">{item.label}</span>
                 </Link>
               );
@@ -96,7 +120,7 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
             <ThemeToggle className="hidden sm:inline-flex" />
             <MobileNav />
             <Link
-              href={route('dashboard')}
+              href={dashboardHref}
               className="shrink-0 rounded-xl bg-gradient-to-r from-accent-blue to-accent-violet px-3 py-2 text-[11px] font-medium text-white shadow-glow transition-transform hover:scale-[1.03] active:scale-[0.98] sm:px-4 sm:text-xs"
             >
               {t.nav.console}
