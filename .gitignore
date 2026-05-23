@@ -1,4 +1,6 @@
 vendor/
+!integrations/shopify/georgia-pay-app/vendor/
+!integrations/shopify/georgia-pay-app/vendor/monorepo-src/
 node_modules/
 .env
 *.log

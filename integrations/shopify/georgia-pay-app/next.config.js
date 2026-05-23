@@ -41,13 +41,12 @@ const nextConfig = {
   },
   webpack: (config) => {
     const fs = require('fs');
-    const vendored = path.join(__dirname, 'vendor/georgian-payments/georgian-payments.cjs');
-    const monorepo = path.join(__dirname, '../../../src/georgian-payments.cjs');
-    const monorepoDelivery = path.join(__dirname, '../../../src/georgian-delivery.cjs');
-    const monorepoWarehouse = path.join(__dirname, '../../../src/georgian-warehouse.cjs');
-    config.resolve.alias['@georgian-payments'] = fs.existsSync(vendored) ? vendored : monorepo;
-    config.resolve.alias['@georgian-delivery'] = monorepoDelivery;
-    config.resolve.alias['@georgian-warehouse'] = monorepoWarehouse;
+    const vendoredSrc = path.join(__dirname, 'vendor/monorepo-src');
+    const monorepoSrc = path.join(__dirname, '../../../src');
+    const srcRoot = fs.existsSync(vendoredSrc) ? vendoredSrc : monorepoSrc;
+    config.resolve.alias['@georgian-payments'] = path.join(srcRoot, 'georgian-payments.cjs');
+    config.resolve.alias['@georgian-delivery'] = path.join(srcRoot, 'georgian-delivery.cjs');
+    config.resolve.alias['@georgian-warehouse'] = path.join(srcRoot, 'georgian-warehouse.cjs');
     return config;
   },
 };
