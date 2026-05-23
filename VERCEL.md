@@ -14,6 +14,8 @@
 
 შეცდომა *No Next.js version detected* — Vercel root-ზე უნდა დაინსტალირდეს `next` (`npm install` repo root-ში). `vercel-app.sh` ამას აკეთებს; Root Directory ცარიელი ან `integrations/shopify/georgia-pay-app`.
 
+შეცდომა `ENOENT ... shopify/georgia-pay-app/.next/routes-manifest.json` — `next.config.js`-ში არ უნდა იყოს `outputFileTracingRoot` repo-root sync-თან ერთად (Vercel არასწორ ქვეფოლდერს ეძებს). გამოიყენე Root Directory = `integrations/shopify/georgia-pay-app` ან უახლესი `main` (sync + tracing fix).
+
 | პარამეტრი | მნიშვნელობა |
 |-----------|-------------|
 | **Framework** | Next.js (auto) |

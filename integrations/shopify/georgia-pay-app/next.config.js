@@ -30,9 +30,8 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ['@shopify/shopify-api', '@prisma/client', 'bcrypt'],
-    ...(process.env.VERCEL
-      ? { outputFileTracingRoot: path.join(__dirname, '../..') }
-      : {}),
+    // Do not set outputFileTracingRoot on Vercel when vercel-app.sh copies .next to repo root —
+    // tracing root `integrations/` makes Vercel look for shopify/georgia-pay-app/.next (ENOENT).
     // Do not use optimizePackageImports for framer-motion — breaks dev vendor-chunks (.next/server/vendor-chunks/framer-motion.js).
   },
   webpack: (config) => {
