@@ -7,6 +7,7 @@ import { ensureLariPaySeed } from '@/lib/laripay/seed';
 import { isSubscriptionActive } from '@/lib/laripay/billing';
 import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError } from '@/lib/laripay/api-response';
+import { getMerchantIntegrationInfo } from '@/lib/laripay/integration-platform';
 
 export async function GET(request: NextRequest) {
   try {
@@ -74,6 +75,8 @@ async function buildDashboardResponse(merchantId: string) {
     take: 5,
   });
 
+  const integration = await getMerchantIntegrationInfo(merchant.id);
+
   return NextResponse.json({
     merchant: {
       id: merchant.id,
@@ -87,6 +90,12 @@ async function buildDashboardResponse(merchantId: string) {
       bank_configured: {
         tbc: Boolean(merchant.tbcClientId && merchant.tbcClientSecret),
         bog: Boolean(merchant.bogPublicKey && merchant.bogSecretKey),
+      },
+      integration: {
+        platform: integration.platform,
+        label: integration.label,
+        ref: integration.ref,
+        inferred: integration.inferred,
       },
     },
     stats: {

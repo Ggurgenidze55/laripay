@@ -5,6 +5,7 @@ import {
   hashApiKey,
 } from './crypto';
 import { DEFAULT_COMMISSION_BPS } from './constants';
+import type { IntegrationPlatformId } from './integration-platform';
 
 export interface CreateMerchantInput {
   name: string;
@@ -15,6 +16,8 @@ export interface CreateMerchantInput {
   subscriptionPlanCode?: string;
   subscriptionMonths?: number;
   defaultProvider?: 'tbc' | 'bog';
+  integrationPlatform?: IntegrationPlatformId;
+  integrationRef?: string | null;
 }
 
 function slugify(name: string): string {
@@ -54,6 +57,8 @@ export async function createMerchant(input: CreateMerchantInput) {
       subscriptionActiveUntil,
       webhookSecret: generateWebhookSecret(),
       defaultProvider: input.defaultProvider || 'tbc',
+      integrationPlatform: input.integrationPlatform || 'api',
+      integrationRef: input.integrationRef || null,
     },
   });
 

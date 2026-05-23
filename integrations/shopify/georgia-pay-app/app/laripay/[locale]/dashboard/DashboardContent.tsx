@@ -19,12 +19,20 @@ import { DashboardTabs, type DashboardTab } from '@/components/dashboard/dashboa
 import { StatusBadge } from '@/components/laripay/StatusBadge';
 import { parseApiJson } from '@/lib/parse-api-json';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { IntegrationPlatformBadge } from '@/components/laripay/integration-platform-badge';
+import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
 
 interface DashboardData {
   merchant: {
     slug: string;
     email: string;
     billing_mode: string;
+    integration?: {
+      platform: IntegrationPlatformId;
+      label: string;
+      ref: string | null;
+      inferred: boolean;
+    };
     commission_rate_bps?: number;
     subscription_active?: boolean;
     subscription_plan?: string | null;
@@ -138,9 +146,24 @@ export default function DashboardContent() {
             <Badge variant={hasLiveKey ? 'live' : 'accent'}>
               {hasLiveKey ? d.productionMode : d.sandboxMode}
             </Badge>
+            {data.merchant.integration ? (
+              <IntegrationPlatformBadge
+                platform={data.merchant.integration.platform}
+                label={data.merchant.integration.label}
+                inferred={data.merchant.integration.inferred}
+                title={
+                  data.merchant.integration.inferred
+                    ? d.integrationInferredHint
+                    : d.integrationChannel
+                }
+              />
+            ) : null}
           </div>
           <h1 className="text-3xl font-semibold tracking-tight">{data.merchant.slug}</h1>
           <p className="mt-1 text-sm text-foreground-muted">{data.merchant.email}</p>
+          {data.merchant.integration?.inferred ? (
+            <p className="mt-2 text-xs text-foreground-muted">{d.integrationInferredHint}</p>
+          ) : null}
         </div>
         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
           <Button variant="ghost" onClick={logout}>

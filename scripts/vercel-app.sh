@@ -36,8 +36,8 @@ case "$action" in
       rm -rf "${repo_root}/.next" "${repo_root}/public" "${repo_root}/node_modules"
       cp -a "${app_dir}/.next" "${repo_root}/.next"
       cp -a "${app_dir}/public" "${repo_root}/public"
-      # Symlink full app node_modules (Shopify, Prisma, etc.) for server trace at repo root
-      ln -sfn "${app_rel}/node_modules" "${repo_root}/node_modules"
+      # Must copy — Vercel serverless does not follow symlinks (API routes 500 otherwise).
+      cp -a "${app_dir}/node_modules" "${repo_root}/node_modules"
     fi
     ;;
   *)

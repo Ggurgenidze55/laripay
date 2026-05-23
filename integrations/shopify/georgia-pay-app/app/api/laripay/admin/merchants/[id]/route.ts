@@ -4,6 +4,10 @@ import { isAdminRequest } from '@/lib/laripay/admin-session';
 import { getAdminMerchantDetail } from '@/lib/laripay/admin-merchants';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { formatBpsAsPercent } from '@/lib/laripay/billing';
+import {
+  isIntegrationPlatformId,
+  setMerchantIntegration,
+} from '@/lib/laripay/integration-platform';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,6 +72,20 @@ export async function PATCH(
     data.name = body.name.trim();
   }
 
+  let integrationUpdated = false;
+  if (typeof body.integration_platform === 'string') {
+    const p = body.integration_platform.trim().toLowerCase();
+    if (isIntegrationPlatformId(p)) {
+      await setMerchantIntegration(
+        params.id,
+        p,
+        typeof body.integration_ref === 'string' ? body.integration_ref : null,
+        { force: true },
+      );
+      integrationUpdated = true;
+    }
+  }
+
   if (typeof body.email === 'string' && body.email.trim()) {
     const email = body.email.trim().toLowerCase();
     const clash = await prisma.merchant.findFirst({
@@ -79,14 +97,16 @@ export async function PATCH(
     data.email = email;
   }
 
-  if (Object.keys(data).length === 0) {
+  if (Object.keys(data).length === 0 && !integrationUpdated) {
     return laripayError('No valid fields to update');
   }
 
-  await prisma.merchant.update({
-    where: { id: params.id },
-    data,
-  });
+  if (Object.keys(data).length > 0) {
+    await prisma.merchant.update({
+      where: { id: params.id },
+      data,
+    });
+  }
 
   const detail = await getAdminMerchantDetail(params.id);
   return laripayJson({

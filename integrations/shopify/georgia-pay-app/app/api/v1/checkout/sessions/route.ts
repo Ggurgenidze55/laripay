@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { authenticateApiRequest } from '@/lib/laripay/auth';
 import { createCheckoutSession } from '@/lib/laripay/checkout';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
+import { recordIntegrationFromRequest } from '@/lib/laripay/integration-platform';
 import { getLariPayCoreBaseUrl, proxyToLariPayCore } from '@/lib/laripay-core/proxy';
 
 export async function POST(request: NextRequest) {
@@ -51,6 +52,8 @@ export async function POST(request: NextRequest) {
   try {
     const uiMode =
       body.ui_mode === 'hosted' || body.checkout_ui === 'hosted' ? 'hosted' : 'redirect';
+
+    await recordIntegrationFromRequest(auth.merchant.id, request, body).catch(() => {});
 
     const session = await createCheckoutSession(auth.merchant, {
       amount,

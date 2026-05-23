@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { platformEnv } from '@/lib/laripay-env';
 import { hashApiKey } from './crypto';
 import { laripayError } from './api-response';
+import { recordIntegrationFromRequest } from './integration-platform';
 
 export interface AuthenticatedMerchant {
   id: string;
@@ -48,6 +49,8 @@ export async function authenticateApiRequest(
     where: { id: apiKey.id },
     data: { lastUsedAt: new Date() },
   });
+
+  await recordIntegrationFromRequest(apiKey.merchantId, request).catch(() => {});
 
   const m = apiKey.merchant;
   return {

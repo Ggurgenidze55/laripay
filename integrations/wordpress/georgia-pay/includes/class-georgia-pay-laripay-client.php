@@ -48,6 +48,10 @@ class Georgia_Pay_LariPay_Client {
 			'success_url'          => $success_url,
 			'cancel_url'           => $cancel_url,
 			'client_reference_id'  => (string) $order_ref,
+			'metadata'             => array(
+				'integration' => 'woocommerce',
+				'site'        => home_url(),
+			),
 		);
 
 		$data = $this->request( 'POST', '/api/v1/checkout/sessions', $body );
@@ -114,9 +118,11 @@ class Georgia_Pay_LariPay_Client {
 			'method'  => $method,
 			'timeout' => 45,
 			'headers' => array(
-				'Authorization' => 'Bearer ' . $this->secret_key,
-				'Content-Type'    => 'application/json',
-				'Accept'          => 'application/json',
+				'Authorization'              => 'Bearer ' . $this->secret_key,
+				'Content-Type'               => 'application/json',
+				'Accept'                     => 'application/json',
+				'X-LariPay-Integration'      => 'woocommerce',
+				'X-LariPay-Integration-Ref'  => home_url(),
 			),
 		);
 

@@ -2,6 +2,7 @@ import { platformEnv } from '@/lib/laripay-env';
 import prisma from '@/lib/prisma';
 import { createMerchant } from '@/lib/laripay/onboard';
 import { generateSecretKey, hashApiKey } from '@/lib/laripay/crypto';
+import { setMerchantIntegration } from '@/lib/laripay/integration-platform';
 
 /**
  * Ensure each Shopify shop has a LariPay.ai merchant + API key stored in settings.
@@ -29,6 +30,8 @@ export async function ensureLariPayMerchantForShop(shopDomain: string): Promise<
         email: `shop@${slug}.laripay.ai`,
         slug,
         billingMode: 'COMMISSION',
+        integrationPlatform: 'shopify',
+        integrationRef: shopDomain,
       });
       merchant = created.merchant;
       const apiKey = created.secretKey;
@@ -51,6 +54,8 @@ export async function ensureLariPayMerchantForShop(shopDomain: string): Promise<
   }
 
   if (!merchant) return null;
+
+  await setMerchantIntegration(merchant.id, 'shopify', shopDomain, { force: true });
 
   const secretKey = generateSecretKey('test');
   await prisma.apiKey.create({

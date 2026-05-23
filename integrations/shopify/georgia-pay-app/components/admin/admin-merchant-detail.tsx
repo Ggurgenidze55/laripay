@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { parseApiJson } from '@/lib/parse-api-json';
 import { localePath } from '@/lib/i18n/routing';
+import { IntegrationPlatformBadge } from '@/components/laripay/integration-platform-badge';
+import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
+import { INTEGRATION_PLATFORMS } from '@/lib/laripay/integration-platform';
 
 type MerchantDetail = {
   id: string;
@@ -20,6 +23,14 @@ type MerchantDetail = {
   commission_rate_bps: number;
   commission_percent: string;
   default_provider: string;
+  integration: {
+    platform: IntegrationPlatformId;
+    label: string;
+    ref: string | null;
+    inferred: boolean;
+    stored_platform: string | null;
+    stored_ref: string | null;
+  };
   bank_config: {
     tbc_configured: boolean;
     bog_configured: boolean;
@@ -92,6 +103,8 @@ export function AdminMerchantDetail({ merchantId }: { merchantId: string }) {
     billing_mode: 'COMMISSION',
     commission_rate_bps: 100,
     default_provider: 'tbc',
+    integration_platform: 'api' as IntegrationPlatformId,
+    integration_ref: '',
   });
 
   const load = useCallback(async () => {
@@ -108,6 +121,8 @@ export function AdminMerchantDetail({ merchantId }: { merchantId: string }) {
         billing_mode: d.billing_mode,
         commission_rate_bps: d.commission_rate_bps,
         default_provider: d.default_provider,
+        integration_platform: d.integration.platform,
+        integration_ref: d.integration.ref || d.integration.stored_ref || '',
       });
     }
   }, [merchantId]);
@@ -130,6 +145,8 @@ export function AdminMerchantDetail({ merchantId }: { merchantId: string }) {
         billing_mode: form.billing_mode,
         commission_rate_bps: Number(form.commission_rate_bps),
         default_provider: form.default_provider,
+        integration_platform: form.integration_platform,
+        integration_ref: form.integration_ref || null,
       }),
     });
     const { data: d } = await parseApiJson<{ merchant?: MerchantDetail; error?: { message?: string } }>(res);
@@ -208,6 +225,25 @@ export function AdminMerchantDetail({ merchantId }: { merchantId: string }) {
         </Card>
       </div>
 
+      <Card className="mt-8 !p-5">
+        <h3 className="text-sm font-medium">{m.integrationTitle}</h3>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <IntegrationPlatformBadge
+            platform={data.integration.platform}
+            label={data.integration.label}
+            inferred={data.integration.inferred}
+          />
+          <p className="text-xs text-foreground-muted">
+            {data.integration.inferred ? m.integrationInferred : m.integrationStored}
+          </p>
+        </div>
+        {data.integration.ref ? (
+          <p className="mt-2 font-mono text-xs text-foreground-muted">
+            {m.integrationRef}: {data.integration.ref}
+          </p>
+        ) : null}
+      </Card>
+
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <Card className="!p-5">
           <h3 className="text-sm font-medium">{m.editTitle}</h3>
@@ -273,6 +309,34 @@ export function AdminMerchantDetail({ merchantId }: { merchantId: string }) {
                 <option value="tbc">TBC</option>
                 <option value="bog">BOG</option>
               </select>
+            </label>
+            <label className="block text-xs text-foreground-muted">
+              {m.fieldIntegration}
+              <select
+                className="mt-1 w-full rounded-lg border border-border bg-canvas-elevated px-3 py-2 text-sm"
+                value={form.integration_platform}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    integration_platform: e.target.value as IntegrationPlatformId,
+                  }))
+                }
+              >
+                {INTEGRATION_PLATFORMS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-xs text-foreground-muted">
+              {m.integrationRef}
+              <input
+                className="mt-1 w-full rounded-lg border border-border bg-canvas-elevated px-3 py-2 text-sm font-mono"
+                placeholder="store.myshopify.com"
+                value={form.integration_ref}
+                onChange={(e) => setForm((f) => ({ ...f, integration_ref: e.target.value }))}
+              />
             </label>
             <Button onClick={save} disabled={saving}>
               {saving ? m.saving : m.save}

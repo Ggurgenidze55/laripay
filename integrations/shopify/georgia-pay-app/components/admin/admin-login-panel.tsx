@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { TwoFactorPanel } from '@/components/auth/two-factor-panel';
+import { parseApiJson } from '@/lib/parse-api-json';
 
 type Props = {
   onLoggedIn: () => void;
@@ -34,13 +35,22 @@ export function AdminLoginPanel({ onLoggedIn }: Props) {
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
+      const { data } = await parseApiJson<{
+        requires_2fa?: boolean;
+        challenge_id?: string;
+        phone_masked?: string;
+        error?: { message?: string };
+      }>(res);
       if (!res.ok) {
         setError(data?.error?.message || l.failed);
         return;
       }
       if (!data.requires_2fa && !data.challenge_id) {
         onLoggedIn();
+        return;
+      }
+      if (!data.challenge_id) {
+        setError(l.failed);
         return;
       }
       setChallengeId(data.challenge_id);
@@ -67,7 +77,7 @@ export function AdminLoginPanel({ onLoggedIn }: Props) {
           phone_code: phoneCode,
         }),
       });
-      const data = await res.json();
+      const { data } = await parseApiJson<{ error?: { message?: string } }>(res);
       if (!res.ok) {
         setError(data?.error?.message || l.failed);
         return;

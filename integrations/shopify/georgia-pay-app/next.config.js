@@ -29,7 +29,10 @@ const nextConfig = {
     ];
   },
   experimental: {
-    serverComponentsExternalPackages: ['@shopify/shopify-api', '@prisma/client'],
+    serverComponentsExternalPackages: ['@shopify/shopify-api', '@prisma/client', 'bcrypt'],
+    ...(process.env.VERCEL
+      ? { outputFileTracingRoot: path.join(__dirname, '../..') }
+      : {}),
     // Do not use optimizePackageImports for framer-motion — breaks dev vendor-chunks (.next/server/vendor-chunks/framer-motion.js).
   },
   webpack: (config) => {

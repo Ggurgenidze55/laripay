@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { formatBpsAsPercent } from './billing';
+import { getMerchantIntegrationInfo } from './integration-platform';
 
 export async function getAdminMerchantDetail(merchantId: string) {
   const merchant = await prisma.merchant.findUnique({
@@ -42,6 +43,8 @@ export async function getAdminMerchantDetail(merchantId: string) {
 
   if (!merchant) return null;
 
+  const integration = await getMerchantIntegrationInfo(merchant.id);
+
   const succeeded = await prisma.paykaPayment.aggregate({
     where: { merchantId, status: 'succeeded' },
     _sum: { grossAmount: true, platformFee: true, netAmount: true },
@@ -58,6 +61,14 @@ export async function getAdminMerchantDetail(merchantId: string) {
     commission_rate_bps: merchant.commissionRateBps,
     commission_percent: formatBpsAsPercent(merchant.commissionRateBps),
     default_provider: merchant.defaultProvider,
+    integration: {
+      platform: integration.platform,
+      label: integration.label,
+      ref: integration.ref,
+      inferred: integration.inferred,
+      stored_platform: merchant.integrationPlatform,
+      stored_ref: merchant.integrationRef,
+    },
     subscription_plan: merchant.subscriptionPlan
       ? { code: merchant.subscriptionPlan.code, name: merchant.subscriptionPlan.name }
       : null,
@@ -152,7 +163,10 @@ export async function listAdminMerchants() {
     },
   });
 
-  return merchants.map((m) => ({
+  const rows = await Promise.all(
+    merchants.map(async (m) => {
+      const integration = await getMerchantIntegrationInfo(m.id);
+      return {
     id: m.id,
     name: m.name,
     email: m.email,
@@ -161,6 +175,12 @@ export async function listAdminMerchants() {
     billing_mode: m.billingMode,
     commission_rate_bps: m.commissionRateBps,
     default_provider: m.defaultProvider,
+    integration: {
+      platform: integration.platform,
+      label: integration.label,
+      ref: integration.ref,
+      inferred: integration.inferred,
+    },
     plan: m.subscriptionPlan?.code ?? null,
     payments_count: m._count.paykaPayments,
     api_keys_count: m._count.apiKeys,
@@ -169,7 +189,11 @@ export async function listAdminMerchants() {
       : null,
     owner: m.owner ? { id: m.owner.id, email: m.owner.email, role: m.owner.role } : null,
     created_at: m.createdAt,
-  }));
+      };
+    }),
+  );
+
+  return rows;
 }
 
 export async function listAdminUsers() {

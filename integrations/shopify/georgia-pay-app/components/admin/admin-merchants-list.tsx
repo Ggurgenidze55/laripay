@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { parseApiJson } from '@/lib/parse-api-json';
 import { localePath } from '@/lib/i18n/routing';
+import { IntegrationPlatformBadge } from '@/components/laripay/integration-platform-badge';
+import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
 
 type MerchantRow = {
   id: string;
@@ -18,6 +20,12 @@ type MerchantRow = {
   billing_mode: string;
   commission_rate_bps: number;
   default_provider: string;
+  integration: {
+    platform: IntegrationPlatformId;
+    label: string;
+    ref: string | null;
+    inferred: boolean;
+  };
   payments_count: number;
   api_keys_count: number;
   primary_api_key: { prefix: string; mode: string; last_used_at: string | null } | null;
@@ -108,10 +116,11 @@ export function AdminMerchantsList() {
       ) : tab === 'merchants' ? (
         <Card className="!p-0 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left text-sm">
+            <table className="w-full min-w-[1000px] text-left text-sm">
               <thead className="bg-canvas-elevated/80 text-xs text-foreground-muted">
                 <tr>
                   <th className="px-4 py-3">{m.colMerchant}</th>
+                  <th className="px-4 py-3">{m.colIntegration}</th>
                   <th className="px-4 py-3">{m.colApi}</th>
                   <th className="px-4 py-3">{m.colBilling}</th>
                   <th className="px-4 py-3">{m.colPayments}</th>
@@ -126,6 +135,14 @@ export function AdminMerchantsList() {
                       <p className="font-medium">{row.name}</p>
                       <p className="text-xs text-foreground-muted">{row.email}</p>
                       <p className="font-mono text-[10px] text-foreground-muted">{row.slug}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <IntegrationPlatformBadge
+                        platform={row.integration.platform}
+                        label={row.integration.label}
+                        inferred={row.integration.inferred}
+                        title={row.integration.inferred ? m.integrationInferred : m.integrationStored}
+                      />
                     </td>
                     <td className="px-4 py-3 font-mono text-xs">
                       {row.primary_api_key ? (

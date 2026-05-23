@@ -166,6 +166,8 @@ model Merchant {
   bogPublicKey            String?
   bogSecretKey            String?
   bogCallbackPublicKey    String?
+  integrationPlatform     String?
+  integrationRef          String?
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
   apiKeys                 ApiKey[]
