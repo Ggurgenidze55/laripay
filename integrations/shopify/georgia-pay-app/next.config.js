@@ -1,9 +1,14 @@
 const path = require('path');
 
+const useStandalone =
+  !process.env.VERCEL &&
+  !process.env.RAILWAY_ENVIRONMENT &&
+  !process.env.RAILWAY;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  ...(process.env.VERCEL ? {} : { output: 'standalone' }),
+  ...(useStandalone ? { output: 'standalone' } : {}),
   async redirects() {
     return [
       { source: '/laripay.en', destination: '/laripay/en', permanent: false },

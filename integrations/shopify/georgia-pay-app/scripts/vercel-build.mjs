@@ -4,12 +4,24 @@
  * schema.postgresql.prisma must stay in sync with schema.prisma (canonical).
  */
 import { execSync } from 'node:child_process';
-import { copyFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const run = (cmd) => execSync(cmd, { cwd: root, stdio: 'inherit', env: process.env });
+
+function ensureGeorgianPaymentsVendor() {
+  const vendored = join(root, 'vendor/georgian-payments/georgian-payments.cjs');
+  if (existsSync(vendored)) return;
+  const monorepo = join(root, '../../../src/georgian-payments.cjs');
+  if (!existsSync(monorepo)) return;
+  mkdirSync(join(root, 'vendor/georgian-payments'), { recursive: true });
+  copyFileSync(monorepo, vendored);
+  console.log('[production-build] vendored georgian-payments from monorepo src/');
+}
+
+ensureGeorgianPaymentsVendor();
 
 copyFileSync(
   join(root, 'prisma/schema.postgresql.prisma'),

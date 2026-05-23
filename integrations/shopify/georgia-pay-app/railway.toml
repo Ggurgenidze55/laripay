@@ -1,0 +1,13 @@
+# LariPay on Railway — set Service → Settings → Root Directory to this folder.
+# GitHub push to the linked branch triggers a new deploy automatically.
+
+[build]
+builder = "nixpacks"
+buildCommand = "npm run build:railway"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
