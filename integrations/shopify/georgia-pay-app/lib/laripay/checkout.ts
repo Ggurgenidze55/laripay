@@ -117,29 +117,16 @@ export async function createCheckoutSession(
     },
   });
 
-  const bank = await initiateBankPaymentForSession(session.id, provider);
-  return {
-    id: session.id,
-    object: 'checkout.session' as const,
-    mode: paymentMode === 'installment' ? ('installment' as const) : ('payment' as const),
-    payment_mode: paymentMode,
-    installment_terms: installmentTerms,
-    status: 'open' as const,
-    amount: fees.grossAmount,
-    currency,
-    platform_fee: fees.platformFee,
-    net_amount: fees.netAmount,
-    fee_mode: fees.feeMode,
+  await initiateBankPaymentForSession(session.id, provider);
+  const fresh = await prisma.checkoutSession.findUniqueOrThrow({
+    where: { id: session.id },
+    include: { paykaPayment: true },
+  });
+
+  return serializeCheckoutSession(fresh, {
+    mode: paymentMode === 'installment' ? 'installment' : 'payment',
     commission_rate: fees.commissionRateBps / 100,
-    provider,
-    client_reference_id: input.clientReferenceId || null,
-    success_url: input.successUrl,
-    cancel_url: input.cancelUrl || null,
-    url: bank.redirectUrl,
-    payment_id: bank.paymentId,
-    expires_at: Math.floor(expiresAt.getTime() / 1000),
-    created: Math.floor(session.createdAt.getTime() / 1000),
-  };
+  });
 }
 
 /** Attach bank redirect to an open checkout session. */
@@ -272,10 +259,15 @@ export function serializeCheckoutSession(
       feeMode: string;
     } | null;
   },
+  extras?: {
+    mode?: 'payment' | 'installment';
+    commission_rate?: number;
+  },
 ) {
   return {
     id: session.id,
     object: 'checkout.session' as const,
+    ...(extras?.mode ? { mode: extras.mode } : {}),
     status: session.status,
     amount: session.amount,
     currency: session.currency,
@@ -292,6 +284,7 @@ export function serializeCheckoutSession(
     net_amount: session.paykaPayment?.netAmount ?? null,
     fee_mode: session.paykaPayment?.feeMode ?? null,
     payment_status: session.paykaPayment?.status ?? null,
+    ...(extras?.commission_rate != null ? { commission_rate: extras.commission_rate } : {}),
     expires_at: Math.floor(session.expiresAt.getTime() / 1000),
     created: Math.floor(session.createdAt.getTime() / 1000),
   };
