@@ -1,47 +1,20 @@
 import prisma from '@/lib/prisma';
 import { createCheckoutSession } from '@/lib/laripay/checkout';
-import type { AuthenticatedMerchant } from '@/lib/laripay/auth';
-import { getLariPayApiKeyForShop } from '@/lib/laripay/provision-merchant';
-import { hashApiKey } from '@/lib/laripay/crypto';
+import { getMerchantForShop } from '@/lib/laripay/provision-merchant';
 import { getMerchantBankConfig } from '@/lib/laripay/merchant-config';
 import type { ShopifyPaymentSessionBody } from '@/lib/payment-service';
 import { getAppUrl } from '@/lib/shopify';
 
-async function merchantFromApiKey(apiKey: string): Promise<AuthenticatedMerchant | null> {
-  const keyHash = hashApiKey(apiKey);
-  const row = await prisma.apiKey.findUnique({
-    where: { keyHash },
-    include: { merchant: true },
-  });
-  if (!row?.merchant || row.revokedAt) return null;
-  const m = row.merchant;
-  return {
-    id: m.id,
-    slug: m.slug,
-    email: m.email,
-    billingMode: m.billingMode,
-    commissionRateBps: m.commissionRateBps,
-    subscriptionActiveUntil: m.subscriptionActiveUntil,
-    defaultProvider: m.defaultProvider,
-    webhookSecret: m.webhookSecret,
-  };
-}
-
 /**
- * Start Shopify checkout via LariPay.ai API (1% / subscription billing).
+ * Start Shopify checkout via LariPay — redirect to TBC/BOG hosted page only.
  */
 export async function startShopifyLariPayCheckout(
   session: ShopifyPaymentSessionBody,
   shopDomain: string,
 ) {
-  const apiKey = await getLariPayApiKeyForShop(shopDomain);
-  if (!apiKey) {
-    throw new Error('LariPay.ai API key not configured for this shop');
-  }
-
-  const merchant = await merchantFromApiKey(apiKey);
+  const merchant = await getMerchantForShop(shopDomain);
   if (!merchant) {
-    throw new Error('Invalid LariPay.ai API key');
+    throw new Error('LariPay merchant not linked for this shop');
   }
 
   const bankConfig = await getMerchantBankConfig(merchant.id);

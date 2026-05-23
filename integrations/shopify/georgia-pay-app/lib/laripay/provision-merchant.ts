@@ -1,11 +1,33 @@
-import { platformEnv } from '@/lib/laripay-env';
 import prisma from '@/lib/prisma';
 import { createMerchant } from '@/lib/laripay/onboard';
 import { generateSecretKey, hashApiKey } from '@/lib/laripay/crypto';
 import { setMerchantIntegration } from '@/lib/laripay/integration-platform';
+import type { AuthenticatedMerchant } from '@/lib/laripay/auth';
+
+function toAuthMerchant(m: {
+  id: string;
+  slug: string;
+  email: string;
+  billingMode: string;
+  commissionRateBps: number;
+  subscriptionActiveUntil: Date | null;
+  defaultProvider: string;
+  webhookSecret: string;
+}): AuthenticatedMerchant {
+  return {
+    id: m.id,
+    slug: m.slug,
+    email: m.email,
+    billingMode: m.billingMode,
+    commissionRateBps: m.commissionRateBps,
+    subscriptionActiveUntil: m.subscriptionActiveUntil,
+    defaultProvider: m.defaultProvider,
+    webhookSecret: m.webhookSecret,
+  };
+}
 
 /**
- * Ensure each Shopify shop has a LariPay.ai merchant + API key stored in settings.
+ * Ensure each Shopify shop is linked to a LariPay merchant (no API secrets stored on ShopSettings).
  */
 export async function ensureLariPayMerchantForShop(shopDomain: string): Promise<string | null> {
   const slug = shopDomain.replace(/\.myshopify\.com$/i, '').toLowerCase() || shopDomain;
@@ -17,8 +39,8 @@ export async function ensureLariPayMerchantForShop(shopDomain: string): Promise<
 
   if (!shop) return null;
 
-  if (shop.settings?.paykaApiKey) {
-    return shop.settings.paykaApiKey;
+  if (shop.settings?.laripayMerchantId) {
+    return shop.settings.laripayMerchantId;
   }
 
   let merchant = await prisma.merchant.findUnique({ where: { slug } });
@@ -34,20 +56,19 @@ export async function ensureLariPayMerchantForShop(shopDomain: string): Promise<
         integrationRef: shopDomain,
       });
       merchant = created.merchant;
-      const apiKey = created.secretKey;
 
       await prisma.shopSettings.upsert({
         where: { shopId: shop.id },
         create: {
           shopId: shop.id,
-          paykaApiKey: apiKey,
+          laripayMerchantId: merchant.id,
           provider: 'tbc',
           testMode: true,
         },
-        update: { paykaApiKey: apiKey },
+        update: { laripayMerchantId: merchant.id },
       });
 
-      return apiKey;
+      return merchant.id;
     } catch {
       merchant = await prisma.merchant.findUnique({ where: { slug } });
     }
@@ -72,28 +93,27 @@ export async function ensureLariPayMerchantForShop(shopDomain: string): Promise<
     where: { shopId: shop.id },
     create: {
       shopId: shop.id,
-      paykaApiKey: secretKey,
+      laripayMerchantId: merchant.id,
       provider: 'tbc',
       testMode: true,
     },
-    update: { paykaApiKey: secretKey },
+    update: { laripayMerchantId: merchant.id },
   });
 
-  return secretKey;
+  return merchant.id;
 }
 
-export async function getLariPayApiKeyForShop(shopDomain: string): Promise<string | null> {
+export async function getMerchantForShop(shopDomain: string): Promise<AuthenticatedMerchant | null> {
   const shop = await prisma.shop.findUnique({
     where: { domain: shopDomain },
     include: { settings: true },
   });
 
-  if (shop?.settings?.paykaApiKey) {
-    return shop.settings.paykaApiKey;
-  }
+  const merchantId =
+    shop?.settings?.laripayMerchantId || (await ensureLariPayMerchantForShop(shopDomain));
 
-  return (
-    platformEnv('DEMO_API_KEY') ||
-    (await ensureLariPayMerchantForShop(shopDomain))
-  );
+  if (!merchantId) return null;
+
+  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId } });
+  return merchant ? toAuthMerchant(merchant) : null;
 }

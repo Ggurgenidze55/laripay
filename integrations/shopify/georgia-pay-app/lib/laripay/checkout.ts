@@ -7,15 +7,6 @@ import { buildMerchantPaymentsClient, getMerchantBankConfig } from './merchant-c
 import { expireCheckoutSessionIfNeeded } from './checkout-expiry';
 import type { AuthenticatedMerchant } from './auth';
 
-export function hostedCheckoutPageUrl(sessionId: string): string {
-  const base = (process.env.HOST || process.env.VERCEL_URL || 'http://localhost:3000').replace(
-    /\/$/,
-    '',
-  );
-  const origin = base.startsWith('http') ? base : `https://${base}`;
-  return `${origin}/checkout/ui/${sessionId}`;
-}
-
 export interface CreateCheckoutInput {
   amount: number;
   currency?: string;
@@ -25,10 +16,9 @@ export interface CreateCheckoutInput {
   clientReferenceId?: string;
   idempotencyKey?: string;
   metadata?: Record<string, unknown>;
-  /** When `hosted`, customer picks bank on /checkout/ui/:id before redirect. */
-  uiMode?: 'hosted' | 'redirect';
 }
 
+/** Create checkout session and redirect URL to TBC/BOG hosted bank page (no card data on LariPay). */
 export async function createCheckoutSession(
   merchant: AuthenticatedMerchant,
   input: CreateCheckoutInput,
@@ -72,7 +62,6 @@ export async function createCheckoutSession(
 
   const fees = computePlatformFee(amount, fullMerchant);
   const expiresAt = new Date(Date.now() + CHECKOUT_SESSION_TTL_MS);
-  const uiMode = input.uiMode === 'hosted' ? 'hosted' : 'redirect';
 
   const session = await prisma.checkoutSession.create({
     data: {
@@ -89,29 +78,6 @@ export async function createCheckoutSession(
       status: 'open',
     },
   });
-
-  if (uiMode === 'hosted') {
-    return {
-      id: session.id,
-      object: 'checkout.session' as const,
-      mode: 'payment' as const,
-      status: 'open' as const,
-      amount: fees.grossAmount,
-      currency,
-      platform_fee: fees.platformFee,
-      net_amount: fees.netAmount,
-      fee_mode: fees.feeMode,
-      commission_rate: fees.commissionRateBps / 100,
-      provider,
-      client_reference_id: input.clientReferenceId || null,
-      success_url: input.successUrl,
-      cancel_url: input.cancelUrl || null,
-      url: hostedCheckoutPageUrl(session.id),
-      payment_id: null,
-      expires_at: Math.floor(expiresAt.getTime() / 1000),
-      created: Math.floor(session.createdAt.getTime() / 1000),
-    };
-  }
 
   const bank = await initiateBankPaymentForSession(session.id, provider);
   return {
@@ -136,7 +102,7 @@ export async function createCheckoutSession(
   };
 }
 
-/** Attach TBC/BOG redirect to an open checkout session (hosted UI confirm). */
+/** Attach TBC/BOG redirect to an open checkout session. */
 export async function initiateBankPaymentForSession(sessionId: string, provider: 'tbc' | 'bog') {
   const session = await prisma.checkoutSession.findUniqueOrThrow({
     where: { id: sessionId },

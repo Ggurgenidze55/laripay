@@ -50,7 +50,6 @@ export async function PUT(request: NextRequest) {
       bogPublicKey: body.bogPublicKey,
       bogSecretKey: body.bogSecretKey,
       bogCallbackPublicKey: body.bogCallbackPublicKey,
-      paykaApiKey: body.paykaApiKey,
     },
     update: {
       provider: body.provider,
@@ -61,7 +60,6 @@ export async function PUT(request: NextRequest) {
       bogPublicKey: body.bogPublicKey,
       bogSecretKey: body.bogSecretKey,
       bogCallbackPublicKey: body.bogCallbackPublicKey,
-      paykaApiKey: body.paykaApiKey,
     },
   });
 

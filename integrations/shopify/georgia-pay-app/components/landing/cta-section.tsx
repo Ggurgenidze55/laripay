@@ -34,13 +34,13 @@ export function CtaSection() {
                 {c.startBuilding}
               </SiteLink>
               <SiteLink
-                route="demo"
+                route="pricing"
                 className={cn(
                   'inline-flex h-11 items-center rounded-xl px-6 text-sm font-medium',
                   buttonVariants.secondary,
                 )}
               >
-                {t.nav.demo}
+                {t.nav.pricing}
               </SiteLink>
               <SiteLink
                 route="dashboard"

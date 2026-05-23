@@ -3,7 +3,7 @@ import { buildPaymentsClient, assertGelCurrency, type ShopBankConfig } from './g
 import { getAppUrl } from './shopify';
 import { isTbcSandbox, resolveReturnUrl, resolveWebhookUrl } from './laripay-env';
 import { startShopifyLariPayCheckout } from './laripay/shopify-checkout';
-import { getLariPayApiKeyForShop } from './laripay/provision-merchant';
+import { getMerchantForShop } from './laripay/provision-merchant';
 import {
   resolvePaymentSession,
   rejectPaymentSession,
@@ -48,8 +48,8 @@ export async function getShopBankConfig(shopDomain: string): Promise<ShopBankCon
 export async function startCheckoutRedirect(session: ShopifyPaymentSessionBody, shopDomain: string) {
   assertGelCurrency(session.currency);
 
-  const laripayKey = await getLariPayApiKeyForShop(shopDomain);
-  if (laripayKey) {
+  const laripayMerchant = await getMerchantForShop(shopDomain);
+  if (laripayMerchant) {
     return startShopifyLariPayCheckout(session, shopDomain);
   }
 

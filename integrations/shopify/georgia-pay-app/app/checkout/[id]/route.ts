@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+/** Shopify payment record → bank redirect (fallback when redirect_url not cached). */
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } },

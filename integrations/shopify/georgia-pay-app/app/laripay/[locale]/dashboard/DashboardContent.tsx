@@ -14,7 +14,6 @@ import { StatCard } from '@/components/dashboard/stat-card';
 import { RevenueChart } from '@/components/dashboard/revenue-chart';
 import { TransactionFeed } from '@/components/dashboard/transaction-feed';
 import { InfrastructurePanel } from '@/components/dashboard/infrastructure-panel';
-import { PlatformToolsPanel } from '@/components/dashboard/platform-tools-panel';
 import { DashboardTabs, type DashboardTab } from '@/components/dashboard/dashboard-tabs';
 import { StatusBadge } from '@/components/laripay/StatusBadge';
 import { parseApiJson } from '@/lib/parse-api-json';
@@ -229,25 +228,25 @@ export default function DashboardContent() {
             </Card>
             <Card className="!p-5">
               <h3 className="text-sm font-medium">{d.integration}</h3>
-              <p className="mt-2 font-mono text-xs text-foreground-muted">
+              <p className="mt-2 text-sm text-foreground-muted">{d.bankHostedNote}</p>
+              <p className="mt-3 font-mono text-xs text-foreground-muted">
                 POST /api/v1/checkout/sessions
               </p>
-              <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                <Link href={route('playground')} className="text-accent-cyan hover:underline">
-                  {d.openPlayground}
-                </Link>
-                <Link href={route('docs')} className="text-accent-cyan hover:underline">
+              <p className="mt-1 font-mono text-xs text-foreground-muted">
+                → response.url (TBC/BOG hosted page)
+              </p>
+              <div className="mt-4">
+                <Link href={route('docs')} className="text-sm text-accent-cyan hover:underline">
                   {d.openDocs}
                 </Link>
               </div>
             </Card>
           </div>
-          <PlatformToolsPanel />
         </>
       )}
 
       {tab === 'billing' && (
-        <Card className="!p-5 max-w-lg">
+        <Card className="!p-5 max-w-xl">
           <h3 className="text-sm font-medium">{d.billingTitle}</h3>
           <p className="mt-2 text-sm text-foreground-muted">
             {d.billingMode}: <strong>{data.merchant.billing_mode}</strong>
@@ -261,6 +260,7 @@ export default function DashboardContent() {
           <p className="mt-1 text-sm text-foreground-muted">
             {d.commission}: {(data.merchant.commission_rate_bps ?? 100) / 100}%
           </p>
+          <p className="mt-4 text-sm text-foreground-muted">{d.subscriptionNote}</p>
           <Link href={route('pricing')} className="mt-4 inline-block text-sm text-accent-cyan hover:underline">
             {d.viewPricing}
           </Link>

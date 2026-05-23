@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { SectionShell, SectionHeader } from '@/components/landing/shared';
 import { Button } from '@/components/ui/button';
 import { useLocale } from '@/components/i18n/LocaleProvider';
-import { CoreModeBadge } from '@/components/platform/core-mode-badge';
 import { HoverLift } from '@/components/motion/interactive';
 
 export function PlatformTeaserSection() {
@@ -15,9 +14,6 @@ export function PlatformTeaserSection() {
   return (
     <SectionShell id="platform">
       <SectionHeader eyebrow={s.eyebrow} title={s.title} description={s.description} />
-      <div className="mb-8 flex justify-center">
-        <CoreModeBadge />
-      </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {s.items.map((item, i) => (
           <HoverLift key={item.title}>
@@ -38,8 +34,8 @@ export function PlatformTeaserSection() {
         <Link href={route('platform')}>
           <Button>{s.explorePlatform}</Button>
         </Link>
-        <Link href={route('playground')}>
-          <Button variant="ghost">{s.apiPlayground}</Button>
+        <Link href={route('docs')}>
+          <Button variant="ghost">{s.openDocs}</Button>
         </Link>
       </div>
     </SectionShell>

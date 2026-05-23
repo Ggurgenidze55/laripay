@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MarketingPage } from '@/components/laripay/MarketingPage';
-import { PlatformCapabilities } from '@/components/platform/platform-capabilities';
-import { CoreModeBadge } from '@/components/platform/core-mode-badge';
 import { Button } from '@/components/ui/button';
 import { getDictionary } from '@/lib/i18n/get-dictionary';
 import { resolveLocaleParam } from '@/lib/i18n/resolve-locale';
@@ -21,16 +19,26 @@ export default function PlatformPage({ params }: Props) {
   const p = getDictionary(locale).pages.platform;
 
   return (
-    <MarketingPage
-      eyebrow={p.eyebrow}
-      title={p.title}
-      description={p.description}
-      wide
-    >
-      <div className="mb-6 flex flex-wrap items-center gap-4">
-        <CoreModeBadge />
-        <Link href={localePath(locale, 'playground')}>
-          <Button size="sm">{p.openPlayground}</Button>
+    <MarketingPage eyebrow={p.eyebrow} title={p.title} description={p.description} wide>
+      <ul className="grid gap-4 sm:grid-cols-2">
+        {p.features.map((item) => (
+          <li
+            key={item.title}
+            className="rounded-2xl border border-border-strong bg-surface-inset p-6"
+          >
+            <h3 className="font-medium text-foreground">{item.title}</h3>
+            <p className="mt-2 text-sm text-foreground-muted">{item.body}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-10 flex flex-wrap gap-4">
+        <Link href={localePath(locale, 'docs')}>
+          <Button size="sm">{p.openDocs}</Button>
+        </Link>
+        <Link href={localePath(locale, 'pricing')}>
+          <Button variant="ghost" size="sm">
+            {p.openPricing}
+          </Button>
         </Link>
         <Link href={localePath(locale, 'dashboard')}>
           <Button variant="ghost" size="sm">
@@ -38,7 +46,6 @@ export default function PlatformPage({ params }: Props) {
           </Button>
         </Link>
       </div>
-      <PlatformCapabilities />
     </MarketingPage>
   );
 }

@@ -28,7 +28,7 @@ model ShopSettings {
   bogPublicKey         String?
   bogSecretKey         String?
   bogCallbackPublicKey String?
-  paykaApiKey          String?
+  laripayMerchantId    String?
 }
 
 model PaymentRecord {

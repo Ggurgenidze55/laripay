@@ -15,7 +15,6 @@ import { LanguageToggle } from '@/components/i18n/LanguageToggle';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { localePath } from '@/lib/i18n/routing';
 import { cn } from '@/lib/utils';
-import { LariPayChat } from '@/components/ai/laripay-chat';
 
 const LANDING_RE = /^\/laripay\/(en|ka)\/?$/;
 
@@ -145,8 +144,6 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {isLanding ? null : <SiteFooter />}
-
-      <LariPayChat />
     </div>
   );
 }

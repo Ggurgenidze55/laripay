@@ -27,7 +27,7 @@ export function IntegrationsGuide() {
             <SiteLink route="docsApi" className="text-sm text-accent-cyan hover:underline">
               {g.apiReference}
             </SiteLink>
-            <SiteLink route="demo" className="text-sm text-accent-cyan hover:underline">
+            <SiteLink route="dashboard" className="text-sm text-accent-cyan hover:underline">
               {g.runDemo}
             </SiteLink>
           </div>

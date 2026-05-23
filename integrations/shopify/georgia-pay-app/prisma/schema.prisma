@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -28,7 +28,7 @@ model ShopSettings {
   bogPublicKey         String?
   bogSecretKey         String?
   bogCallbackPublicKey String?
-  paykaApiKey          String?
+  laripayMerchantId    String?
 }
 
 model PaymentRecord {
@@ -73,7 +73,7 @@ model RefundRecord {
   @@index([shopifyPaymentId])
 }
 
-// ── Payka platform (Stripe-style for Georgia) ─────────────────────
+// ── LariPay platform (bank-hosted checkout + merchant subscriptions) ──
 
 model PlatformUser {
   id                String    @id @default(cuid())
@@ -127,20 +127,20 @@ model AuthLoginChallenge {
 }
 
 model AuthOtpChallenge {
-  id           String    @id @default(cuid())
-  userId       String?
-  user         PlatformUser? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pendingId    String?
-  loginId      String?
-  email        String?
-  phone        String?
-  channel      String
-  purpose      String
-  codeHash     String
-  attempts     Int       @default(0)
-  verifiedAt   DateTime?
-  expiresAt    DateTime
-  createdAt    DateTime  @default(now())
+  id         String        @id @default(cuid())
+  userId     String?
+  user       PlatformUser? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pendingId  String?
+  loginId    String?
+  email      String?
+  phone      String?
+  channel    String
+  purpose    String
+  codeHash   String
+  attempts   Int           @default(0)
+  verifiedAt DateTime?
+  expiresAt  DateTime
+  createdAt  DateTime      @default(now())
 
   @@index([pendingId, channel])
   @@index([loginId, channel])

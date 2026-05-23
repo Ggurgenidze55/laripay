@@ -1,4 +1,3 @@
-import { platformEnv } from '@/lib/laripay-env';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -15,17 +14,7 @@ export async function GET(request: NextRequest) {
 
     const auth = await authenticatePortalRequest(request);
     if ('error' in auth) {
-      const allowDemo =
-        platformEnv('ALLOW_PUBLIC_DEMO_DASHBOARD') === '1' &&
-        process.env.NODE_ENV !== 'production';
-      if (!allowDemo) {
-        return laripayError(auth.error, auth.status, 'authentication_error');
-      }
-      const demo = await prisma.merchant.findUnique({ where: { slug: 'demo-merchant' } });
-      if (!demo) {
-        return laripayError('Demo merchant missing — open /api/laripay/setup', 404);
-      }
-      return buildDashboardResponse(demo.id);
+      return laripayError(auth.error, auth.status, 'authentication_error');
     }
 
     return buildDashboardResponse(auth.merchantId);

@@ -3,30 +3,8 @@ import { authenticateApiRequest } from '@/lib/laripay/auth';
 import { createCheckoutSession } from '@/lib/laripay/checkout';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { recordIntegrationFromRequest } from '@/lib/laripay/integration-platform';
-import { getLariPayCoreBaseUrl, proxyToLariPayCore } from '@/lib/laripay-core/proxy';
 
 export async function POST(request: NextRequest) {
-  if (getLariPayCoreBaseUrl()) {
-    const authHeader = request.headers.get('authorization') || '';
-    const idempotencyKey = request.headers.get('idempotency-key') || undefined;
-    const body = await request.text();
-    const proxied = await proxyToLariPayCore('/v1/checkout/sessions', {
-      method: 'POST',
-      headers: {
-        Authorization: authHeader,
-        ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
-      },
-      body,
-    });
-    if (proxied) {
-      const data = await proxied.json().catch(() => ({}));
-      return new Response(JSON.stringify(data), {
-        status: proxied.status,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-  }
-
   const auth = await authenticateApiRequest(request);
   if ('error' in auth) {
     return laripayError(auth.error, auth.status, 'authentication_error');
@@ -50,9 +28,6 @@ export async function POST(request: NextRequest) {
     (body.idempotency_key ? String(body.idempotency_key) : undefined);
 
   try {
-    const uiMode =
-      body.ui_mode === 'hosted' || body.checkout_ui === 'hosted' ? 'hosted' : 'redirect';
-
     await recordIntegrationFromRequest(auth.merchant.id, request, body).catch(() => {});
 
     const session = await createCheckoutSession(auth.merchant, {
@@ -65,7 +40,6 @@ export async function POST(request: NextRequest) {
         ? String(body.client_reference_id)
         : undefined,
       idempotencyKey,
-      uiMode,
       metadata:
         body.metadata && typeof body.metadata === 'object'
           ? (body.metadata as Record<string, unknown>)

@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
     if (result.status === 'resolved' && !isShopifyHostedPayment(record.shopDomain)) {
       const base = process.env.HOST || request.nextUrl.origin;
-      return NextResponse.redirect(`${base}/demo?paid=1`);
+      return NextResponse.redirect(`${base}/laripay/en/dashboard?paid=1`);
     }
 
     if (record.cancelUrl) {

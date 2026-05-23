@@ -192,12 +192,8 @@ async function inferIntegration(
   if (keys.length > 0) {
     const shops = await prisma.shop.findMany({ include: { settings: true } });
     for (const s of shops) {
-      const apiKey = s.settings?.paykaApiKey;
-      if (!apiKey) continue;
-      const hash = hashApiKey(apiKey);
-      if (keys.some((k) => k.keyHash === hash)) {
-        return { platform: 'shopify', ref: s.domain };
-      }
+      if (s.settings?.laripayMerchantId !== merchant.id) continue;
+      return { platform: 'shopify', ref: s.domain };
     }
   }
 

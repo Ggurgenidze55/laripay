@@ -18,7 +18,7 @@ import { getAppUrl } from '@/lib/shopify-client';
 interface Settings {
   provider: string;
   testMode: boolean;
-  paykaApiKey?: string;
+  laripayMerchantId?: string;
   tbcApiKey?: string;
   tbcClientId?: string;
   tbcClientSecret?: string;
@@ -44,7 +44,7 @@ export default function SettingsPage({ shop }: { shop: string }) {
           setSettings({
             provider: data.settings.provider || 'tbc',
             testMode: data.settings.testMode !== false,
-            paykaApiKey: data.settings.paykaApiKey || '',
+            laripayMerchantId: data.settings.laripayMerchantId || '',
             tbcApiKey: data.settings.tbcApiKey || '',
             tbcClientId: data.settings.tbcClientId || '',
             tbcClientSecret: data.settings.tbcClientSecret || '',
@@ -86,7 +86,7 @@ export default function SettingsPage({ shop }: { shop: string }) {
   return (
     <Page
       title="LariPay.ai — Georgia Pay"
-      subtitle="Shopify checkout via LariPay.ai API (1% or subscription). Bank keys on LariPay.ai server .env."
+      subtitle="Bank-hosted checkout only — customers pay on TBC/BOG pages. Configure your bank keys below."
       primaryAction={{ content: 'Save', onAction: save, loading: saving }}
     >
       <Layout>
@@ -103,17 +103,13 @@ export default function SettingsPage({ shop }: { shop: string }) {
                 LariPay.ai API
               </Text>
               <Text as="p" tone="subdued">
-                Created automatically on install. Checkout uses LariPay.ai (1% commission or subscription).
+                This shop is linked to a LariPay merchant on install. Checkout redirects to TBC/BOG — no card data on this app.
               </Text>
-              <FormLayout>
-                <TextField
-                  label="Secret API key"
-                  value={settings.paykaApiKey || ''}
-                  onChange={(v) => setSettings((s) => ({ ...s, paykaApiKey: v }))}
-                  autoComplete="off"
-                  helpText="sk_test_... — override only if rotating keys"
-                />
-              </FormLayout>
+              {settings.laripayMerchantId ? (
+                <Text as="p" variant="bodySm" tone="subdued">
+                  Merchant ID: {settings.laripayMerchantId}
+                </Text>
+              ) : null}
             </BlockStack>
           </Card>
         </Layout.Section>
