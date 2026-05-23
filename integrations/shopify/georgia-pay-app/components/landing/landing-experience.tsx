@@ -19,10 +19,10 @@ import { SecuritySection } from './security-section';
 import { EnterpriseFooter } from './enterprise-footer';
 
 export function LandingExperience() {
-  const { lite } = useLandingPerformance();
+  const { lite, ready } = useLandingPerformance();
 
   useEffect(() => {
-    if (lite) return;
+    if (!ready || lite) return;
     registerGsap();
     const t = setTimeout(() => ScrollTrigger.refresh(), 400);
     const onResize = () => ScrollTrigger.refresh();
@@ -31,7 +31,7 @@ export function LandingExperience() {
       clearTimeout(t);
       window.removeEventListener('resize', onResize);
     };
-  }, [lite]);
+  }, [lite, ready]);
 
   return (
     <>

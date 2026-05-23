@@ -3,7 +3,7 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
-import { useBelowLg } from '@/hooks/use-mobile';
+import { useViewport } from '@/hooks/use-mobile';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { cn } from '@/lib/utils';
@@ -30,7 +30,7 @@ const EDGES: [string, string][] = [
 
 export function PaymentInfrastructure() {
   const reduced = useReducedMotion();
-  const belowLg = useBelowLg();
+  const { belowLg, ready } = useViewport();
   const { t } = useLocale();
   const s = t.landing.paymentInfrastructure;
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -70,7 +70,7 @@ export function PaymentInfrastructure() {
   );
 
   useEffect(() => {
-    if (reduced || belowLg) return;
+    if (!ready || reduced || belowLg) return;
     registerGsap();
     const section = sectionRef.current;
     if (!section) return;
@@ -93,7 +93,7 @@ export function PaymentInfrastructure() {
     }, section);
 
     return () => ctx.revert();
-  }, [reduced, belowLg]);
+  }, [ready, reduced, belowLg]);
 
   const nodeMap = Object.fromEntries(NODES.map((n) => [n.id, n]));
 

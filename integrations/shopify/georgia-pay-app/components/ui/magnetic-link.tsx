@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { useBelowLg } from '@/hooks/use-mobile';
+import { useViewport } from '@/hooks/use-mobile';
 
 function MagneticLinkDesktop({
   href,
@@ -54,7 +54,7 @@ export function MagneticLink({
   children: React.ReactNode;
   className?: string;
 }) {
-  const belowLg = useBelowLg();
+  const { belowLg } = useViewport();
 
   if (belowLg) {
     return (

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PageTransition } from '@/components/motion/interactive';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useBelowLg } from '@/hooks/use-mobile';
+import { useViewport } from '@/hooks/use-mobile';
 import { LariPayLogo } from './Logo';
 import { MobileNav } from './MobileNav';
 import { SiteFooter } from './SiteFooter';
@@ -23,7 +23,7 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { locale, t } = useLocale();
   const isLanding = LANDING_RE.test(pathname);
-  const belowLg = useBelowLg();
+  const { belowLg } = useViewport();
   const [scrolled, setScrolled] = useState(false);
   const scrolledRef = useRef(false);
   const nav = useMemo(() => getSiteNav(locale), [locale]);

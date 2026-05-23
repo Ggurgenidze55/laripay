@@ -27,8 +27,8 @@ function orbitPosition(i: number, total: number) {
 }
 
 export function InfrastructureScroll() {
-  const { lite, reduced } = useLandingPerformance();
-  const useScrollPin = !lite;
+  const { lite, reduced, ready } = useLandingPerformance();
+  const useScrollPin = ready && !lite;
   const { t } = useLocale();
   const s = t.landing.infrastructure;
   const STEPS = useMemo(

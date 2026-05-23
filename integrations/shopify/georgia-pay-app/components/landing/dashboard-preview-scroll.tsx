@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
-import { useBelowLg } from '@/hooks/use-mobile';
+import { useViewport } from '@/hooks/use-mobile';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { cn } from '@/lib/utils';
@@ -30,8 +30,8 @@ const VIEW_GLOW = [
 
 export function DashboardPreviewScroll() {
   const reduced = useReducedMotion();
-  const belowLg = useBelowLg();
-  const useScrollPin = !reduced && !belowLg;
+  const { belowLg, ready } = useViewport();
+  const useScrollPin = ready && !reduced && !belowLg;
   const { t } = useLocale();
   const s = t.landing.dashboardPreview;
 

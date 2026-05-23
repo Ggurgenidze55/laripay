@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useBelowLg } from '@/hooks/use-mobile';
+import { useViewport } from '@/hooks/use-mobile';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { SectionHeader, SectionShell, AmbientOrbs } from './shared';
@@ -47,9 +47,9 @@ const RESPONSE = `{
 const TAB_IDS: Lang[] = ['node', 'python', 'php', 'curl'];
 
 export function DeveloperExperience() {
-  const belowLg = useBelowLg();
+  const { belowLg, ready } = useViewport();
   const reduced = useReducedMotion();
-  const useScrollPin = !reduced && !belowLg;
+  const useScrollPin = ready && !reduced && !belowLg;
   const { t } = useLocale();
   const dx = t.landing.developerExperience;
   const LOGS = dx.logs;
