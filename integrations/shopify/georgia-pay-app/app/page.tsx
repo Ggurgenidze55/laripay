@@ -6,6 +6,7 @@ import enTranslations from '@shopify/polaris/locales/en.json';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import SettingsPage from '@/components/SettingsPage';
+import { ShopifyAppBridge } from '@/components/shopify/ShopifyAppBridge';
 
 export default function HomePage() {
   return (
@@ -30,5 +31,10 @@ function HomeContent() {
     );
   }
 
-  return <SettingsPage shop={shop} />;
+  return (
+    <>
+      <ShopifyAppBridge shop={shop} />
+      <SettingsPage shop={shop} />
+    </>
+  );
 }

@@ -2,7 +2,10 @@
 
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
+import {
+  type IntegrationPlatformId,
+  isIntegrationPlatformId,
+} from '@/lib/laripay/integration-platform';
 
 const PLATFORM_STYLES: Record<IntegrationPlatformId, string> = {
   shopify: 'border-[#95bf47]/40 bg-[#95bf47]/10 text-[#b8e986]',
@@ -25,9 +28,13 @@ export function IntegrationPlatformBadge({
   className?: string;
   title?: string;
 }) {
+  const safePlatform = isIntegrationPlatformId(platform) ? platform : 'api';
   return (
     <span title={title} className="inline-flex">
-      <Badge variant="default" className={cn('font-medium', PLATFORM_STYLES[platform], className)}>
+      <Badge
+        variant="default"
+        className={cn('font-medium', PLATFORM_STYLES[safePlatform], className)}
+      >
         {label}
         {inferred ? ' · auto' : ''}
       </Badge>
