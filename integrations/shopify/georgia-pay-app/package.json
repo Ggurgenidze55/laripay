@@ -9,7 +9,7 @@
     "build": "prisma generate && next build",
     "build:vercel": "node scripts/vercel-build.mjs",
     "build:railway": "node scripts/vercel-build.mjs",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
     "lint": "next lint",
     "postinstall": "node scripts/prisma-postinstall.mjs",
     "db:push": "prisma db push",

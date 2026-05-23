@@ -1,0 +1,5 @@
+# Force Node.js build (repo root has composer.json for PHP SDK — must not use PHP here).
+providers = ["node"]
+
+[variables]
+NIXPACKS_NODE_VERSION = "20"
