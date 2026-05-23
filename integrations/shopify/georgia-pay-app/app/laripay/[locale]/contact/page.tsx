@@ -2,12 +2,9 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { FadeIn, Stagger, StaggerItem } from '@/components/motion/fade-in';
-import { HoverLift } from '@/components/motion/interactive';
 import { COMPANY } from '@/lib/site-links';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 
@@ -19,57 +16,49 @@ export default function ContactPage() {
     <div className="max-w-3xl">
       <Stagger>
         <StaggerItem>
-          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-            <Badge variant="accent" className="mb-4">
-              {p.eyebrow}
-            </Badge>
-          </motion.div>
+          <p className="landing-section-label">{p.eyebrow}</p>
         </StaggerItem>
         <StaggerItem>
-          <h1 className="text-4xl font-semibold tracking-tight text-foreground">{p.title}</h1>
+          <h1 className="text-section text-tx-primary dark:text-zinc-50">{p.title}</h1>
         </StaggerItem>
         <StaggerItem>
-          <p className="mt-5 text-lg text-foreground-muted">{p.description}</p>
+          <p className="mt-5 text-lg text-tx-body dark:text-zinc-300">{p.description}</p>
         </StaggerItem>
       </Stagger>
 
       <Stagger className="mt-10 grid gap-6 sm:grid-cols-2">
         <StaggerItem>
-          <HoverLift>
-            <Card className="p-6" hover>
-              <h2 className="text-sm font-medium text-foreground/80">{p.general}</h2>
-              <motion.a
-                href={`mailto:${COMPANY.email}`}
-                whileHover={{ x: 4 }}
-                className="mt-2 block text-accent-cyan hover:underline"
-              >
-                {COMPANY.email}
-              </motion.a>
-            </Card>
-          </HoverLift>
+          <div className="landing-card p-6">
+            <h2 className="text-sm font-semibold text-tx-primary dark:text-zinc-100">{p.general}</h2>
+            <motion.a
+              href={`mailto:${COMPANY.email}`}
+              whileHover={{ x: 4 }}
+              className="mt-2 block font-medium text-accent hover:underline dark:text-indigo-400"
+            >
+              {COMPANY.email}
+            </motion.a>
+          </div>
         </StaggerItem>
         <StaggerItem>
-          <HoverLift>
-            <div id="support" className="scroll-mt-24">
-              <Card className="p-6" hover>
-                <h2 className="text-sm font-medium text-foreground/80">{p.support}</h2>
-                <motion.a
-                  href={`mailto:${COMPANY.supportEmail}`}
-                  whileHover={{ x: 4 }}
-                  className="mt-2 block text-accent-cyan hover:underline"
-                >
-                  {COMPANY.supportEmail}
-                </motion.a>
-                <p className="mt-3 text-xs text-foreground-muted">{p.supportNote}</p>
-              </Card>
-            </div>
-          </HoverLift>
+          <div id="support" className="scroll-mt-24">
+            <motion.div className="landing-card p-6">
+              <h2 className="text-sm font-semibold text-tx-primary dark:text-zinc-100">{p.support}</h2>
+              <motion.a
+                href={`mailto:${COMPANY.supportEmail}`}
+                whileHover={{ x: 4 }}
+                className="mt-2 block font-medium text-accent hover:underline dark:text-indigo-400"
+              >
+                {COMPANY.supportEmail}
+              </motion.a>
+              <p className="mt-3 text-xs text-tx-muted">{p.supportNote}</p>
+            </motion.div>
+          </div>
         </StaggerItem>
       </Stagger>
 
       <FadeIn delay={0.15}>
-        <Card className="mt-8 p-6" glow>
-          <h2 className="text-lg font-medium text-foreground">{p.sendMessage}</h2>
+        <div className="landing-card mt-8 p-6 md:p-8">
+          <h2 className="text-card-h text-tx-primary dark:text-zinc-50">{p.sendMessage}</h2>
           <form
             className="mt-6 space-y-4"
             onSubmit={(e) => {
@@ -111,27 +100,24 @@ export default function ContactPage() {
               placeholder={p.messagePlaceholder}
               initial={{ opacity: 0, y: 8 }}
               whileInView={{ opacity: 1, y: 0 }}
-              whileFocus={{ scale: 1.01, borderColor: 'rgba(56, 189, 248, 0.5)' }}
               viewport={{ once: true }}
-              className="w-full rounded-xl border border-border-strong bg-canvas px-4 py-3 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent-blue focus:outline-none focus:ring-2 focus:ring-accent-blue/25"
+              className="w-full rounded-btn border border-bd-default bg-bg-surface px-4 py-3 text-sm text-tx-primary placeholder:text-tx-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100"
             />
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button type="submit" variant="primary">
-                {p.openEmail}
-              </Button>
-            </motion.div>
+            <Button type="submit" variant="primary">
+              {p.openEmail}
+            </Button>
           </form>
-        </Card>
+        </div>
       </FadeIn>
 
       <FadeIn delay={0.2}>
-        <p className="mt-8 text-sm text-foreground-muted">
+        <p className="prose-laripay mt-8 text-sm text-tx-secondary">
           {p.integrationHint}{' '}
-          <Link href={route('docs')} className="text-accent-cyan hover:underline">
+          <Link href={route('docs')} className="text-accent hover:underline dark:text-indigo-400">
             {p.documentation}
           </Link>{' '}
           {p.or}{' '}
-          <Link href={route('onboard')} className="text-accent-cyan hover:underline">
+          <Link href={route('onboard')} className="text-accent hover:underline dark:text-indigo-400">
             {p.sandboxKeys}
           </Link>
           .

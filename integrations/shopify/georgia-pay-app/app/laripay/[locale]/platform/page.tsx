@@ -20,14 +20,14 @@ export default function PlatformPage({ params }: Props) {
 
   return (
     <MarketingPage eyebrow={p.eyebrow} title={p.title} description={p.description} wide>
-      <ul className="grid gap-4 sm:grid-cols-2">
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {p.features.map((item) => (
           <li
             key={item.title}
-            className="rounded-2xl border border-border-strong bg-surface-inset p-6"
+            className="landing-card p-6"
           >
-            <h3 className="font-medium text-foreground">{item.title}</h3>
-            <p className="mt-2 text-sm text-foreground-muted">{item.body}</p>
+            <h3 className="text-card-h text-tx-primary dark:text-zinc-50">{item.title}</h3>
+            <p className="mt-2 text-sm text-tx-body dark:text-zinc-300">{item.body}</p>
           </li>
         ))}
       </ul>

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Vercel production build: PostgreSQL schema + generate + optional migrate + Next build.
- * Migrate is skipped when DATABASE_URL is missing or unreachable (build still succeeds).
+ * schema.postgresql.prisma must stay in sync with schema.prisma (canonical).
  */
 import { execSync } from 'node:child_process';
 import { copyFileSync } from 'node:fs';

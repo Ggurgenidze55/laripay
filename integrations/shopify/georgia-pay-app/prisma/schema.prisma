@@ -29,6 +29,8 @@ model ShopSettings {
   bogSecretKey         String?
   bogCallbackPublicKey String?
   laripayMerchantId    String?
+  bankCredentials      Json?
+  installmentTerms     Int?
 }
 
 model PaymentRecord {
@@ -38,6 +40,8 @@ model PaymentRecord {
   shopifyPaymentGid      String
   shopifyGroup           String?
   bank                   String
+  paymentMode            String   @default("card")
+  installmentTerms       Int?
   bankReference          String?
   amount                 String
   currency               String
@@ -166,8 +170,13 @@ model Merchant {
   bogPublicKey            String?
   bogSecretKey            String?
   bogCallbackPublicKey    String?
+  bankCredentials         Json?
   integrationPlatform     String?
   integrationRef          String?
+  defaultCarrier          String            @default("delivo")
+  carrierCredentials      Json?
+  defaultWarehouseSystem  String            @default("fina")
+  warehouseCredentials    Json?
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
   apiKeys                 ApiKey[]
@@ -175,6 +184,8 @@ model Merchant {
   paykaPayments           PaykaPayment[]
   paykaRefunds            PaykaRefund[]
   webhookEndpoints        WebhookEndpoint[]
+  deliveryShipments       DeliveryShipment[]
+  warehouseSyncJobs       WarehouseSyncJob[]
   owner                   PlatformUser?
 
   @@index([slug])
@@ -214,6 +225,8 @@ model CheckoutSession {
   amount            Float
   currency          String        @default("GEL")
   provider          String
+  paymentMode       String        @default("card")
+  installmentTerms  Int?
   status            String        @default("open")
   successUrl        String
   cancelUrl         String?
@@ -245,6 +258,8 @@ model PaykaPayment {
   netAmount         Float
   feeMode           String
   provider          String
+  paymentMode       String           @default("card")
+  installmentTerms  Int?
   bankReference     String?
   status            String           @default("pending")
   clientReferenceId String?
@@ -306,4 +321,51 @@ model WebhookDelivery {
 
   @@index([merchantId])
   @@index([status])
+}
+
+model DeliveryShipment {
+  id                String   @id @default(cuid())
+  merchantId        String
+  merchant          Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  carrier           String
+  service           String   @default("standard")
+  status            String   @default("created")
+  trackingNumber    String?
+  externalId        String?
+  trackingUrl       String?
+  labelUrl          String?
+  priceGel          Float?
+  clientReferenceId String?
+  fromAddress       Json?
+  toAddress         Json?
+  weightKg          Float?
+  rawResponse       Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([merchantId])
+  @@index([carrier])
+  @@index([trackingNumber])
+  @@index([clientReferenceId])
+}
+
+model WarehouseSyncJob {
+  id          String    @id @default(cuid())
+  merchantId  String
+  merchant    Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  system      String
+  kind        String
+  status      String    @default("pending")
+  syncedCount Int       @default(0)
+  result      Json?
+  error       String?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([merchantId])
+  @@index([system])
+  @@index([status])
+  @@index([kind])
 }

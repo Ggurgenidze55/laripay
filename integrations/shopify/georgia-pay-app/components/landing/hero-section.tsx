@@ -1,190 +1,137 @@
 'use client';
 
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
-import { MagneticLink } from '@/components/ui/magnetic-link';
-import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useLandingPerformance } from '@/hooks/use-landing-performance';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { PaymentBrandLogo } from '@/components/laripay/payment-brand-logo';
 import type { PaymentBrandId } from '@/lib/payment-brands';
-import { PaymentNetwork } from './payment-network';
-import { ParticleField } from './particle-field';
 
-const STAT_VALUES = [
-  { v: '<50ms' },
-  { v: 'TBC + BOG' },
-  { v: 'GEL' },
-] as const;
+const MOCK_TX = [
+  { merchant: 'Bolt.ge', type: 'Card', amount: '24.50', ok: true },
+  { merchant: 'Wolt', type: 'Apple Pay', amount: '12.30', ok: false },
+  { merchant: 'Glovo', type: 'Card', amount: '47.80', ok: true },
+];
 
 export function HeroSection() {
-  const { lite, reduced } = useLandingPerformance();
+  const { lite } = useLandingPerformance();
   const { t, route } = useLocale();
   const h = t.landing.hero;
-  const statKeys = [h.stats.latency, h.stats.providers, h.stats.currency] as const;
-
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const sx = useSpring(mx, { stiffness: 50, damping: 24 });
-  const sy = useSpring(my, { stiffness: 50, damping: 24 });
-  const visualX = useTransform(sx, [-0.5, 0.5], [-12, 12]);
-  const visualY = useTransform(sy, [-0.5, 0.5], [8, -8]);
+  const statKeys = [h.stats.banks, h.stats.logistics, h.stats.currency] as const;
+  const statValues = h.statValues;
 
   return (
-    <section className="relative min-h-[100svh] overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-grid-fade bg-grid opacity-[0.35] dark:opacity-[0.18] [mask-image:radial-gradient(ellipse_90%_80%_at_50%_0%,black,transparent)]" />
-      {!lite && <ParticleField />}
-
-      <div
-        className="relative mx-auto flex min-h-[100svh] max-w-[90rem] flex-col justify-center px-6 pb-36 pt-24 lg:px-8 lg:pt-32"
-        onMouseMove={(e) => {
-          if (lite) return;
-          const r = e.currentTarget.getBoundingClientRect();
-          mx.set((e.clientX - r.left) / r.width - 0.5);
-          my.set((e.clientY - r.top) / r.height - 0.5);
-        }}
-        onMouseLeave={() => {
-          mx.set(0);
-          my.set(0);
-        }}
-      >
-        <div className="grid items-center gap-16 lg:grid-cols-2 lg:items-center lg:gap-28">
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <Badge variant="accent" pulse className="mb-10">
-                {h.badge}
-              </Badge>
-            </motion.div>
-
-            <h1 className="max-w-2xl text-[2.1rem] font-semibold leading-[1.05] tracking-[-0.03em] min-[400px]:text-[2.35rem] sm:text-5xl lg:text-[4.5rem]">
-              {[h.title1, h.title2].map((line, i) => (
-                <motion.span
-                  key={line}
-                  initial={{ opacity: 0, y: lite ? 12 : 32, ...(lite ? {} : { filter: 'blur(10px)' }) }}
-                  animate={{ opacity: 1, y: 0, ...(lite ? {} : { filter: 'blur(0px)' }) }}
-                  transition={{ duration: lite ? 0.45 : 0.85, delay: lite ? 0.05 + i * 0.05 : 0.12 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className={cn('block', i === 0 ? 'text-gradient' : 'mt-2 text-gradient-accent')}
-                >
-                  {line}
-                </motion.span>
-              ))}
-            </h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.7 }}
-              className="mt-10 max-w-xl text-lg leading-[1.7] text-foreground-muted md:text-xl"
-            >
-              {h.subtitle}
-            </motion.p>
-
-            {h.paymentBadges?.length ? (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
-                className="mt-8 flex flex-wrap items-center gap-3"
-              >
-                {h.paymentBadges.map((badge) => (
-                  <PaymentBrandLogo
-                    key={badge.brand}
-                    brand={badge.brand as PaymentBrandId}
-                    size="sm"
-                  />
-                ))}
-              </motion.div>
-            ) : null}
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45, duration: 0.7 }}
-              className="mt-14 flex flex-wrap items-center gap-4"
-            >
-              <MagneticLink
-                href={route('onboard')}
-                className={cn(
-                  'group relative inline-flex h-12 items-center overflow-hidden rounded-2xl px-9 text-sm font-medium',
-                  buttonVariants.primary,
-                )}
-              >
-                <span className="relative z-10">{h.startBuilding}</span>
-                {!reduced && <span className="absolute inset-0 shimmer-line opacity-40" />}
-              </MagneticLink>
-              <MagneticLink
-                href={route('docs')}
-                className={cn(
-                  'inline-flex h-12 items-center rounded-2xl px-9 text-sm font-medium',
-                  buttonVariants.secondary,
-                )}
-              >
-                {h.exploreApi}
-              </MagneticLink>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="mt-16 grid grid-cols-3 gap-3 border-t border-border pt-10 text-center sm:mt-24 sm:gap-8 sm:pt-14 sm:text-left"
-            >
-              {STAT_VALUES.map((s, i) => (
-                <motion.div
-                  key={statKeys[i]}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.65 + i * 0.06 }}
-                  whileHover={reduced ? undefined : { y: -3 }}
-                  className="rounded-xl px-2 py-1 transition-colors hover:bg-foreground/[0.03]"
-                >
-                  <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-foreground-muted/80">
-                    {statKeys[i]}
-                  </p>
-                  <p className="mt-2 font-mono text-base tracking-tight text-foreground sm:mt-2.5 sm:text-xl">
-                    {s.v}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
+    <section className="hero-canvas relative overflow-hidden border-b border-bd-default pt-24 dark:border-zinc-800 md:pt-32">
+      <div className="mx-auto max-w-[1200px] px-6 pb-16 md:pb-24">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55 }}
+          className="max-w-4xl"
+        >
+          <div className="landing-chip-accent mb-8 w-fit">
+            <span className="h-2 w-2 rounded-full bg-accent-bright" />
+            {h.badge}
           </div>
+          <h1 className="text-hero text-tx-primary dark:text-stone-50">
+            {h.title1}{' '}
+            <span className="hero-highlight text-accent dark:text-indigo-400">{h.title2}</span>
+          </h1>
+          <p className="mt-6 max-w-2xl text-xl leading-relaxed text-tx-body dark:text-stone-300">{h.subtitle}</p>
+        </motion.div>
+
+        <div className="mt-12 grid gap-4 md:mt-16 md:grid-cols-12 md:gap-5">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-col justify-between rounded-2xl border border-bd-default bg-white p-6 dark:border-stone-700 dark:bg-stone-900 md:col-span-4 md:row-span-2 md:p-8"
+          >
+            <div className="flex flex-col gap-3">
+              <Link href={route('onboard')} className="landing-btn-primary h-12 w-full justify-center text-base">
+                {h.startBuilding} →
+              </Link>
+              <Link href={route('docs')} className="landing-btn-secondary h-12 w-full justify-center text-base">
+                {h.exploreApi}
+              </Link>
+            </div>
+            {h.paymentBadges?.length ? (
+              <div className="mt-8 border-t border-bd-default pt-6 dark:border-stone-700">
+                <p className="text-xs font-bold uppercase tracking-wider text-tx-muted">Accepted via</p>
+                <div className="mt-3 flex flex-wrap gap-4">
+                  {h.paymentBadges.map((badge) => (
+                    <PaymentBrandLogo
+                      key={badge.brand}
+                      brand={badge.brand as PaymentBrandId}
+                      size="sm"
+                      className="h-6"
+                      transparent
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </motion.div>
 
           <motion.div
-            style={lite ? undefined : { x: visualX, y: visualY }}
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="overflow-hidden rounded-2xl border border-bd-default bg-white shadow-float dark:border-stone-700 dark:bg-stone-900 md:col-span-5 md:row-span-3"
           >
-            <div
-              className={cn(
-                'absolute -inset-16 rounded-[3rem] bg-gradient-to-br from-accent-blue/30 via-accent-violet/10 to-accent-cyan/20',
-                lite ? 'blur-3xl opacity-80' : 'blur-[80px]',
-              )}
-            />
-            <div className="group relative overflow-hidden rounded-[1.5rem] border border-border-strong bg-canvas-card p-4 shadow-lift glow-border transition-shadow duration-500 sm:rounded-[2rem] sm:p-8 hover:shadow-glow-violet">
-              <div className="absolute inset-x-0 top-0 h-px line-highlight" />
-              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(ellipse_80%_70%_at_50%_50%,rgba(34,211,238,0.08),transparent)]" />
-              <PaymentNetwork />
+            <div className="border-b border-bd-default bg-accent px-5 py-3 dark:border-stone-700">
+              <p className="text-sm font-bold text-white">Live transactions</p>
+            </div>
+            {MOCK_TX.map((row) => (
+              <div
+                key={row.merchant}
+                className="flex items-center justify-between border-b border-bd-default px-5 py-4 last:border-0 dark:border-stone-800"
+              >
+                <div>
+                  <p className="font-semibold text-tx-primary dark:text-stone-100">{row.merchant}</p>
+                  <p className="text-xs text-tx-muted">{row.type}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-tx-primary dark:text-stone-100">₾{row.amount}</p>
+                  <span
+                    className={
+                      row.ok
+                        ? 'text-[10px] font-semibold text-emerald-600'
+                        : 'text-[10px] font-semibold text-amber-600'
+                    }
+                  >
+                    {row.ok ? 'succeeded' : 'pending'}
+                  </span>
+                </div>
+              </div>
+            ))}
+            <div className="bg-accent-light px-5 py-3 text-xs font-medium text-accent dark:bg-indigo-950 dark:text-indigo-300">
+              ₾1.2M+ this month · ↑ 12%
             </div>
           </motion.div>
+
+          {statKeys.map((label, i) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 + i * 0.06 }}
+              className="flex items-center justify-between rounded-2xl border border-bd-default bg-white px-5 py-4 dark:border-stone-700 dark:bg-stone-900 md:col-span-3"
+            >
+              <p className="text-xs font-bold uppercase tracking-wider text-tx-muted">{label}</p>
+              <p className="font-mono text-2xl font-bold text-tx-primary dark:text-stone-50">{statValues[i]}</p>
+            </motion.div>
+          ))}
         </div>
       </div>
 
-      <motion.a
+      <a
         href="#infrastructure"
-        className="absolute bottom-12 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 text-foreground-muted/80 transition-colors hover:text-foreground-muted"
-        animate={reduced ? undefined : { y: [0, 8, 0] }}
-        transition={{ repeat: Infinity, duration: 2.2 }}
+        className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 text-xs font-bold uppercase tracking-widest text-tx-muted hover:text-accent"
       >
-        <span className="text-[10px] font-medium uppercase tracking-[0.35em]">{h.explore}</span>
-        <span className="h-10 w-px bg-gradient-to-b from-accent-cyan/60 to-transparent" />
-      </motion.a>
+        {h.explore}
+        <span className="block h-px w-8 bg-accent" />
+      </a>
     </section>
   );
 }

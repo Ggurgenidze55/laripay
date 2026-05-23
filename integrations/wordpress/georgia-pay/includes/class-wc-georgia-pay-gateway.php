@@ -27,8 +27,8 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 	public function __construct() {
 		$this->id                 = 'georgia_pay';
 		$this->icon               = apply_filters( 'georgia_pay_icon', '' );
-		$this->method_title       = __( 'LariPay.ai — TBC & BOG (GEL)', 'georgia-pay' );
-		$this->method_description = __( 'Pay via LariPay.ai: TBC Pay or BOG Pay. Platform fee 1% or subscription plan.', 'georgia-pay' );
+		$this->method_title       = __( 'LariPay.ai — Georgian banks (GEL)', 'georgia-pay' );
+		$this->method_description = __( 'Pay via LariPay.ai: TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt. Bank-hosted card checkout.', 'georgia-pay' );
 		$this->has_fields         = false;
 		$this->supports           = array( 'products' );
 
@@ -90,7 +90,7 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 			'description' => array(
 				'title'       => __( 'Description', 'georgia-pay' ),
 				'type'        => 'textarea',
-				'default'     => __( 'Secure payment via TBC or Bank of Georgia (LariPay.ai).', 'georgia-pay' ),
+				'default'     => __( 'Secure payment via Georgian banks (LariPay.ai).', 'georgia-pay' ),
 				'desc_tip'    => true,
 			),
 			'laripay_section' => array(
@@ -121,10 +121,7 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 				'title'   => __( 'Bank provider', 'georgia-pay' ),
 				'type'    => 'select',
 				'default' => 'tbc',
-				'options' => array(
-					'tbc' => __( 'TBC Pay', 'georgia-pay' ),
-					'bog' => __( 'BOG Pay', 'georgia-pay' ),
-				),
+				'options' => georgia_pay_bank_options(),
 			),
 			'webhook_section' => array(
 				'title'       => __( 'LariPay.ai webhook (recommended)', 'georgia-pay' ),

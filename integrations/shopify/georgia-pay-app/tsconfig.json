@@ -16,7 +16,9 @@
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./*"],
-      "@georgian-payments": ["../../../src/georgian-payments.cjs"]
+      "@georgian-payments": ["../../../src/georgian-payments.cjs"],
+      "@georgian-delivery": ["../../../src/georgian-delivery.cjs"],
+      "@georgian-warehouse": ["../../../src/georgian-warehouse.cjs"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

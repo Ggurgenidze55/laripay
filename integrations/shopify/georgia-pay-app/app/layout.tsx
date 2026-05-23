@@ -26,7 +26,10 @@ export const metadata: Metadata = {
   title: 'LariPay.ai — Payments Infrastructure for Georgia',
   description:
     'Developer-first payment platform. TBC Pay, BOG Pay, GEL. Modern APIs for commerce.',
-  icons: { icon: '/laripay-logo.svg' },
+  icons: {
+    icon: [{ url: '/laripay-logo.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/laripay-logo.svg', type: 'image/svg+xml' }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

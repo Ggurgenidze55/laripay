@@ -128,8 +128,7 @@ export function DeveloperExperience() {
   }, [phase, LOGS.length]);
 
   return (
-    <SectionShell id="developers" wide>
-      <AmbientOrbs />
+    <SectionShell id="developers" wide tone="surface">
       <div
         ref={sectionRef}
         className={cn('relative', useScrollPin ? 'min-h-[130vh]' : 'min-h-0')}
@@ -140,28 +139,28 @@ export function DeveloperExperience() {
           <div className="grid items-start gap-10 lg:grid-cols-12 lg:items-stretch lg:gap-12">
             <div className="lg:col-span-4">
               <div className="space-y-8 lg:sticky lg:top-28">
-                <div className="relative flex flex-wrap gap-2 rounded-2xl border border-border bg-foreground/[0.02] p-2">
+                <motion.div className="relative flex flex-wrap gap-2 rounded-card border border-bd-default bg-bg-subtle p-2 dark:border-bd-default dark:bg-bg-hover">
                   {TABS.map((tab) => (
                     <button
                       key={tab.id}
                       type="button"
                       onClick={() => setLang(tab.id)}
                       className={`relative rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
-                        lang === tab.id ? 'text-foreground' : 'text-foreground-muted hover:text-foreground/70'
+                        lang === tab.id ? 'text-tx-primary dark:text-[#F1F5F9]' : 'text-tx-secondary hover:text-tx-primary'
                       }`}
                     >
                       {lang === tab.id && (
                         <motion.span
                           layoutId="sdk-tab"
-                          className="absolute inset-0 rounded-xl bg-foreground/[0.08] ring-1 ring-border shadow-glow"
+                          className="absolute inset-0 rounded-btn bg-bg-surface ring-1 ring-bd-default dark:bg-[#141417] dark:ring-bd-default"
                           transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                         />
                       )}
                       <span className="relative">{tab.label}</span>
                     </button>
                   ))}
-                </div>
-                <p className="text-sm leading-[1.75] text-foreground-muted">{dx.blurb}</p>
+                </motion.div>
+                <p className="text-sm leading-[1.75] text-tx-body dark:text-tx-body">{dx.blurb}</p>
                 <CodeBlock title={dx.install}>{`npm install @laripay/sdk`}</CodeBlock>
                 <RequestStatus
                   phase={phase === 'typing' ? 'idle' : phase === 'sending' ? 'sending' : 'success'}
@@ -170,26 +169,26 @@ export function DeveloperExperience() {
             </div>
 
             <div ref={editorRef} className="space-y-6 lg:col-span-8">
-              <div className="overflow-hidden rounded-3xl border border-border-strong bg-surface-code shadow-lift glow-border">
-                <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-md bg-accent-blue/20 px-2 py-0.5 font-mono text-[10px] font-medium text-accent-cyan">
-                      POST
-                    </span>
-                    <span className="font-mono text-xs text-foreground-muted">/v1/checkout/sessions</span>
-                  </div>
+              <div className="landing-code-block overflow-hidden">
+                <div className="landing-code-bar">
+                  <span className="landing-code-dot" />
+                  <span className="landing-code-dot" />
+                  <span className="landing-code-dot" />
+                  <span className="ml-3 font-mono text-[10px] uppercase tracking-widest text-[#475569]">
+                    POST /v1/checkout/sessions
+                  </span>
                   {phase === 'sending' && (
                     <motion.span
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="font-mono text-[10px] text-amber-400"
+                      className="ml-auto font-mono text-[10px] text-[#F59E0B]"
                     >
                       {dx.sending}
                     </motion.span>
                   )}
                 </div>
                 <div className="p-5 font-mono text-[13px] leading-relaxed">
-                  <pre className="whitespace-pre-wrap text-foreground/82">
+                  <pre className="whitespace-pre-wrap text-[#E2E8F0]">
                     {typed}
                     {phase === 'typing' && <TerminalCursor />}
                   </pre>
@@ -211,9 +210,9 @@ export function DeveloperExperience() {
               </AnimatePresence>
 
               <div className="grid gap-6 md:grid-cols-2">
-                <div className="glass-panel rounded-2xl p-5 ring-1 ring-border">
+                <div className="landing-card p-5">
                   <div className="mb-4 flex items-center justify-between">
-                    <span className="text-xs font-medium text-foreground-muted">{dx.terminal}</span>
+                    <span className="text-xs font-medium text-tx-secondary dark:text-tx-secondary">{dx.terminal}</span>
                     <Badge variant="live" pulse>
                       {dx.stream}
                     </Badge>
@@ -226,10 +225,10 @@ export function DeveloperExperience() {
                         animate={{ opacity: 1, x: 0 }}
                         className={
                           line.startsWith('payment') || line.startsWith('checkout')
-                            ? 'text-accent-cyan'
+                            ? 'text-accent'
                             : line.includes('200')
-                              ? 'text-emerald-400'
-                              : 'text-foreground-muted'
+                              ? 'text-success'
+                              : 'text-tx-muted dark:text-tx-muted'
                         }
                       >
                         {line}
@@ -238,9 +237,9 @@ export function DeveloperExperience() {
                   </div>
                 </div>
 
-                <div className="glass-panel rounded-2xl p-5">
-                  <span className="text-xs font-medium text-foreground-muted">{dx.signedDelivery}</span>
-                  <pre className="mt-4 font-mono text-[11px] leading-relaxed text-foreground-muted">
+                <div className="landing-card p-5">
+                  <span className="text-xs font-medium text-tx-secondary dark:text-tx-secondary">{dx.signedDelivery}</span>
+                  <pre className="mt-4 font-mono text-[11px] leading-relaxed text-tx-muted dark:text-tx-muted">
                     {dx.signaturePreview}
                   </pre>
                 </div>

@@ -25,7 +25,7 @@ export function getLariPayReturnUrl(paymentId?: string): string | null {
   return url.toString();
 }
 
-export function getLariPayWebhookUrl(provider?: 'tbc' | 'bog'): string | null {
+export function getLariPayWebhookUrl(provider?: string): string | null {
   const base = platformEnv('WEBHOOK_URL');
   if (!base) return null;
   const normalized = base.replace(/\/$/, '');
@@ -39,7 +39,7 @@ export function resolveReturnUrl(paymentId: string, fallback: string): string {
   return getLariPayReturnUrl(paymentId) || fallback;
 }
 
-export function resolveWebhookUrl(provider: 'tbc' | 'bog', fallback: string): string {
+export function resolveWebhookUrl(provider: string, fallback: string): string {
   return getLariPayWebhookUrl(provider) || fallback;
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
 
 /** Shopify payment record → bank redirect (fallback when redirect_url not cached). */
 export async function GET(
@@ -22,7 +23,7 @@ export async function GET(
     const payments = buildPaymentsClient(config);
 
     try {
-      const status = await payments.checkStatus(record.bankReference, record.bank as 'tbc' | 'bog');
+      const status = await payments.checkStatus(record.bankReference, record.bank as GeorgianBankId);
       if (status.raw?.links) {
         const link = status.raw.links.find((l: { rel?: string }) => l.rel === 'approval_url');
         if (link?.uri) {

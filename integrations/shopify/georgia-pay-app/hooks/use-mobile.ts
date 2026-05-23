@@ -32,3 +32,8 @@ export function useViewport(): ViewportState {
 
   return state;
 }
+
+/** @deprecated Prefer useViewport() — kept for legacy imports */
+export function useBelowLg(): boolean {
+  return useViewport().belowLg;
+}

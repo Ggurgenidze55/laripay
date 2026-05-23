@@ -95,6 +95,14 @@ class TbcProvider {
       preAuth: options.preAuth || false,
     };
 
+    if (options.paymentMode === 'installment') {
+      payload.methods = ['Installment'];
+      payload.allowedPaymentMethods = ['Installment'];
+      if (options.installmentTerms) {
+        payload.installmentTerm = Number(options.installmentTerms);
+      }
+    }
+
     if (this.callbackUrl || options.callbackUrl) {
       payload.callbackUrl = options.callbackUrl || this.callbackUrl;
     }

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<addon scheme="3.0">
+    <id>laridelivery_georgia</id>
+    <version>1.0.0</version>
+    <priority>100600</priority>
+    <status>active</status>
+    <name>LariPay.ai — Georgian couriers</name>
+    <description>Shipping rates and shipments via LariPay.ai (Delivo, OnWay, Georgian Post, Glovo, Wolt, DHL…).</description>
+    <settings>
+        <sections>
+            <section id="general">
+                <items>
+                    <item id="api_url"><type>input</type><default_value>https://laripay.ai</default_value></item>
+                    <item id="secret_key"><type>password</type></item>
+                    <item id="carrier">
+                        <type>selectbox</type>
+                        <variants>
+                            <item id="delivo">Delivo</item>
+                            <item id="onway">OnWay</item>
+                            <item id="georgian_post">Georgian Post</item>
+                            <item id="glovo">Glovo</item>
+                            <item id="wolt">Wolt Drive</item>
+                            <item id="dhl">DHL</item>
+                        </variants>
+                        <default_value>delivo</default_value>
+                    </item>
+                    <item id="origin_city"><type>input</type><default_value>Tbilisi</default_value></item>
+                </items>
+            </section>
+        </sections>
+    </settings>
+</addon>

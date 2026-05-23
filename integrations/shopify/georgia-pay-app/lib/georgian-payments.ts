@@ -2,22 +2,20 @@
 const { GeorgianPayments } = require('@georgian-payments');
 
 import { isTbcSandbox } from './laripay-env';
+import type { GeorgianBankId } from './georgian-banks/registry';
+import type { ShopBankConfig } from './georgian-banks/config';
 
-export type BankProvider = 'tbc' | 'bog';
-
-export interface ShopBankConfig {
-  provider: BankProvider;
-  testMode: boolean;
-  tbcApiKey?: string | null;
-  tbcClientId?: string | null;
-  tbcClientSecret?: string | null;
-  bogPublicKey?: string | null;
-  bogSecretKey?: string | null;
-  bogCallbackPublicKey?: string | null;
-}
+export type { ShopBankConfig, GeorgianBankId };
+export { isBankConfigured, redirectCredentialsForBank } from './georgian-banks/config';
+export {
+  GEORGIAN_BANKS,
+  georgianBankLabel,
+  isGeorgianBankId,
+  getGeorgianBank,
+} from './georgian-banks/registry';
 
 export function buildPaymentsClient(config: ShopBankConfig) {
-  return new GeorgianPayments({
+  const clientConfig: Record<string, unknown> = {
     defaultProvider: config.provider,
     tbcApiKey: config.tbcApiKey || process.env.TBC_API_KEY,
     tbcClientId: config.tbcClientId || process.env.TBC_CLIENT_ID,
@@ -25,8 +23,11 @@ export function buildPaymentsClient(config: ShopBankConfig) {
     bogPublicKey: config.bogPublicKey || process.env.BOG_PUBLIC_KEY,
     bogSecretKey: config.bogSecretKey || process.env.BOG_SECRET_KEY,
     bogCallbackPublicKey: config.bogCallbackPublicKey || process.env.BOG_CALLBACK_PUBLIC_KEY,
+    bankCredentials: config.bankCredentials || undefined,
     tbcOrigin: config.testMode || isTbcSandbox() ? 'https://test-api.tbcbank.ge/v1' : undefined,
-  });
+  };
+
+  return new GeorgianPayments(clientConfig);
 }
 
 export function assertGelCurrency(currency: string) {
@@ -34,3 +35,6 @@ export function assertGelCurrency(currency: string) {
     throw new Error(`Georgia Pay only supports GEL checkout (received ${currency})`);
   }
 }
+
+/** @deprecated use GeorgianBankId */
+export type BankProvider = GeorgianBankId;

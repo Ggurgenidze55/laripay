@@ -8,6 +8,7 @@ export const SITE_ROUTES = {
   docs: 'docs',
   docsApi: 'docs#api',
   onboard: 'onboard',
+  demo: 'demo',
   login: 'login',
   dashboard: 'dashboard',
   admin: 'admin',
@@ -15,6 +16,9 @@ export const SITE_ROUTES = {
   integrationsShopify: 'integrations#shopify',
   integrationsWoo: 'integrations#woocommerce',
   integrationsApi: 'integrations#api',
+  integrationsInstallments: 'integrations#installments',
+  integrationsDelivery: 'integrations#delivery',
+  integrationsWarehouse: 'integrations#warehouse',
   security: 'security',
   status: 'status',
   platform: 'platform',
@@ -63,6 +67,11 @@ export function integrationRouteKey(name: string): SiteRouteKey {
   const n = name.toLowerCase();
   if (n.includes('shopify')) return 'integrationsShopify';
   if (n.includes('woo') || n.includes('wordpress')) return 'integrationsWoo';
+  if (n.includes('cscart') || n.includes('cs-cart')) return 'integrations';
+  if (n.includes('opencart') || n.includes('prestashop')) return 'integrations';
+  if (n.includes('delivery') || n.includes('courier')) return 'integrationsDelivery';
+  if (n.includes('warehouse') || n.includes('wms') || n.includes('erp')) return 'integrationsWarehouse';
+  if (n.includes('installment')) return 'integrationsInstallments';
   if (n.includes('rest') || n.includes('api') || n.includes('custom')) return 'docsApi';
   return 'integrations';
 }

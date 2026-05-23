@@ -1,13 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Card } from '@/components/ui/card';
-import { FadeIn, Stagger, StaggerItem } from '@/components/motion/fade-in';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { FadeIn, Stagger, StaggerItem } from '@/components/motion/fade-in';
 
 export function PricingSection() {
   const { t, route } = useLocale();
@@ -18,88 +14,88 @@ export function PricingSection() {
       name: p.commission,
       price: '1%',
       sub: p.perPayment,
-      highlight: true,
+      featured: false,
       features: [p.noMonthly, p.tbcBog, p.fullApi],
     },
     {
       name: p.starter,
       price: '49 ₾',
       sub: p.perMonth,
-      highlight: false,
+      featured: true,
       features: [p.zeroCommission, p.dashboardWebhooks, p.emailSupport],
     },
     {
       name: p.pro,
       price: '149 ₾',
       sub: p.perMonth,
-      highlight: false,
+      featured: false,
       features: [p.highVolume, p.priorityRouting, p.dedicatedOnboarding],
     },
   ];
 
   return (
-    <section id="pricing" className="scroll-mt-24 border-t border-border py-36 md:py-48">
-      <div className="mx-auto max-w-[90rem] px-6 lg:px-8">
+    <section
+      id="pricing"
+      className="scroll-mt-28 border-t border-bd-default bg-bg-mint py-24 dark:border-stone-800 dark:bg-stone-950 md:py-32"
+    >
+      <div className="mx-auto max-w-[1120px] px-6">
         <FadeIn className="mx-auto max-w-3xl text-center">
-          <Badge variant="accent" className="mb-6">
-            {t.nav.pricing}
-          </Badge>
-          <h2 className="text-4xl font-semibold tracking-[-0.02em] md:text-5xl">{p.title}</h2>
-          <p className="mx-auto mt-5 max-w-lg text-lg text-foreground-muted">{p.subtitle}</p>
+          <p className="landing-section-label mb-3">{t.nav.pricing}</p>
+          <h2 className="text-section text-tx-primary dark:text-stone-50">{p.title}</h2>
+          <p className="mx-auto mt-5 max-w-lg text-lg text-tx-body dark:text-stone-300">{p.subtitle}</p>
         </FadeIn>
 
-        <Stagger className="mt-16 grid items-stretch gap-6 lg:grid-cols-3">
-          {plans.map((plan, i) => (
+        <Stagger className="mt-16 grid items-stretch gap-6 md:grid-cols-3">
+          {plans.map((plan) => (
             <StaggerItem key={plan.name} className="h-full">
-              <motion.div
-                className="h-full"
-                whileHover={{ y: plan.highlight ? -6 : -4 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-              >
-                <Card
-                  glow={plan.highlight}
+              <div className={cn('relative flex h-full flex-col', plan.featured && 'md:-mt-3 md:mb-3')}>
+                {plan.featured && (
+                  <span className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 rounded-chip bg-accent px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.07em] text-white shadow-sm">
+                    {p.popular}
+                  </span>
+                )}
+                <div
                   className={cn(
-                    'flex h-full flex-col',
-                    plan.highlight && 'ring-2 ring-accent-cyan/35 lg:-mt-2 lg:mb-2',
+                    'landing-card flex h-full flex-col p-8',
+                    plan.featured &&
+                      'border-2 border-accent shadow-float ring-4 ring-accent-light dark:ring-indigo-950',
                   )}
                 >
-                  {plan.highlight && (
-                    <Badge variant="accent" className="mb-4 w-fit">
-                      {p.popular}
-                    </Badge>
-                  )}
-                  <p className="text-xs uppercase tracking-widest text-foreground-muted">{plan.name}</p>
-                  <p className="mt-3 text-4xl font-semibold tracking-tight text-gradient-accent">
-                    {plan.price}
+                  <p className="text-label mb-1 uppercase tracking-[0.07em] text-tx-secondary dark:text-tx-secondary">
+                    {plan.name}
                   </p>
-                  <p className="text-sm text-foreground-muted">{plan.sub}</p>
-                  <ul className="mt-6 flex-1 space-y-2.5 text-sm text-foreground-muted">
+                  <p className="text-[40px] font-extrabold leading-none text-tx-primary dark:text-[#F1F5F9]">
+                    {plan.price}
+                    <span className="ml-1 text-sm font-normal text-tx-secondary dark:text-tx-secondary">
+                      {plan.sub}
+                    </span>
+                  </p>
+                  <hr className="my-6 border-bd-default dark:border-bd-default" />
+                  <ul className="flex-1 space-y-1">
                     {plan.features.map((f) => (
-                      <li key={f} className="flex items-center justify-center gap-2 lg:justify-start">
-                        <span className="text-accent-cyan">✓</span>
+                      <li key={f} className="flex items-start gap-2 py-1 text-sm text-tx-body dark:text-tx-body">
+                        <span className="mt-0.5 shrink-0 text-success">✓</span>
                         <span>{f}</span>
                       </li>
                     ))}
                   </ul>
-                  {!plan.highlight && i === 2 && <div className="mt-4 flex-1" />}
-                </Card>
-              </motion.div>
+                  <Link
+                    href={route('onboard')}
+                    className={cn(
+                      'mt-8 w-full justify-center',
+                      plan.featured ? 'landing-btn-primary' : 'landing-btn-secondary',
+                    )}
+                  >
+                    {p.startBuilding}
+                  </Link>
+                  <p className="mt-4 text-center text-[12px] text-tx-muted dark:text-tx-muted">
+                    No setup fee · Cancel anytime
+                  </p>
+                </div>
+              </div>
             </StaggerItem>
           ))}
         </Stagger>
-
-        <FadeIn className="mt-14 text-center">
-          <Link
-            href={route('onboard')}
-            className={cn(
-              'group relative inline-flex h-12 items-center overflow-hidden rounded-xl px-8 text-sm font-medium',
-              buttonVariants.primary,
-            )}
-          >
-            <span className="relative z-10">{p.startBuilding}</span>
-            <span className="absolute inset-0 shimmer-line opacity-30" />
-          </Link>
-        </FadeIn>
       </div>
     </section>
   );

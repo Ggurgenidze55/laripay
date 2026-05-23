@@ -6,7 +6,7 @@ import { gsap, registerGsap, ScrollTrigger } from '@/lib/gsap-client';
 import { cn } from '@/lib/utils';
 import { useLandingPerformance } from '@/hooks/use-landing-performance';
 import { useLocale } from '@/components/i18n/LocaleProvider';
-import { SectionHeader, SectionShell, AmbientOrbs } from './shared';
+import { SectionHeader, SectionShell } from './shared';
 
 const ORBIT_NODES = ['API', 'TBC', 'BOG', 'Webhook', 'Ledger'] as const;
 
@@ -105,8 +105,7 @@ export function InfrastructureScroll() {
   }, [STEPS.length, useScrollPin]);
 
   return (
-    <SectionShell id="infrastructure" wide className="!border-t-0 !py-0">
-      <AmbientOrbs />
+    <SectionShell id="infrastructure" wide tone="page" borderTop={false} className="!py-0">
       <div
         ref={containerRef}
         className={cn('relative', useScrollPin ? 'min-h-[280vh]' : 'min-h-0')}
@@ -121,15 +120,15 @@ export function InfrastructureScroll() {
           <div className="grid w-full items-center gap-12 lg:grid-cols-2 lg:gap-28">
             <div className="order-2 lg:order-1">
               <SectionHeader align="left" eyebrow={s.eyebrow} title={s.title} description={s.description} />
-              <div className="relative mt-14 h-1.5 overflow-hidden rounded-full bg-foreground/[0.06]">
+              <div className="relative mt-14 h-1.5 overflow-hidden rounded-full bg-bg-subtle dark:bg-bg-hover">
                 <motion.div
-                  className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent-blue via-accent-cyan to-accent-violet"
+                  className="absolute inset-y-0 left-0 rounded-full bg-accent"
                   animate={{ width: `${((effectiveStep + 1) / STEPS.length) * 100}%` }}
                   transition={{ type: 'spring', stiffness: 120, damping: 22 }}
                 />
                 <div
                   ref={progressRef}
-                  className="h-full origin-left scale-x-0 rounded-full bg-gradient-to-r from-accent-blue via-accent-cyan to-accent-violet opacity-0"
+                  className="h-full origin-left scale-x-0 rounded-full bg-accent opacity-0"
                 />
               </div>
               <div className="mt-20 space-y-4">
@@ -146,15 +145,15 @@ export function InfrastructureScroll() {
                     whileHover={{ opacity: 0.85, x: 0 }}
                     transition={{ duration: 0.35 }}
                     className={cn(
-                      'w-full rounded-2xl border-l-2 py-4 pl-8 pr-4 text-left transition-colors',
+                      'w-full rounded-card border-l-2 py-4 pl-8 pr-4 text-left transition-colors',
                       effectiveStep === i
-                        ? 'border-accent-cyan bg-surface-inset shadow-glow ring-1 ring-accent-cyan/15'
-                        : 'border-border-strong bg-transparent hover:border-accent-blue/40 hover:bg-foreground/[0.02]',
+                        ? 'border-accent bg-bg-surface shadow-card dark:bg-[#141417]'
+                        : 'border-bd-default bg-transparent hover:border-bd-strong hover:bg-bg-subtle dark:hover:bg-bg-hover',
                     )}
                   >
-                    <span className="font-mono text-xs text-accent-cyan/90">{step.label}</span>
-                    <h3 className="mt-2 text-xl font-medium tracking-tight text-foreground">{step.title}</h3>
-                    <p className="mt-2 max-w-md text-sm leading-relaxed text-foreground-muted">{step.body}</p>
+                    <span className="font-mono text-xs text-accent">{step.label}</span>
+                    <h3 className="mt-2 text-xl font-medium tracking-tight text-tx-primary dark:text-[#F1F5F9]">{step.title}</h3>
+                    <p className="mt-2 max-w-md text-sm leading-relaxed text-tx-body dark:text-tx-body">{step.body}</p>
                   </motion.button>
                 ))}
               </div>

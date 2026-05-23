@@ -50,7 +50,7 @@ async function testCjsAsync() {
   const gp = new GeorgianPayments({ tbcClientId: 'a', tbcSecret: 'b' });
   await assert.rejects(
     () => gp.createPayment(10, 'GEL', '1', 'https://x.ge', { provider: 'bog' }),
-    /BOG provider not configured/
+    /BOG.*not configured/i,
   );
 }
 

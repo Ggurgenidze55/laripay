@@ -2,109 +2,84 @@
 
 const { CURRENCY } = require('./constants.cjs');
 const { buildReturnUrl, buildWebhookUrl, isTbcSandbox, isBogSandbox } = require('./env.cjs');
+const { createProviders } = require('./providers/factory.cjs');
 const { TbcProvider } = require('./providers/tbc.cjs');
 const { BogProvider } = require('./providers/bog.cjs');
 const { verifyWebhook } = require('./webhooks.cjs');
+const { isGeorgianBankId, getBank } = require('./banks/registry.cjs');
 
 /**
- * Universal Georgian Payment SDK — TBC Pay + BOG Pay
- *
- * @example
- * const payments = new GeorgianPayments({
- *   tbcClientId: process.env.TBC_CLIENT_ID,
- *   tbcSecret: process.env.TBC_CLIENT_SECRET,
- *   bogPublicKey: process.env.BOG_PUBLIC_KEY,
- *   bogSecretKey: process.env.BOG_SECRET_KEY,
- *   defaultProvider: 'tbc',
- * });
+ * Universal Georgian Payment SDK — all Georgian acquiring rails (bank-hosted card checkout).
  */
 class GeorgianPayments {
   /**
    * @param {object} config
-   * @param {string} [config.tbcClientId]
-   * @param {string} [config.tbcSecret]
-   * @param {string} [config.tbcApiKey]
-   * @param {string} [config.tbcCallbackUrl]
-   * @param {string} [config.bogPublicKey]
-   * @param {string} [config.bogSecretKey]
-   * @param {string} [config.bogCallbackUrl]
-   * @param {'tbc'|'bog'} [config.defaultProvider='tbc']
-   * @param {typeof fetch} [config.fetch]
    */
   constructor(config = {}) {
     this.config = config;
     this.defaultProvider = config.defaultProvider || 'tbc';
-    this.tbc = config.tbcClientId && config.tbcSecret
-      ? new TbcProvider(config)
-      : null;
-    this.bog = config.bogPublicKey && config.bogSecretKey
-      ? new BogProvider(config)
-      : null;
+    this.providers = createProviders(config);
+  }
+
+  get tbc() {
+    return this.providers.tbc || null;
+  }
+
+  get bog() {
+    return this.providers.bog || null;
+  }
+
+  listConfiguredProviders() {
+    return Object.keys(this.providers);
   }
 
   _resolveProvider(provider) {
     const p = provider || this.defaultProvider;
-    if (p === 'tbc' && !this.tbc) {
-      throw new Error('TBC provider not configured (tbcClientId + tbcSecret required)');
+    if (!isGeorgianBankId(p)) {
+      throw new Error(
+        `Unknown provider "${p}". Supported: tbc, bog, liberty, credo, cartu, basis, flitt.`,
+      );
     }
-    if (p === 'bog' && !this.bog) {
-      throw new Error('BOG provider not configured (bogPublicKey + bogSecretKey required)');
-    }
-    if (p !== 'tbc' && p !== 'bog') {
-      throw new Error(`Unknown provider "${p}". Use "tbc" or "bog".`);
+    const instance = this.providers[p];
+    if (!instance) {
+      const bank = getBank(p);
+      throw new Error(
+        `${bank?.name || p} not configured. Add merchant credentials or env ${bank?.envPrefix || p.toUpperCase()}_* keys.`,
+      );
     }
     return p;
   }
 
-  /**
-   * Create a payment / order.
-   * @param {number} amount
-   * @param {string} [currency='GEL']
-   * @param {string|number} orderId
-   * @param {string} returnUrl
-   * @param {object} [options]
-   * @param {'tbc'|'bog'} [options.provider]
-   */
+  _providerInstance(providerKey) {
+    return this.providers[this._resolveProvider(providerKey)];
+  }
+
   async createPayment(amount, currency, orderId, returnUrl, options = {}) {
     const provider = this._resolveProvider(options.provider);
     const cur = currency || CURRENCY.CODE;
-
-    if (provider === 'tbc') {
-      return this.tbc.createPayment(amount, cur, orderId, returnUrl, options);
-    }
-    return this.bog.createPayment(amount, cur, orderId, returnUrl, options);
+    const enriched = {
+      ...options,
+      paymentMode: options.paymentMode || 'card',
+    };
+    return this._providerInstance(provider).createPayment(amount, cur, orderId, returnUrl, enriched);
   }
 
-  /**
-   * Check payment status.
-   * @param {string} paymentId
-   * @param {'tbc'|'bog'} provider
-   */
+  /** Installment checkout — bank-hosted credit / pay-in-parts flow. */
+  async createInstallmentPayment(amount, currency, orderId, returnUrl, options = {}) {
+    return this.createPayment(amount, currency, orderId, returnUrl, {
+      ...options,
+      paymentMode: 'installment',
+    });
+  }
+
   async checkStatus(paymentId, provider) {
-    const p = this._resolveProvider(provider);
-    if (p === 'tbc') return this.tbc.checkStatus(paymentId);
-    return this.bog.checkStatus(paymentId);
+    return this._providerInstance(provider).checkStatus(paymentId);
   }
 
-  /**
-   * Refund a payment (full or partial).
-   * @param {string} paymentId
-   * @param {number|null} amount - Omit/null for full refund (BOG)
-   * @param {'tbc'|'bog'} provider
-   */
   async refund(paymentId, amount, provider) {
-    const p = this._resolveProvider(provider);
-    if (p === 'tbc') return this.tbc.refund(paymentId, amount);
-    return this.bog.refund(paymentId, amount);
+    return this._providerInstance(provider).refund(paymentId, amount);
   }
 
-  /**
-   * Verify and parse an incoming webhook.
-   * @param {'tbc'|'bog'} provider
-   * @param {string|Buffer|object} payload - Raw body (string/Buffer) preferred
-   * @param {string} signature - HMAC hex (TBC) or base64 RSA (BOG)
-   * @returns {{ valid: boolean, error?: string, paymentId?: string, orderId?: string, payload?: object }}
-   */
   handleWebhook(provider, payload, signature) {
     return verifyWebhook(provider, payload, signature, {
       secret: this.config.tbcSecret,
@@ -117,9 +92,9 @@ class GeorgianPayments {
 module.exports = {
   GeorgianPayments,
   CURRENCY,
+  verifyWebhook,
   TbcProvider,
   BogProvider,
-  verifyWebhook,
   buildReturnUrl,
   buildWebhookUrl,
   isTbcSandbox,

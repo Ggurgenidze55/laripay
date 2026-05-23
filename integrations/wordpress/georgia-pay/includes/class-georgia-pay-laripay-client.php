@@ -106,6 +106,52 @@ class Georgia_Pay_LariPay_Client {
 	}
 
 	/**
+	 * Create installment checkout session.
+	 *
+	 * @param float    $amount            Amount in GEL.
+	 * @param string   $success_url       Return URL.
+	 * @param string   $cancel_url        Cancel URL.
+	 * @param string   $order_ref         Order ID.
+	 * @param string   $provider          Bank id.
+	 * @param int|null $installment_terms Months.
+	 * @return array
+	 * @throws Exception On API error.
+	 */
+	public function create_installment_checkout_session( $amount, $success_url, $cancel_url, $order_ref, $provider = 'tbc', $installment_terms = null ) {
+		$body = array(
+			'amount'              => round( (float) $amount, 2 ),
+			'currency'            => 'GEL',
+			'provider'            => $provider,
+			'success_url'         => $success_url,
+			'cancel_url'          => $cancel_url,
+			'client_reference_id' => (string) $order_ref,
+			'metadata'            => array(
+				'integration'  => 'woocommerce',
+				'payment_mode' => 'installment',
+				'site'         => home_url(),
+			),
+		);
+
+		if ( null !== $installment_terms && '' !== $installment_terms ) {
+			$body['installment_terms'] = (int) $installment_terms;
+		}
+
+		$data = $this->request( 'POST', '/api/v1/checkout/installment-sessions', $body );
+
+		if ( empty( $data['url'] ) || empty( $data['id'] ) ) {
+			throw new Exception( isset( $data['error']['message'] ) ? $data['error']['message'] : 'Invalid LariPay.ai installment response' );
+		}
+
+		return array(
+			'id'           => $data['id'],
+			'url'          => $data['url'],
+			'payment_id'   => isset( $data['payment_id'] ) ? $data['payment_id'] : '',
+			'platform_fee' => isset( $data['platform_fee'] ) ? (float) $data['platform_fee'] : 0,
+			'fee_mode'     => isset( $data['fee_mode'] ) ? $data['fee_mode'] : 'commission',
+		);
+	}
+
+	/**
 	 * @param string     $method HTTP method.
 	 * @param string     $path   API path.
 	 * @param array|null $body   JSON body.

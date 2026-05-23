@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Stagger, StaggerItem } from '@/components/motion/fade-in';
 import { HoverLift } from '@/components/motion/interactive';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -171,30 +170,28 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
     <div className="mx-auto max-w-lg py-8">
       <Stagger>
         <StaggerItem>
-          <Badge variant="accent" className="mb-4">
-            {a.eyebrow}
-          </Badge>
+          <p className="landing-section-label mb-4">{a.eyebrow}</p>
         </StaggerItem>
         <StaggerItem>
-          <h1 className="text-3xl font-semibold tracking-tight">{a.title}</h1>
+          <h1 className="text-section text-tx-primary dark:text-zinc-50">{a.title}</h1>
         </StaggerItem>
         <StaggerItem>
-          <p className="mt-2 text-foreground-muted">{a.description}</p>
+          <p className="mt-2 text-tx-body dark:text-zinc-300">{a.description}</p>
         </StaggerItem>
       </Stagger>
 
       {registerStep === 'form' && loginStep === 'form' ? (
-        <div className="mt-6 flex gap-2 rounded-xl border border-border p-1">
+        <div className="mt-6 flex gap-2 rounded-btn border border-bd-default bg-bg-subtle p-1 dark:border-zinc-700 dark:bg-zinc-900">
           {(['register', 'login'] as const).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => resetMode(m)}
               className={cn(
-                'flex-1 rounded-lg py-2 text-sm font-medium transition-colors',
+                'flex-1 rounded-btn py-2 text-sm font-medium transition-colors',
                 mode === m
-                  ? 'bg-accent-blue/15 text-accent-cyan'
-                  : 'text-foreground-muted hover:text-foreground',
+                  ? 'bg-accent-light text-accent dark:bg-indigo-950 dark:text-indigo-300'
+                  : 'text-tx-muted hover:text-tx-primary dark:hover:text-zinc-100',
               )}
             >
               {m === 'register' ? a.tabRegister : a.tabLogin}
@@ -208,7 +205,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
           <motion.div key="ok" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <HoverLift>
               <Card className="mt-6 !p-6" glow>
-                <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+                <p className="rounded-btn border border-success/30 bg-success/10 px-3 py-2 text-sm text-success dark:text-green-400">
                   {a.registerSuccess}
                 </p>
                 <label className="mt-4 block text-xs text-foreground-muted">{a.apiKeyOnce}</label>

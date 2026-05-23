@@ -2,6 +2,8 @@ import { platformEnv } from '@/lib/laripay-env';
 import { NextRequest, NextResponse } from 'next/server';
 import { createMerchant } from '@/lib/laripay/onboard';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
+import { isGeorgianBankId } from '@/lib/georgian-banks/registry';
+import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +34,10 @@ export async function POST(request: NextRequest) {
       email,
       slug: body.slug ? String(body.slug) : undefined,
       billingMode: 'COMMISSION',
-      defaultProvider: (body.default_provider as 'tbc' | 'bog') || 'tbc',
+      defaultProvider:
+        typeof body.default_provider === 'string' && isGeorgianBankId(body.default_provider)
+          ? (body.default_provider as GeorgianBankId)
+          : 'tbc',
     });
 
     return laripayJson(

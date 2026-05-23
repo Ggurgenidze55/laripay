@@ -27,7 +27,7 @@ function applyThemeToDocument(theme: Theme) {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() =>
-    typeof window !== 'undefined' ? resolveTheme(getStoredTheme()) : 'dark',
+    typeof window !== 'undefined' ? resolveTheme(getStoredTheme()) : 'light',
   );
 
   const setTheme = useCallback((t: Theme) => {

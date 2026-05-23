@@ -8,8 +8,6 @@ import { resolveLocaleParam } from '@/lib/i18n/resolve-locale';
 
 type Props = { params: { locale: string } };
 
-const API_METHODS = ['POST', 'GET', 'POST', 'GET', 'POST', 'GET', 'POST', 'GET'] as const;
-
 export function generateMetadata({ params }: Props): Metadata {
   const locale = resolveLocaleParam(params.locale);
   const p = getDictionary(locale).pages.docs;
@@ -19,6 +17,7 @@ export function generateMetadata({ params }: Props): Metadata {
 export default function DocsPage({ params }: Props) {
   const locale = resolveLocaleParam(params.locale);
   const p = getDictionary(locale).pages.docs;
+  const apiMethods = p.apiRows.map(([path]) => path.split(' ')[0] as 'GET' | 'POST');
 
   return (
     <MarketingPage eyebrow={p.eyebrow} title={p.title} description={p.description} wide>
@@ -35,7 +34,7 @@ export default function DocsPage({ params }: Props) {
         <p>{p.authBody}</p>
       </MarketingSection>
 
-      <ApiTable title={p.apiTitle} rows={p.apiRows} methods={API_METHODS} />
+      <ApiTable title={p.apiTitle} rows={p.apiRows} methods={apiMethods} />
 
       <MarketingSection title={p.webhooksTitle}>
         <p>{p.webhooksBody}</p>

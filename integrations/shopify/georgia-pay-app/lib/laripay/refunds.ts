@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { buildMerchantPaymentsClient, getMerchantBankConfig } from './merchant-config';
 import { dispatchMerchantWebhook } from './webhooks-outbound';
 import type { AuthenticatedMerchant } from './auth';
+import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
 
 export interface CreateRefundInput {
   paymentId: string;
@@ -71,16 +72,13 @@ export async function createRefund(merchant: AuthenticatedMerchant, input: Creat
 
   try {
     const config = await getMerchantBankConfig(merchant.id);
+    const provider = payment.provider as GeorgianBankId;
     const client = buildMerchantPaymentsClient({
       ...config,
-      provider: payment.provider as 'tbc' | 'bog',
+      provider,
     });
 
-    await client.refund(
-      payment.bankReference,
-      refundAmount,
-      payment.provider as 'tbc' | 'bog',
-    );
+    await client.refund(payment.bankReference, refundAmount, provider);
 
     const updated = await prisma.paykaRefund.update({
       where: { id: record.id },

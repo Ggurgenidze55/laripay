@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { requireAdminOrError } from '@/lib/laripay/auth';
 import { createMerchant } from '@/lib/laripay/onboard';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
+import { isGeorgianBankId } from '@/lib/georgian-banks/registry';
+import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
 
 export async function POST(request: NextRequest) {
   const adminErr = requireAdminOrError(request);
@@ -35,7 +37,10 @@ export async function POST(request: NextRequest) {
       subscriptionMonths: body.subscription_months
         ? Number(body.subscription_months)
         : undefined,
-      defaultProvider: body.default_provider as 'tbc' | 'bog' | undefined,
+      defaultProvider:
+        typeof body.default_provider === 'string' && isGeorgianBankId(body.default_provider)
+          ? (body.default_provider as GeorgianBankId)
+          : undefined,
     });
 
     return laripayJson(

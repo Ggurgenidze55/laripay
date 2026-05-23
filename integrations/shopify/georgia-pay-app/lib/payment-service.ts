@@ -9,6 +9,11 @@ import {
   rejectPaymentSession,
   extractShopifyRedirectUrl,
 } from './payments-api';
+import type { GeorgianBankId } from './georgian-banks/registry';
+import {
+  isBankPaymentFailure,
+  isBankPaymentSuccess,
+} from './georgian-banks/payment-status';
 
 export interface ShopifyPaymentSessionBody {
   id: string;
@@ -137,13 +142,9 @@ export async function finalizePaymentFromBank(
     return { status: 'resolved' };
   }
 
-  const isSuccess =
-    (record.bank === 'tbc' && bankStatus === 'Succeeded') ||
-    (record.bank === 'bog' && bankStatus === 'completed');
+  const isSuccess = isBankPaymentSuccess(record.bank, bankStatus);
 
-  const isFailure =
-    (record.bank === 'tbc' && ['Failed', 'Expired', 'Returned'].includes(bankStatus)) ||
-    (record.bank === 'bog' && bankStatus === 'rejected');
+  const isFailure = isBankPaymentFailure(record.bank, bankStatus);
 
   const shopifyHosted = isShopifyHostedPayment(record.shopDomain);
 
@@ -233,7 +234,10 @@ export async function pollAndFinalize(shopifyPaymentId: string) {
 
   const config = await getShopBankConfig(record.shopDomain);
   const payments = buildPaymentsClient(config);
-  const statusResult = await payments.checkStatus(record.bankReference, record.bank as 'tbc' | 'bog');
+  const statusResult = await payments.checkStatus(
+    record.bankReference,
+    record.bank as GeorgianBankId,
+  );
 
   return finalizePaymentFromBank(shopifyPaymentId, statusResult.status, record.bankReference);
 }

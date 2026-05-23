@@ -98,7 +98,7 @@ export function PaymentInfrastructure() {
   const nodeMap = Object.fromEntries(NODES.map((n) => [n.id, n]));
 
   return (
-    <SectionShell id="payment-flow" wide>
+    <SectionShell id="payment-flow" wide tone="page">
       <AmbientOrbs />
       <SectionHeader eyebrow={s.eyebrow} title={s.title} description={s.description} />
 

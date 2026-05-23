@@ -82,7 +82,7 @@ export function DashboardPreviewScroll() {
   const activeIdx = manualView ?? viewIndex;
 
   return (
-    <SectionShell id="dashboard-preview" wide className="!py-0">
+    <SectionShell id="dashboard-preview" wide tone="surface" className="!py-0">
       <AmbientOrbs />
       <div
         ref={containerRef}

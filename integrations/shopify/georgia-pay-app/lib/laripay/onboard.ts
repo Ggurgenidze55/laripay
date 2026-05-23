@@ -6,6 +6,7 @@ import {
 } from './crypto';
 import { DEFAULT_COMMISSION_BPS } from './constants';
 import type { IntegrationPlatformId } from './integration-platform';
+import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
 
 export interface CreateMerchantInput {
   name: string;
@@ -15,7 +16,7 @@ export interface CreateMerchantInput {
   commissionRateBps?: number;
   subscriptionPlanCode?: string;
   subscriptionMonths?: number;
-  defaultProvider?: 'tbc' | 'bog';
+  defaultProvider?: GeorgianBankId;
   integrationPlatform?: IntegrationPlatformId;
   integrationRef?: string | null;
 }

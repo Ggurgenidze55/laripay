@@ -6,6 +6,10 @@ export const INTEGRATION_PLATFORMS = [
   'shopify',
   'woocommerce',
   'wordpress',
+  'cscart',
+  'opencart',
+  'prestashop',
+  'magento',
   'api',
   'custom',
 ] as const;
@@ -16,6 +20,10 @@ const PLATFORM_RANK: Record<IntegrationPlatformId, number> = {
   shopify: 40,
   woocommerce: 30,
   wordpress: 25,
+  cscart: 22,
+  opencart: 22,
+  prestashop: 22,
+  magento: 22,
   custom: 15,
   api: 5,
 };
@@ -39,6 +47,10 @@ export function integrationPlatformLabel(
     shopify: { en: 'Shopify', ka: 'Shopify' },
     woocommerce: { en: 'WooCommerce', ka: 'WooCommerce' },
     wordpress: { en: 'WordPress', ka: 'WordPress' },
+    cscart: { en: 'CS-Cart', ka: 'CS-Cart' },
+    opencart: { en: 'OpenCart', ka: 'OpenCart' },
+    prestashop: { en: 'PrestaShop', ka: 'PrestaShop' },
+    magento: { en: 'Magento', ka: 'Magento' },
     api: { en: 'Direct API', ka: 'პირდაპირი API' },
     custom: { en: 'Custom', ka: 'სხვა / Custom' },
   };
@@ -82,6 +94,10 @@ function parseMetadataIntegration(
   }
   if (v.includes('woo')) return { platform: 'woocommerce', ref: pickRef(metadata) };
   if (v.includes('wordpress')) return { platform: 'wordpress', ref: pickRef(metadata) };
+  if (v.includes('cscart') || v.includes('cs-cart')) return { platform: 'cscart', ref: pickRef(metadata) };
+  if (v.includes('opencart')) return { platform: 'opencart', ref: pickRef(metadata) };
+  if (v.includes('prestashop')) return { platform: 'prestashop', ref: pickRef(metadata) };
+  if (v.includes('magento')) return { platform: 'magento', ref: pickRef(metadata) };
   if (isIntegrationPlatformId(v)) return { platform: v, ref: pickRef(metadata) };
   return null;
 }
@@ -109,6 +125,10 @@ export function parseIntegrationFromRequest(
     if (v.includes('shopify')) return { platform: 'shopify', ref };
     if (v.includes('woo')) return { platform: 'woocommerce', ref };
     if (v.includes('wordpress')) return { platform: 'wordpress', ref };
+    if (v.includes('cscart') || v.includes('cs-cart')) return { platform: 'cscart', ref };
+    if (v.includes('opencart')) return { platform: 'opencart', ref };
+    if (v.includes('prestashop')) return { platform: 'prestashop', ref };
+    if (v.includes('magento')) return { platform: 'magento', ref };
     if (isIntegrationPlatformId(v)) return { platform: v, ref };
   }
 
@@ -190,10 +210,11 @@ async function inferIntegration(
   }
 
   if (keys.length > 0) {
-    const shops = await prisma.shop.findMany({ include: { settings: true } });
-    for (const s of shops) {
-      if (s.settings?.laripayMerchantId !== merchant.id) continue;
-      return { platform: 'shopify', ref: s.domain };
+    const linkedShop = await prisma.shop.findFirst({
+      where: { settings: { laripayMerchantId: merchant.id } },
+    });
+    if (linkedShop) {
+      return { platform: 'shopify', ref: linkedShop.domain };
     }
   }
 

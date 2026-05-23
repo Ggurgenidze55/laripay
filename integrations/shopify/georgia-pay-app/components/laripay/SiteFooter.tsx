@@ -8,73 +8,120 @@ import { LanguageToggle } from '@/components/i18n/LanguageToggle';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { localePath } from '@/lib/i18n/routing';
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-function FooterColumn({ title, links }: { title: string; links: readonly { href: string; label: string }[] }) {
+function FooterColumn({
+  title,
+  links,
+  brand,
+}: {
+  title: string;
+  links: readonly { href: string; label: string }[];
+  brand?: boolean;
+}) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-foreground-muted">{title}</h3>
-      <ul className="mt-4 space-y-2.5">
+    <div>
+      <h3
+        className={cn(
+          'mb-4 text-label uppercase',
+          brand ? 'text-indigo-200' : 'text-tx-primary dark:text-zinc-100',
+        )}
+      >
+        {title}
+      </h3>
+      <ul className="space-y-2.5">
         {links.map((link) => (
           <li key={link.href}>
-            <motion.span whileHover={{ x: 4 }} className="inline-block">
-              <Link
-                href={link.href}
-                className="text-sm text-foreground-muted transition-colors hover:text-accent-cyan"
-              >
-                {link.label}
-              </Link>
-            </motion.span>
+            <Link
+              href={link.href}
+              className={cn(
+                'text-sm transition-colors duration-150',
+                brand ? 'text-indigo-100/80 hover:text-white' : 'text-tx-secondary hover:text-accent',
+              )}
+            >
+              {link.label}
+            </Link>
           </li>
         ))}
       </ul>
-    </motion.div>
+    </div>
   );
 }
 
-export function SiteFooter({ compact = false }: { compact?: boolean }) {
+export function SiteFooter({
+  compact = false,
+  brand = false,
+  navy = false,
+}: {
+  compact?: boolean;
+  brand?: boolean;
+  navy?: boolean;
+}) {
+  const isBrand = brand || navy;
   const { locale, t } = useLocale();
   const columns = useMemo(() => getFooterColumns(locale), [locale]);
   const titles = useMemo(() => getFooterColumnTitles(locale), [locale]);
   const homeHref = localePath(locale);
 
   return (
-    <footer className="relative border-t border-border-strong bg-canvas-elevated">
-      <div className={compact ? 'mx-auto max-w-[90rem] px-6 py-12 lg:px-8' : 'mx-auto max-w-7xl px-6 py-14 lg:px-8'}>
+    <footer className={cn('relative', isBrand ? 'bg-brand' : 'border-t border-bd-default bg-white dark:border-zinc-800 dark:bg-zinc-900')}>
+      <div className={cn('mx-auto max-w-[1160px] px-6', compact ? 'pb-10 pt-14' : 'py-14')}>
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-2">
-            <Link href={homeHref} className="inline-flex items-center gap-3">
-              <LariPayLogo size={36} />
+            <Link href={homeHref} className="inline-flex items-center">
+              <LariPayLogo variant={isBrand ? 'light' : 'default'} />
             </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-foreground-muted">
+            <p
+              className={cn(
+                'mt-4 max-w-xs text-sm leading-relaxed',
+                isBrand ? 'text-indigo-200/90' : 'text-tx-body dark:text-zinc-300',
+              )}
+            >
               {t.company.tagline}. {t.company.footerBlurb}
             </p>
-            <p className="mt-4 text-sm text-foreground-muted">
-              <a href={`mailto:${COMPANY.email}`} className="hover:text-accent-cyan">
+            <p className={cn('mt-4 text-sm', isBrand ? 'text-indigo-200/90' : 'text-tx-secondary')}>
+              <a href={`mailto:${COMPANY.email}`} className={isBrand ? 'hover:text-white' : 'hover:text-accent'}>
                 {COMPANY.email}
               </a>
             </p>
           </div>
-          <FooterColumn title={titles.product} links={columns.product} />
-          <FooterColumn title={titles.developers} links={columns.developers} />
-          <FooterColumn title={titles.company} links={columns.company} />
-          <FooterColumn title={titles.legal} links={columns.legal} />
+          <FooterColumn title={titles.product} links={columns.product} brand={isBrand} />
+          <FooterColumn title={titles.developers} links={columns.developers} brand={isBrand} />
+          <FooterColumn title={titles.company} links={columns.company} brand={isBrand} />
+          <FooterColumn title={titles.legal} links={columns.legal} brand={isBrand} />
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          className={cn(
+            'mt-10 flex flex-col gap-4 border-t pt-8 sm:flex-row sm:items-center sm:justify-between',
+            isBrand ? 'border-slate-700' : 'border-bd-default dark:border-zinc-700',
+          )}
+        >
           <div className="flex flex-wrap items-center gap-4">
-            <p className="text-xs text-foreground-muted/80">
+            <p className={cn('text-sm', isBrand ? 'text-indigo-300/90' : 'text-tx-muted')}>
               © {COMPANY.year} {COMPANY.name}. {t.company.rights}
             </p>
-            <LanguageToggle />
-            <ThemeToggle />
+            {!isBrand && (
+              <>
+                <LanguageToggle />
+                <ThemeToggle />
+              </>
+            )}
           </div>
-          <p className="text-xs text-foreground-muted/70">{t.company.disclaimer}</p>
+          <div className="flex flex-wrap gap-4">
+            {columns.legal.slice(0, 3).map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'text-sm transition-colors',
+                  isBrand ? 'text-indigo-300/90 hover:text-indigo-100' : 'text-tx-muted hover:text-accent',
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

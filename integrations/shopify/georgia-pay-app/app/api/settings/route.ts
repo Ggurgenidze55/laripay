@@ -50,6 +50,8 @@ export async function PUT(request: NextRequest) {
       bogPublicKey: body.bogPublicKey,
       bogSecretKey: body.bogSecretKey,
       bogCallbackPublicKey: body.bogCallbackPublicKey,
+      bankCredentials: body.bankCredentials ?? undefined,
+      installmentTerms: body.installmentTerms != null ? Number(body.installmentTerms) : null,
     },
     update: {
       provider: body.provider,
@@ -60,6 +62,8 @@ export async function PUT(request: NextRequest) {
       bogPublicKey: body.bogPublicKey,
       bogSecretKey: body.bogSecretKey,
       bogCallbackPublicKey: body.bogCallbackPublicKey,
+      bankCredentials: body.bankCredentials ?? undefined,
+      installmentTerms: body.installmentTerms != null ? Number(body.installmentTerms) : null,
     },
   });
 

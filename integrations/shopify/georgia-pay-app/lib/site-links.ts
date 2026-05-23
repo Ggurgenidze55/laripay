@@ -26,6 +26,7 @@ export function getFooterColumns(locale: Locale) {
       { href: localePath(locale, 'platform'), label: t.nav.platform },
       { href: localePath(locale, 'pricing'), label: t.nav.pricing },
       { href: localePath(locale, 'integrations'), label: t.footer.integrations },
+      { href: localePath(locale, 'demo'), label: t.nav.demo },
       { href: localePath(locale, 'security'), label: t.footer.security },
       { href: localePath(locale, 'status'), label: t.footer.status },
     ],

@@ -1,0 +1,7 @@
+ALTER TABLE "PaymentRecord" ADD COLUMN IF NOT EXISTS "paymentMode" TEXT NOT NULL DEFAULT 'card';
+ALTER TABLE "PaymentRecord" ADD COLUMN IF NOT EXISTS "installmentTerms" INTEGER;
+ALTER TABLE "CheckoutSession" ADD COLUMN IF NOT EXISTS "paymentMode" TEXT NOT NULL DEFAULT 'card';
+ALTER TABLE "CheckoutSession" ADD COLUMN IF NOT EXISTS "installmentTerms" INTEGER;
+ALTER TABLE "PaykaPayment" ADD COLUMN IF NOT EXISTS "paymentMode" TEXT NOT NULL DEFAULT 'card';
+ALTER TABLE "PaykaPayment" ADD COLUMN IF NOT EXISTS "installmentTerms" INTEGER;
+ALTER TABLE "ShopSettings" ADD COLUMN IF NOT EXISTS "installmentTerms" INTEGER;

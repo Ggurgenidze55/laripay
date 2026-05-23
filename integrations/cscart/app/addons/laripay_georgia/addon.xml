@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<addon scheme="3.0">
+    <id>laripay_georgia</id>
+    <version>1.0.0</version>
+    <priority>100500</priority>
+    <status>active</status>
+    <default_language>en</default_language>
+    <name>LariPay.ai — Georgian banks</name>
+    <description>Bank-hosted card payments via LariPay.ai (TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt).</description>
+    <settings>
+        <sections>
+            <section id="general">
+                <items>
+                    <item id="api_url"><type>input</type><default_value>https://laripay.ai</default_value></item>
+                    <item id="secret_key"><type>password</type></item>
+                    <item id="bank">
+                        <type>selectbox</type>
+                        <variants>
+                            <item id="tbc">TBC Pay</item>
+                            <item id="bog">BOG Pay</item>
+                            <item id="liberty">Liberty Bank</item>
+                            <item id="credo">Credo Bank</item>
+                            <item id="cartu">Cartu Bank</item>
+                            <item id="basis">Basis Bank</item>
+                            <item id="flitt">Flitt</item>
+                        </variants>
+                        <default_value>tbc</default_value>
+                    </item>
+                </items>
+            </section>
+        </sections>
+    </settings>
+</addon>

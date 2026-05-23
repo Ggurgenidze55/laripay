@@ -3,6 +3,8 @@ import { authenticateApiRequest } from '@/lib/laripay/auth';
 import { createCheckoutSession } from '@/lib/laripay/checkout';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { recordIntegrationFromRequest } from '@/lib/laripay/integration-platform';
+import { isGeorgianBankId } from '@/lib/georgian-banks/registry';
+import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
 
 export async function POST(request: NextRequest) {
   const auth = await authenticateApiRequest(request);
@@ -30,10 +32,21 @@ export async function POST(request: NextRequest) {
   try {
     await recordIntegrationFromRequest(auth.merchant.id, request, body).catch(() => {});
 
+    const rawProvider = body.provider ? String(body.provider) : undefined;
+    const provider =
+      rawProvider && isGeorgianBankId(rawProvider) ? (rawProvider as GeorgianBankId) : undefined;
+
     const session = await createCheckoutSession(auth.merchant, {
       amount,
       currency: String(body.currency || 'GEL'),
-      provider: body.provider as 'tbc' | 'bog' | undefined,
+      provider,
+      paymentMode: body.payment_mode === 'installment' ? 'installment' : undefined,
+      installmentTerms:
+        body.installment_terms != null
+          ? Number(body.installment_terms)
+          : body.installmentTerms != null
+            ? Number(body.installmentTerms)
+            : undefined,
       successUrl,
       cancelUrl: body.cancel_url ? String(body.cancel_url) : undefined,
       clientReferenceId: body.client_reference_id

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
+import { isGeorgianBankId } from '@/lib/georgian-banks/registry';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +42,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const data: Record<string, string | null> = {};
-  if (body.default_provider === 'tbc' || body.default_provider === 'bog') {
+  if (typeof body.default_provider === 'string' && isGeorgianBankId(body.default_provider)) {
     data.defaultProvider = body.default_provider;
   }
   if (typeof body.tbc_client_id === 'string') data.tbcClientId = body.tbc_client_id || null;

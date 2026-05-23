@@ -9,12 +9,12 @@ type Size = 'sm' | 'md' | 'lg';
 
 export const buttonVariants: Record<Variant, string> = {
   primary:
-    'bg-gradient-to-r from-accent-blue to-accent-violet text-white shadow-glow hover:shadow-glow-violet border border-border',
+    'bg-accent text-white border border-transparent hover:bg-accent-hover shadow-sm',
   secondary:
-    'border border-border-strong bg-canvas-card text-foreground shadow-card hover:bg-canvas-elevated dark:glass-panel dark:shadow-none dark:hover:bg-foreground/[0.06]',
-  ghost: 'text-foreground-muted hover:text-foreground hover:bg-surface-inset',
+    'border-2 border-bd-strong bg-bg-surface text-tx-primary hover:border-accent hover:bg-bg-mint dark:border-stone-600 dark:bg-stone-900 dark:text-stone-100',
+  ghost: 'text-tx-secondary hover:text-accent hover:bg-bg-subtle dark:hover:bg-stone-800',
   outline:
-    'border border-border-strong text-foreground hover:border-accent-blue/60 hover:bg-canvas-elevated',
+    'border-2 border-bd-strong text-tx-primary hover:border-accent hover:bg-bg-mint dark:hover:bg-stone-800',
 };
 
 const sizes: Record<Size, string> = {
@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         whileTap={magnetic ? { scale: 0.98 } : undefined}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         className={cn(
-          'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-shadow duration-300',
+          'inline-flex items-center justify-center gap-2 rounded-btn font-medium transition-colors duration-150',
           buttonVariants[variant],
           sizes[size],
           className,

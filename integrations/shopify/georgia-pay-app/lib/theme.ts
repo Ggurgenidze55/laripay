@@ -11,10 +11,10 @@ export function getStoredTheme(): Theme | null {
   return v === 'light' || v === 'dark' ? v : null;
 }
 
-/** Use saved theme when set; otherwise default to dark (not system). */
+/** Use saved theme when set; otherwise default to light. */
 export function resolveTheme(stored: Theme | null): Theme {
   if (stored) return stored;
-  return 'dark';
+  return 'light';
 }
 
 export function persistTheme(theme: Theme): void {

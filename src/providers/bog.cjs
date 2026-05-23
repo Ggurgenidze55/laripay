@@ -110,6 +110,17 @@ class BogProvider {
       },
     };
 
+    if (options.paymentMode === 'installment') {
+      payload.payment_method = ['installment'];
+      payload.meta = {
+        ...(payload.meta || {}),
+        installment: {
+          enabled: true,
+          term_months: options.installmentTerms ? Number(options.installmentTerms) : undefined,
+        },
+      };
+    }
+
     const headers = {};
     if (options.idempotencyKey) headers['Idempotency-Key'] = options.idempotencyKey;
     if (options.language) headers['Accept-Language'] = options.language;

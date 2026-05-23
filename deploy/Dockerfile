@@ -39,6 +39,10 @@ COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY --from=builder /src ./node_modules/@georgian-payments
 RUN mv ./node_modules/@georgian-payments/georgian-payments.cjs ./node_modules/@georgian-payments/index.cjs && \
   printf '{"name":"@georgian-payments","main":"index.cjs"}' > ./node_modules/@georgian-payments/package.json
+COPY --from=builder /src/georgian-delivery.cjs ./node_modules/@georgian-delivery/index.cjs
+RUN printf '{"name":"@georgian-delivery","main":"index.cjs"}' > ./node_modules/@georgian-delivery/package.json
+COPY --from=builder /src/georgian-warehouse.cjs ./node_modules/@georgian-warehouse/index.cjs
+RUN printf '{"name":"@georgian-warehouse","main":"index.cjs"}' > ./node_modules/@georgian-warehouse/package.json
 COPY deploy/entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

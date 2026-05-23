@@ -8,6 +8,7 @@ import {
   isIntegrationPlatformId,
   setMerchantIntegration,
 } from '@/lib/laripay/integration-platform';
+import { isGeorgianBankId } from '@/lib/georgian-banks/registry';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,7 +58,7 @@ export async function PATCH(
     data.billingMode = body.billing_mode;
   }
 
-  if (body.default_provider === 'tbc' || body.default_provider === 'bog') {
+  if (typeof body.default_provider === 'string' && isGeorgianBankId(body.default_provider)) {
     data.defaultProvider = body.default_provider;
   }
 

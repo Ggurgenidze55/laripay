@@ -3,13 +3,13 @@
 import { useEffect } from 'react';
 import { registerGsap, ScrollTrigger } from '@/lib/gsap-client';
 import { useLandingPerformance } from '@/hooks/use-landing-performance';
-import { AuroraBackground } from './aurora-background';
 import { ScrollProgress } from './scroll-progress';
 import { HeroSection } from './hero-section';
 import { InfrastructureScroll } from './infrastructure-scroll';
 import { DeveloperExperience } from './developer-experience';
 import { PaymentInfrastructure } from './payment-infrastructure';
 import { PaymentChannelsSection } from './payment-channels-section';
+import { CommerceStackSection } from './commerce-stack-section';
 import { PlatformTeaserSection } from './platform-teaser-section';
 import { DashboardPreviewScroll } from './dashboard-preview-scroll';
 import { AnalyticsSection } from './analytics-section';
@@ -35,7 +35,6 @@ export function LandingExperience() {
 
   return (
     <>
-      <AuroraBackground />
       <ScrollProgress />
       <div className="relative overflow-x-hidden">
         <HeroSection />
@@ -43,6 +42,7 @@ export function LandingExperience() {
         <DeveloperExperience />
         <PaymentInfrastructure />
         <PaymentChannelsSection />
+        <CommerceStackSection />
         <PlatformTeaserSection />
         <DashboardPreviewScroll />
         <AnalyticsSection />

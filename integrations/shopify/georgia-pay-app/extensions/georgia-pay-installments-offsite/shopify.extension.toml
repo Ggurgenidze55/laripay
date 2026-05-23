@@ -1,0 +1,17 @@
+api_version = "2024-10"
+
+[[extensions]]
+type = "payments_extension"
+name = "Georgia Pay Installments"
+handle = "georgia-pay-installments-offsite"
+merchant_label = "Georgia Pay Installments (GEL)"
+buyer_label = "Pay in installments (Georgian bank)"
+payment_session_url = "https://laurel-oversold-unlovely.ngrok-free.dev/api/payment_session_installment"
+refund_session_url = "https://laurel-oversold-unlovely.ngrok-free.dev/api/refund_session"
+supported_countries = ["GE"]
+supported_payment_methods = ["visa", "master"]
+test_mode_available = true
+supports_3ds = false
+supports_installments = true
+supports_deferred_payments = true
+multiple_capture = false

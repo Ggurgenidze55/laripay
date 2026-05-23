@@ -3,20 +3,11 @@ import { finalizePaymentFromBank } from '@/lib/payment-service';
 import { buildMerchantPaymentsClient, getMerchantBankConfig } from './merchant-config';
 import { dispatchMerchantWebhook } from './webhooks-outbound';
 import { expireCheckoutSessionIfNeeded } from './checkout-expiry';
-
-function isBankSuccess(provider: string, bankStatus: string): boolean {
-  return (
-    (provider === 'tbc' && bankStatus === 'Succeeded') ||
-    (provider === 'bog' && bankStatus === 'completed')
-  );
-}
-
-function isBankFailure(provider: string, bankStatus: string): boolean {
-  return (
-    (provider === 'tbc' && ['Failed', 'Expired', 'Returned'].includes(bankStatus)) ||
-    (provider === 'bog' && bankStatus === 'rejected')
-  );
-}
+import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
+import {
+  isBankPaymentFailure,
+  isBankPaymentSuccess,
+} from '@/lib/georgian-banks/payment-status';
 
 /**
  * Finalize a LariPay.ai checkout session after bank callback or return poll.
@@ -44,9 +35,9 @@ export async function finalizeLariPayCheckout(
     return { status: 'complete', redirectUrl: session.successUrl };
   }
 
-  const provider = session.provider as 'tbc' | 'bog';
+  const provider = session.provider as GeorgianBankId;
 
-  if (isBankSuccess(provider, bankStatus)) {
+  if (isBankPaymentSuccess(provider, bankStatus)) {
     await prisma.paykaPayment.update({
       where: { id: session.paykaPaymentId! },
       data: { status: 'succeeded', bankReference },
@@ -105,7 +96,7 @@ export async function finalizeLariPayCheckout(
     return { status: 'complete', redirectUrl: session.successUrl };
   }
 
-  if (isBankFailure(provider, bankStatus)) {
+  if (isBankPaymentFailure(provider, bankStatus)) {
     await prisma.paykaPayment.update({
       where: { id: session.paykaPaymentId! },
       data: { status: 'failed' },
@@ -137,11 +128,9 @@ export async function pollAndFinalizeLariPay(sessionId: string) {
   }
 
   const config = await getMerchantBankConfig(session.merchantId);
-  const payments = buildMerchantPaymentsClient({ ...config, provider: session.provider as 'tbc' | 'bog' });
-  const statusResult = await payments.checkStatus(
-    session.bankReference,
-    session.provider as 'tbc' | 'bog',
-  );
+  const provider = session.provider as GeorgianBankId;
+  const payments = buildMerchantPaymentsClient({ ...config, provider });
+  const statusResult = await payments.checkStatus(session.bankReference, provider);
 
   return finalizeLariPayCheckout(sessionId, statusResult.status, session.bankReference);
 }

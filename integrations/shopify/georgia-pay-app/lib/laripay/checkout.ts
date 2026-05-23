@@ -3,14 +3,27 @@ import { getLariPayReturnUrl, getLariPayWebhookUrl } from '@/lib/laripay-env';
 import { assertGelCurrency } from '@/lib/georgian-payments';
 import { CHECKOUT_SESSION_TTL_MS } from './constants';
 import { computePlatformFee } from './billing';
-import { buildMerchantPaymentsClient, getMerchantBankConfig } from './merchant-config';
+import {
+  buildMerchantPaymentsClient,
+  getMerchantBankConfig,
+  isBankConfigured,
+} from './merchant-config';
 import { expireCheckoutSessionIfNeeded } from './checkout-expiry';
 import type { AuthenticatedMerchant } from './auth';
+import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
+import { georgianBankLabel, isGeorgianBankId } from '@/lib/georgian-banks/registry';
+import type { PaymentMode } from '@/lib/georgian-banks/installments';
+import {
+  getInstallmentBank,
+  validateInstallmentTerms,
+} from '@/lib/georgian-banks/installments';
 
 export interface CreateCheckoutInput {
   amount: number;
   currency?: string;
-  provider?: 'tbc' | 'bog';
+  provider?: GeorgianBankId;
+  paymentMode?: PaymentMode;
+  installmentTerms?: number;
   successUrl: string;
   cancelUrl?: string;
   clientReferenceId?: string;
@@ -18,7 +31,7 @@ export interface CreateCheckoutInput {
   metadata?: Record<string, unknown>;
 }
 
-/** Create checkout session and redirect URL to TBC/BOG hosted bank page (no card data on LariPay). */
+/** Create checkout session and redirect URL to bank-hosted page (no card data on LariPay). */
 export async function createCheckoutSession(
   merchant: AuthenticatedMerchant,
   input: CreateCheckoutInput,
@@ -51,13 +64,36 @@ export async function createCheckoutSession(
   });
 
   const config = await getMerchantBankConfig(merchant.id);
-  const provider = (input.provider || config.provider) as 'tbc' | 'bog';
+  const providerInput = input.provider;
+  const provider = (
+    providerInput && isGeorgianBankId(providerInput) ? providerInput : config.provider
+  ) as GeorgianBankId;
 
-  if (provider === 'tbc' && !(config.tbcClientId && config.tbcClientSecret)) {
-    throw new Error('TBC not configured for this merchant or platform');
+  if (!isBankConfigured(config, provider)) {
+    throw new Error(
+      `${georgianBankLabel(provider, 'en')} is not configured for this merchant. Add bank credentials in dashboard.`,
+    );
   }
-  if (provider === 'bog' && !(config.bogPublicKey && config.bogSecretKey)) {
-    throw new Error('BOG not configured for this merchant or platform');
+
+  const paymentMode: PaymentMode = input.paymentMode === 'installment' ? 'installment' : 'card';
+  const installmentTerms =
+    input.installmentTerms != null ? Number(input.installmentTerms) : null;
+
+  if (paymentMode === 'installment') {
+    const installmentBank = getInstallmentBank(provider);
+    if (!installmentBank) {
+      throw new Error(`Installments not supported for provider ${provider}`);
+    }
+    if (amount < installmentBank.minAmountGel) {
+      throw new Error(
+        `Minimum installment amount is ${installmentBank.minAmountGel} GEL for ${georgianBankLabel(provider, 'en')}`,
+      );
+    }
+    if (installmentTerms != null && !validateInstallmentTerms(provider, installmentTerms)) {
+      throw new Error(
+        `Invalid installment term. Allowed for ${provider}: ${installmentBank.terms.join(', ')} months`,
+      );
+    }
   }
 
   const fees = computePlatformFee(amount, fullMerchant);
@@ -69,6 +105,8 @@ export async function createCheckoutSession(
       amount,
       currency,
       provider,
+      paymentMode,
+      installmentTerms,
       successUrl: input.successUrl,
       cancelUrl: input.cancelUrl,
       clientReferenceId: input.clientReferenceId,
@@ -83,7 +121,9 @@ export async function createCheckoutSession(
   return {
     id: session.id,
     object: 'checkout.session' as const,
-    mode: 'payment' as const,
+    mode: paymentMode === 'installment' ? ('installment' as const) : ('payment' as const),
+    payment_mode: paymentMode,
+    installment_terms: installmentTerms,
     status: 'open' as const,
     amount: fees.grossAmount,
     currency,
@@ -102,8 +142,8 @@ export async function createCheckoutSession(
   };
 }
 
-/** Attach TBC/BOG redirect to an open checkout session. */
-export async function initiateBankPaymentForSession(sessionId: string, provider: 'tbc' | 'bog') {
+/** Attach bank redirect to an open checkout session. */
+export async function initiateBankPaymentForSession(sessionId: string, provider: GeorgianBankId) {
   const session = await prisma.checkoutSession.findUniqueOrThrow({
     where: { id: sessionId },
     include: { paykaPayment: true },
@@ -122,11 +162,10 @@ export async function initiateBankPaymentForSession(sessionId: string, provider:
   const config = await getMerchantBankConfig(session.merchantId);
   const resolvedProvider = provider;
 
-  if (resolvedProvider === 'tbc' && !(config.tbcClientId && config.tbcClientSecret)) {
-    throw new Error('TBC not configured for this merchant or platform');
-  }
-  if (resolvedProvider === 'bog' && !(config.bogPublicKey && config.bogSecretKey)) {
-    throw new Error('BOG not configured for this merchant or platform');
+  if (!isBankConfigured(config, resolvedProvider)) {
+    throw new Error(
+      `${georgianBankLabel(resolvedProvider, 'en')} is not configured for this merchant or platform`,
+    );
   }
 
   const fees = computePlatformFee(session.amount, fullMerchant);
@@ -143,6 +182,8 @@ export async function initiateBankPaymentForSession(sessionId: string, provider:
     returnUrl,
     {
       provider: resolvedProvider,
+      paymentMode: session.paymentMode === 'installment' ? 'installment' : 'card',
+      installmentTerms: session.installmentTerms ?? undefined,
       callbackUrl,
       successUrl: session.successUrl,
       failUrl: session.cancelUrl || session.successUrl,
@@ -161,6 +202,8 @@ export async function initiateBankPaymentForSession(sessionId: string, provider:
         netAmount: fees.netAmount,
         feeMode: fees.feeMode,
         provider: resolvedProvider,
+        paymentMode: session.paymentMode || 'card',
+        installmentTerms: session.installmentTerms,
         bankReference: bankResult.paymentId || null,
         status: 'pending',
         clientReferenceId: session.clientReferenceId,
@@ -196,6 +239,14 @@ export async function getCheckoutSessionForMerchant(merchantId: string, sessionI
   return serializeCheckoutSession(active);
 }
 
+/** Installment checkout — bank-hosted pay-in-parts (same redirect model as card). */
+export async function createInstallmentCheckoutSession(
+  merchant: AuthenticatedMerchant,
+  input: Omit<CreateCheckoutInput, 'paymentMode'>,
+) {
+  return createCheckoutSession(merchant, { ...input, paymentMode: 'installment' });
+}
+
 export function serializeCheckoutSession(
   session: {
     id: string;
@@ -203,6 +254,8 @@ export function serializeCheckoutSession(
     amount: number;
     currency: string;
     provider: string;
+    paymentMode?: string | null;
+    installmentTerms?: number | null;
     successUrl: string;
     cancelUrl: string | null;
     clientReferenceId: string | null;
@@ -227,6 +280,8 @@ export function serializeCheckoutSession(
     amount: session.amount,
     currency: session.currency,
     provider: session.provider,
+    payment_mode: session.paymentMode || 'card',
+    installment_terms: session.installmentTerms ?? null,
     success_url: session.successUrl,
     cancel_url: session.cancelUrl,
     client_reference_id: session.clientReferenceId,
