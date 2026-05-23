@@ -6,7 +6,6 @@ import { useMemo, useState } from 'react';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { getSiteNav } from '@/lib/site-links';
 import { localePath } from '@/lib/i18n/routing';
-import { LariPayLogo } from '@/components/laripay/Logo';
 import { LanguageToggle } from '@/components/i18n/LanguageToggle';
 import { PaymentBrandLogo } from '@/components/laripay/payment-brand-logo';
 import type { PaymentBrandId } from '@/lib/payment-brands';
@@ -14,6 +13,7 @@ import { RailwayDashboardMock } from './railway-dashboard-mock';
 import { RailwayHowItWorks } from './railway-how-it-works';
 import { RailwayEventsDevSection } from './railway-events-dev-section';
 import { RailwayIntegrationsSection } from './railway-integrations-section';
+import { SiteFooter } from '@/components/laripay/SiteFooter';
 import { cn } from '@/lib/utils';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -132,9 +132,7 @@ export function RailwayLanding() {
   const security = t.landing.securitySection;
   const pricing = t.landing.pricing;
   const cta = t.landing.footerCta;
-  const footer = t.footer;
   const homeHref = localePath(locale);
-  const navLabels = t.nav;
   const statLabels = [h.stats.banks, h.stats.logistics, h.stats.currency] as const;
 
   const [sdkTab, setSdkTab] = useState(0);
@@ -385,26 +383,7 @@ export function RailwayLanding() {
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.06] bg-[#08070c] px-6 py-12">
-        <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-6 sm:flex-row">
-          <LariPayLogo variant="light" />
-          <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs">
-            <Link href={route('docs')} className="text-[#71717a] hover:text-[#c4b5fd]">
-              {footer.documentation}
-            </Link>
-            <Link href={route('pricing')} className="text-[#71717a] hover:text-[#c4b5fd]">
-              {navLabels.pricing}
-            </Link>
-            <Link href={route('integrations')} className="text-[#71717a] hover:text-[#c4b5fd]">
-              {footer.integrations}
-            </Link>
-            <Link href={route('contact')} className="text-[#71717a] hover:text-[#c4b5fd]">
-              {footer.contact}
-            </Link>
-          </nav>
-          <p className="text-xs text-[#52525b]">© {new Date().getFullYear()} LariPay.ai</p>
-        </div>
-      </footer>
+      <SiteFooter compact railway />
     </div>
   );
 }
