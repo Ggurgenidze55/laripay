@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Stagger, StaggerItem } from '@/components/motion/fade-in';
 import { HoverLift } from '@/components/motion/interactive';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/i18n/LocaleProvider';
-import { apiErrorMessage, parseApiJson } from '@/lib/api-client';
+import { apiErrorMessage, fetchWithDbRetry, parseApiJson } from '@/lib/api-client';
 
 type Props = {
   onLoggedIn: () => void;
@@ -26,12 +26,16 @@ export function MerchantConsoleLoginPanel({ onLoggedIn }: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    fetch('/api/health', { credentials: 'include' }).catch(() => {});
+  }, []);
+
   async function submitCredentials(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetchWithDbRetry('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -64,7 +68,7 @@ export function MerchantConsoleLoginPanel({ onLoggedIn }: Props) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/2fa/complete', {
+      const res = await fetchWithDbRetry('/api/auth/2fa/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

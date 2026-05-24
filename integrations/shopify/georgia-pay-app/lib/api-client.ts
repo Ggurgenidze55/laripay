@@ -48,3 +48,18 @@ export function apiErrorMessage(data: unknown, fallback: string): string {
   }
   return fallback;
 }
+
+/** Retry auth/API calls while Postgres wakes (Railway free tier). */
+export async function fetchWithDbRetry(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  attempt = 0,
+  maxAttempts = 6,
+): Promise<Response> {
+  const res = await fetch(input, init);
+  if ((res.status === 503 || res.status >= 500) && attempt < maxAttempts) {
+    await new Promise((r) => setTimeout(r, 5000));
+    return fetchWithDbRetry(input, init, attempt + 1, maxAttempts);
+  }
+  return res;
+}

@@ -40,36 +40,43 @@ async function handleLogin(request: NextRequest) {
     return laripayError('email and password are required');
   }
 
-  await ensureDatabaseReady();
-
-  const user = await withDbRetry(() =>
-    prisma.platformUser.findUnique({
-      where: { email },
-      include: { merchant: true },
-    }),
-  );
-
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
-    return laripayError('Invalid email or password', 401, 'authentication_error');
-  }
-
-  if (user.role === 'platform_admin') {
-    return laripayError('Use the platform admin sign-in page', 403);
-  }
-
-  if (!user.merchantId || !user.merchant) {
-    return laripayError('No merchant linked to this account', 403);
-  }
-
-  if (user.merchant.status === 'suspended') {
-    return laripayError('Merchant account is suspended', 403);
-  }
-
-  if (!is2faRequired()) {
-    return jsonWithMerchantSession(user);
+  try {
+    await ensureDatabaseReady();
+  } catch (err) {
+    if (isTransientDbError(err)) {
+      return laripayError(transientDbMessage(), 503, 'database_unavailable');
+    }
+    throw err;
   }
 
   try {
+    const user = await withDbRetry(() =>
+      prisma.platformUser.findUnique({
+        where: { email },
+        include: { merchant: true },
+      }),
+    );
+
+    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+      return laripayError('Invalid email or password', 401, 'authentication_error');
+    }
+
+    if (user.role === 'platform_admin') {
+      return laripayError('Use the platform admin sign-in page', 403);
+    }
+
+    if (!user.merchantId || !user.merchant) {
+      return laripayError('No merchant linked to this account', 403);
+    }
+
+    if (user.merchant.status === 'suspended') {
+      return laripayError('Merchant account is suspended', 403);
+    }
+
+    if (!is2faRequired()) {
+      return jsonWithMerchantSession(user);
+    }
+
     const challenge = await startLoginChallenge(user.id, 'login');
     return laripayJson({
       requires_2fa: true,
@@ -79,6 +86,9 @@ async function handleLogin(request: NextRequest) {
       message: 'Verification codes sent to your email and phone.',
     });
   } catch (err) {
+    if (isTransientDbError(err)) {
+      return laripayError(transientDbMessage(), 503, 'database_unavailable');
+    }
     const code = err instanceof Error ? err.message : '';
     if (code === 'PHONE_NOT_CONFIGURED') {
       return laripayError('Account phone not configured. Contact support.', 403);

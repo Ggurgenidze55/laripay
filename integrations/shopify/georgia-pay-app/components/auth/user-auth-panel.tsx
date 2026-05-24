@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useLocale } from '@/components/i18n/LocaleProvider';
-import { apiErrorMessage, parseApiJson } from '@/lib/api-client';
+import { apiErrorMessage, fetchWithDbRetry, parseApiJson } from '@/lib/api-client';
 import { RegisterVerifyPanel } from './register-verify-panel';
 import { TwoFactorPanel } from './two-factor-panel';
 
@@ -46,8 +46,8 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
     fetch('/api/health', { credentials: 'include' }).catch(() => {});
   }, []);
 
-  async function postRegister(attempt = 0): Promise<Response> {
-    const res = await fetch('/api/auth/register', {
+  async function postRegister(): Promise<Response> {
+    return fetchWithDbRetry('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -60,11 +60,6 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
         slug: form.slug || undefined,
       }),
     });
-    if (res.status >= 500 && attempt < 4) {
-      await new Promise((r) => setTimeout(r, 5000));
-      return postRegister(attempt + 1);
-    }
-    return res;
   }
 
   async function submitRegister(e: React.FormEvent) {
@@ -102,7 +97,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetchWithDbRetry('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -132,7 +127,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/2fa/complete', {
+      const res = await fetchWithDbRetry('/api/auth/2fa/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
