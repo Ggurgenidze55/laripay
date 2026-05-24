@@ -38,9 +38,14 @@ type HubData = {
 type Props = {
   initialPlatform?: IntegrationPlatformId;
   onOpenBankSettings?: () => void;
+  onRefresh?: () => void;
 };
 
-export function MerchantIntegrationsHub({ initialPlatform, onOpenBankSettings }: Props) {
+export function MerchantIntegrationsHub({
+  initialPlatform,
+  onOpenBankSettings,
+  onRefresh,
+}: Props) {
   const { t, route, locale } = useLocale();
   const h = t.dashboard.integrationsHub;
   const [data, setData] = useState<HubData | null>(null);
@@ -119,6 +124,26 @@ export function MerchantIntegrationsHub({ initialPlatform, onOpenBankSettings }:
     if (payload?.api_key) setNewApiKey(payload.api_key);
     setMessage(h.keyCreated);
     await load();
+    onRefresh?.();
+  }
+
+  async function revokeKey(keyId: string) {
+    if (!confirm(h.revokeConfirm)) return;
+    setBusy(true);
+    setMessage('');
+    const res = await fetch(`/api/laripay/merchant/api-keys/${keyId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const { data: err } = await parseApiJson<{ error?: { message?: string } }>(res);
+      setMessage(err?.error?.message || h.revokeFailed);
+      return;
+    }
+    setMessage(h.keyRevoked);
+    await load();
+    onRefresh?.();
   }
 
   async function addWebhook() {
@@ -342,6 +367,32 @@ export function MerchantIntegrationsHub({ initialPlatform, onOpenBankSettings }:
               <pre className="mt-3 overflow-x-auto rounded border border-amber-500/30 bg-amber-500/10 p-2 text-[10px] text-amber-100">
                 {h.keyOnce}: {newApiKey}
               </pre>
+            ) : null}
+            {data.api_keys.length > 0 ? (
+              <ul className="mt-3 space-y-1.5 border-t border-white/[0.06] pt-3">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-[#52525b]">
+                  {h.yourApiKeys}
+                </p>
+                {data.api_keys.map((k) => (
+                  <li
+                    key={k.id}
+                    className="flex flex-wrap items-center justify-between gap-2 text-[11px]"
+                  >
+                    <span className="font-mono text-[#a1a1aa]">
+                      {k.prefix}… · {k.mode}
+                      {k.name ? ` · ${k.name}` : ''}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => revokeKey(k.id)}
+                      className="text-[10px] text-red-300/90 hover:text-red-200 disabled:opacity-50"
+                    >
+                      {h.revokeKey}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             ) : null}
           </div>
 

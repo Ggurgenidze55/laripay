@@ -9,6 +9,7 @@ import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError } from '@/lib/laripay/api-response';
 import { getMerchantIntegrationInfo } from '@/lib/laripay/integration-platform';
 import { buildMerchantServices } from '@/lib/laripay/merchant-services';
+import { buildMerchantReadiness } from '@/lib/laripay/merchant-readiness';
 import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
 import { ensureDatabaseReady, withDbRetry } from '@/lib/laripay/with-db-retry';
 
@@ -74,6 +75,22 @@ async function buildDashboardResponse(merchantId: string) {
 
   const integration = await getMerchantIntegrationInfo(merchant.id);
   const services = await buildMerchantServices(merchant);
+  const webhookCount = await prisma.webhookEndpoint.count({
+    where: { merchantId: merchant.id, enabled: true },
+  });
+
+  const bankConfigured = {
+    tbc: Boolean(merchant.tbcClientId && merchant.tbcClientSecret),
+    bog: Boolean(merchant.bogPublicKey && merchant.bogSecretKey),
+  };
+
+  const readiness = buildMerchantReadiness({
+    integration_platform: merchant.integrationPlatform,
+    bank_configured: bankConfigured,
+    api_keys: apiKeys,
+    webhook_count: webhookCount,
+    payments_succeeded: succeeded.length,
+  });
 
   return NextResponse.json({
     merchant: {
@@ -85,10 +102,7 @@ async function buildDashboardResponse(merchantId: string) {
       subscription_active: isSubscriptionActive(merchant),
       subscription_plan: merchant.subscriptionPlan?.code || null,
       default_provider: merchant.defaultProvider,
-      bank_configured: {
-        tbc: Boolean(merchant.tbcClientId && merchant.tbcClientSecret),
-        bog: Boolean(merchant.bogPublicKey && merchant.bogSecretKey),
-      },
+      bank_configured: bankConfigured,
       integration: {
         platform: integration.platform,
         label: integration.label,
@@ -132,6 +146,7 @@ async function buildDashboardResponse(merchantId: string) {
       region: s.region,
       ...(s.integrationPlatform ? { integration_platform: s.integrationPlatform } : {}),
     })),
+    readiness,
     phase: 2,
   });
 }

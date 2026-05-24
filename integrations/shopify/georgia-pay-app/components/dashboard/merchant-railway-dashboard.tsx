@@ -12,6 +12,8 @@ import { MerchantBankSettings } from '@/components/dashboard/merchant-bank-setti
 import { MerchantWebhooksPanel } from '@/components/dashboard/merchant-webhooks-panel';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
+import type { MerchantReadiness } from '@/lib/laripay/merchant-readiness';
+import { MerchantOnboardingChecklist } from '@/components/dashboard/merchant-onboarding-checklist';
 import {
   countEnabledServices,
   type MerchantServiceId,
@@ -63,6 +65,7 @@ export type MerchantDashboardData = {
     region: string;
     integration_platform?: IntegrationPlatformId;
   }[];
+  readiness?: MerchantReadiness;
 };
 
 type Tab = 'overview' | 'transactions' | 'integrations' | 'settings' | 'webhooks' | 'billing';
@@ -124,6 +127,8 @@ export function MerchantRailwayDashboard({
   const d = t.dashboard;
   const r = d.railway;
   const [tab, setTab] = useState<Tab>('overview');
+
+  const goToTab = (target: Tab) => setTab(target);
   const [selectedService, setSelectedService] = useState(0);
   const [bars, setBars] = useState(() => volumeBars(data.recent_payments));
 
@@ -423,6 +428,12 @@ export function MerchantRailwayDashboard({
             <div className="min-h-0 overflow-y-auto p-4 sm:p-5">
               {tab === 'overview' && (
                 <>
+                  {data.readiness ? (
+                    <MerchantOnboardingChecklist
+                      readiness={data.readiness}
+                      onGoToTab={goToTab}
+                    />
+                  ) : null}
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="font-mono text-[10px] uppercase tracking-wider text-[#52525b]">{r.activeMerchant}</p>
@@ -552,6 +563,7 @@ export function MerchantRailwayDashboard({
                 <MerchantIntegrationsHub
                   initialPlatform={data.merchant.integration?.platform}
                   onOpenBankSettings={() => setTab('settings')}
+                  onRefresh={onRefresh}
                 />
               )}
 
