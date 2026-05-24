@@ -8,6 +8,7 @@ import {
   MerchantRailwayDashboard,
   type MerchantDashboardData,
 } from '@/components/dashboard/merchant-railway-dashboard';
+import { fetchWithDbRetry } from '@/lib/api-client';
 import { parseApiJson } from '@/lib/parse-api-json';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import { useSearchParams } from 'next/navigation';
@@ -26,13 +27,17 @@ export default function DashboardContent() {
   const loadDashboard = useCallback(async () => {
     setError('');
     setLoading(true);
-    const res = await fetch('/api/laripay/dashboard', { credentials: 'include' });
+    const res = await fetchWithDbRetry('/api/laripay/dashboard', { credentials: 'include' });
     const { data: payload } = await parseApiJson<MerchantDashboardData & { error?: { message?: string } }>(res);
     setLoading(false);
     if (!res.ok) {
       setData(null);
       setLoggedIn(false);
-      setError(payload?.error?.message || l.authRequired);
+      if (res.status === 401) {
+        setError('');
+      } else {
+        setError(payload?.error?.message || l.authRequired);
+      }
       return;
     }
     setData(payload as MerchantDashboardData);

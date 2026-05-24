@@ -7,7 +7,7 @@ import { verifyPassword } from '@/lib/laripay/user-auth';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { mapOtpDeliveryError } from '@/lib/laripay/otp-errors';
 import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
-import { ensureDatabaseReady, withDbRetry } from '@/lib/laripay/with-db-retry';
+import { withDbRetry } from '@/lib/laripay/with-db-retry';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -41,50 +41,46 @@ async function handleLogin(request: NextRequest) {
   }
 
   try {
-    await ensureDatabaseReady();
-  } catch (err) {
-    if (isTransientDbError(err)) {
-      return laripayError(transientDbMessage(), 503, 'database_unavailable');
-    }
-    throw err;
-  }
+    return await withDbRetry(
+      async () => {
+        await prisma.$queryRaw`SELECT 1`;
 
-  try {
-    const user = await withDbRetry(() =>
-      prisma.platformUser.findUnique({
-        where: { email },
-        include: { merchant: true },
-      }),
+        const user = await prisma.platformUser.findUnique({
+          where: { email },
+          include: { merchant: true },
+        });
+
+        if (!user || !(await verifyPassword(password, user.passwordHash))) {
+          return laripayError('Invalid email or password', 401, 'authentication_error');
+        }
+
+        if (user.role === 'platform_admin') {
+          return laripayError('Use the platform admin sign-in page', 403);
+        }
+
+        if (!user.merchantId || !user.merchant) {
+          return laripayError('No merchant linked to this account', 403);
+        }
+
+        if (user.merchant.status === 'suspended') {
+          return laripayError('Merchant account is suspended', 403);
+        }
+
+        if (!is2faRequired()) {
+          return jsonWithMerchantSession(user);
+        }
+
+        const challenge = await startLoginChallenge(user.id, 'login');
+        return laripayJson({
+          requires_2fa: true,
+          challenge_id: challenge.challengeId,
+          email: challenge.email,
+          phone_masked: challenge.phoneMasked,
+          message: 'Verification codes sent to your email and phone.',
+        });
+      },
+      { attempts: 12, delayMs: 2500 },
     );
-
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
-      return laripayError('Invalid email or password', 401, 'authentication_error');
-    }
-
-    if (user.role === 'platform_admin') {
-      return laripayError('Use the platform admin sign-in page', 403);
-    }
-
-    if (!user.merchantId || !user.merchant) {
-      return laripayError('No merchant linked to this account', 403);
-    }
-
-    if (user.merchant.status === 'suspended') {
-      return laripayError('Merchant account is suspended', 403);
-    }
-
-    if (!is2faRequired()) {
-      return jsonWithMerchantSession(user);
-    }
-
-    const challenge = await startLoginChallenge(user.id, 'login');
-    return laripayJson({
-      requires_2fa: true,
-      challenge_id: challenge.challengeId,
-      email: challenge.email,
-      phone_masked: challenge.phoneMasked,
-      message: 'Verification codes sent to your email and phone.',
-    });
   } catch (err) {
     if (isTransientDbError(err)) {
       return laripayError(transientDbMessage(), 503, 'database_unavailable');

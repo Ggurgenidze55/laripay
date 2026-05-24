@@ -13,13 +13,13 @@ import { ensureDatabaseReady, withDbRetry } from '@/lib/laripay/with-db-retry';
 
 export async function GET(request: NextRequest) {
   try {
-    await ensureDatabaseReady();
-    await withDbRetry(() => ensureLariPaySeed());
-
     const auth = await authenticatePortalRequest(request);
     if ('error' in auth) {
       return laripayError(auth.error, auth.status, 'authentication_error');
     }
+
+    await ensureDatabaseReady();
+    await withDbRetry(() => ensureLariPaySeed());
 
     return buildDashboardResponse(auth.merchantId);
   } catch (err) {

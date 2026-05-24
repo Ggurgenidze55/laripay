@@ -54,11 +54,14 @@ export async function fetchWithDbRetry(
   input: RequestInfo | URL,
   init?: RequestInit,
   attempt = 0,
-  maxAttempts = 6,
+  maxAttempts = 8,
 ): Promise<Response> {
   const res = await fetch(input, init);
-  if ((res.status === 503 || res.status >= 500) && attempt < maxAttempts) {
-    await new Promise((r) => setTimeout(r, 5000));
+  const retryable =
+    res.status === 503 ||
+    (res.status >= 500 && res.status !== 501);
+  if (retryable && attempt < maxAttempts) {
+    await new Promise((r) => setTimeout(r, 4000));
     return fetchWithDbRetry(input, init, attempt + 1, maxAttempts);
   }
   return res;
