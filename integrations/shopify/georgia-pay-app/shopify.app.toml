@@ -2,7 +2,7 @@
 
 name = "georgia-pay"
 client_id = "YOUR_CLIENT_ID"
-application_url = "https://laurel-oversold-unlovely.ngrok-free.dev"
+application_url = "https://laripay.vercel.app"
 embedded = false
 
 [access_scopes]
@@ -10,7 +10,7 @@ scopes = "write_payment_sessions,read_payment_sessions,write_payment_gateways,re
 
 [auth]
 redirect_urls = [
-  "https://laurel-oversold-unlovely.ngrok-free.dev/api/auth/callback",
+  "https://laripay.vercel.app/api/auth/callback",
 ]
 
 [webhooks]
