@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useLocale } from '@/components/i18n/LocaleProvider';
-import { apiErrorMessage, fetchWithDbRetry, parseApiJson } from '@/lib/api-client';
+import { apiErrorMessage, fetchWithDbRetry, formatFetchError, parseApiJson, warmDatabase } from '@/lib/api-client';
 import { RegisterVerifyPanel } from './register-verify-panel';
 import { TwoFactorPanel } from './two-factor-panel';
 
@@ -68,6 +68,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
     setError('');
     setApiKey(null);
     try {
+      await warmDatabase();
       const res = await postRegister();
       const data = (await parseApiJson(res)) as Record<string, unknown>;
       if (!res.ok) {
@@ -86,7 +87,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
       setPendingId(String(data.pending_id || ''));
       setRegisterStep('verify_email');
     } catch (err) {
-      setError(err instanceof Error ? err.message : a.registerFailed);
+      setError(formatFetchError(err, a.registerFailed));
     } finally {
       setLoading(false);
     }
@@ -97,6 +98,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
     setLoading(true);
     setError('');
     try {
+      await warmDatabase();
       const res = await fetchWithDbRetry('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -117,7 +119,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
       setPhoneMasked(String(data.phone_masked || ''));
       setLoginStep('2fa');
     } catch (err) {
-      setError(err instanceof Error ? err.message : a.loginFailed);
+      setError(formatFetchError(err, a.loginFailed));
     } finally {
       setLoading(false);
     }
@@ -151,7 +153,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
       setPhoneMasked(String(data.phone_masked || ''));
       setLoginStep('2fa');
     } catch (err) {
-      setError(err instanceof Error ? err.message : a.loginFailed);
+      setError(formatFetchError(err, a.loginFailed));
     } finally {
       setLoading(false);
     }

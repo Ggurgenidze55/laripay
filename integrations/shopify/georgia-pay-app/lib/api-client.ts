@@ -49,20 +49,68 @@ export function apiErrorMessage(data: unknown, fallback: string): string {
   return fallback;
 }
 
+export function formatFetchError(err: unknown, fallback: string): string {
+  if (err instanceof ApiResponseError) return err.message;
+  if (err instanceof TypeError && /fetch|network|load failed/i.test(err.message)) {
+    return 'Connection lost while contacting the server. Wait 10–15 seconds and try again.';
+  }
+  if (err instanceof DOMException && err.name === 'AbortError') {
+    return 'Request timed out. The database may still be waking up — try again in a few seconds.';
+  }
+  return err instanceof Error ? err.message : fallback;
+}
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function isDatabaseUnavailable503(res: Response): Promise<boolean> {
+  if (res.status !== 503) return false;
+  try {
+    const data = (await res.clone().json()) as { error?: { code?: string } };
+    return data?.error?.code === 'database_unavailable';
+  } catch {
+    return true;
+  }
+}
+
 /** Retry auth/API calls while Postgres wakes (Railway free tier). */
 export async function fetchWithDbRetry(
   input: RequestInfo | URL,
   init?: RequestInit,
   attempt = 0,
-  maxAttempts = 8,
+  maxAttempts = 4,
 ): Promise<Response> {
-  const res = await fetch(input, init);
-  const retryable =
-    res.status === 503 ||
-    (res.status >= 500 && res.status !== 501);
-  if (retryable && attempt < maxAttempts) {
-    await new Promise((r) => setTimeout(r, 4000));
-    return fetchWithDbRetry(input, init, attempt + 1, maxAttempts);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 55000);
+
+  try {
+    const res = await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+
+    if (res.status === 503 && attempt < maxAttempts && (await isDatabaseUnavailable503(res))) {
+      await sleep(3000);
+      return fetchWithDbRetry(input, init, attempt + 1, maxAttempts);
+    }
+    return res;
+  } catch (err) {
+    if (attempt < maxAttempts) {
+      await sleep(3000);
+      return fetchWithDbRetry(input, init, attempt + 1, maxAttempts);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
   }
-  return res;
+}
+
+/** Ping health before auth to wake Postgres on cold start. */
+export async function warmDatabase(): Promise<void> {
+  try {
+    await fetch('/api/health', { credentials: 'include', cache: 'no-store' });
+  } catch {
+    /* ignore — login will retry */
+  }
 }

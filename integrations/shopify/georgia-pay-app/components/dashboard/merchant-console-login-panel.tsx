@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/i18n/LocaleProvider';
-import { apiErrorMessage, fetchWithDbRetry, parseApiJson } from '@/lib/api-client';
+import { apiErrorMessage, fetchWithDbRetry, formatFetchError, parseApiJson, warmDatabase } from '@/lib/api-client';
 
 type Props = {
   onLoggedIn: () => void;
@@ -35,6 +35,7 @@ export function MerchantConsoleLoginPanel({ onLoggedIn }: Props) {
     setLoading(true);
     setError('');
     try {
+      await warmDatabase();
       const res = await fetchWithDbRetry('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,7 +59,7 @@ export function MerchantConsoleLoginPanel({ onLoggedIn }: Props) {
       setPhoneMasked(String(data.phone_masked || ''));
       setStep('2fa');
     } catch (err) {
-      setError(err instanceof Error ? err.message : l.loginFailed);
+      setError(formatFetchError(err, l.loginFailed));
     } finally {
       setLoading(false);
     }
@@ -85,7 +86,7 @@ export function MerchantConsoleLoginPanel({ onLoggedIn }: Props) {
       }
       onLoggedIn();
     } catch (err) {
-      setError(err instanceof Error ? err.message : l.loginFailed);
+      setError(formatFetchError(err, l.loginFailed));
     } finally {
       setLoading(false);
     }

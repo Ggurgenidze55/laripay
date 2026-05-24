@@ -79,7 +79,7 @@ async function handleLogin(request: NextRequest) {
           message: 'Verification codes sent to your email and phone.',
         });
       },
-      { attempts: 12, delayMs: 2500 },
+      { attempts: 6, delayMs: 2000 },
     );
   } catch (err) {
     if (isTransientDbError(err)) {
