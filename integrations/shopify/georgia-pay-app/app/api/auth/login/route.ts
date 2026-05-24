@@ -6,10 +6,26 @@ import { is2faRequired } from '@/lib/laripay/two-factor-config';
 import { verifyPassword } from '@/lib/laripay/user-auth';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { mapOtpDeliveryError } from '@/lib/laripay/otp-errors';
+import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
+import { ensureDatabaseReady, withDbRetry } from '@/lib/laripay/with-db-retry';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
+  try {
+    return await handleLogin(request);
+  } catch (err) {
+    console.error('[auth/login]', err);
+    if (isTransientDbError(err)) {
+      return laripayError(transientDbMessage(), 503, 'database_unavailable');
+    }
+    return laripayError(err instanceof Error ? err.message : 'Login failed', 500);
+  }
+}
+
+async function handleLogin(request: NextRequest) {
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -24,10 +40,14 @@ export async function POST(request: NextRequest) {
     return laripayError('email and password are required');
   }
 
-  const user = await prisma.platformUser.findUnique({
-    where: { email },
-    include: { merchant: true },
-  });
+  await ensureDatabaseReady();
+
+  const user = await withDbRetry(() =>
+    prisma.platformUser.findUnique({
+      where: { email },
+      include: { merchant: true },
+    }),
+  );
 
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return laripayError('Invalid email or password', 401, 'authentication_error');

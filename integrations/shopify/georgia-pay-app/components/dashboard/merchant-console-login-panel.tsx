@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { apiErrorMessage, parseApiJson } from '@/lib/api-client';
 
 type Props = {
   onLoggedIn: () => void;
@@ -36,9 +37,9 @@ export function MerchantConsoleLoginPanel({ onLoggedIn }: Props) {
         credentials: 'include',
         body: JSON.stringify({ email: email.trim(), password }),
       });
-      const data = await res.json();
+      const data = (await parseApiJson(res)) as Record<string, unknown>;
       if (!res.ok) {
-        setError(data?.error?.message || l.loginFailed);
+        setError(apiErrorMessage(data, l.loginFailed));
         return;
       }
       if (!data.requires_2fa && !data.challenge_id) {
@@ -49,11 +50,11 @@ export function MerchantConsoleLoginPanel({ onLoggedIn }: Props) {
         setError(l.loginFailed);
         return;
       }
-      setChallengeId(data.challenge_id);
-      setPhoneMasked(data.phone_masked || '');
+      setChallengeId(String(data.challenge_id || ''));
+      setPhoneMasked(String(data.phone_masked || ''));
       setStep('2fa');
     } catch (err) {
-      setError(String(err));
+      setError(err instanceof Error ? err.message : l.loginFailed);
     } finally {
       setLoading(false);
     }
@@ -73,14 +74,14 @@ export function MerchantConsoleLoginPanel({ onLoggedIn }: Props) {
           phone_code: phoneCode,
         }),
       });
-      const data = await res.json();
+      const data = (await parseApiJson(res)) as Record<string, unknown>;
       if (!res.ok) {
-        setError(data?.error?.message || l.loginFailed);
+        setError(apiErrorMessage(data, l.loginFailed));
         return;
       }
       onLoggedIn();
     } catch (err) {
-      setError(String(err));
+      setError(err instanceof Error ? err.message : l.loginFailed);
     } finally {
       setLoading(false);
     }

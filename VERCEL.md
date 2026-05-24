@@ -28,6 +28,11 @@
 
 ```env
 DATABASE_URL=postgresql://USER:PASS@HOST:5432/laripay?sslmode=require
+```
+
+**Railway Postgres on Vercel:** Vercel cannot use `postgres.railway.internal`. In Railway → Postgres → **Variables**, copy **`DATABASE_PUBLIC_URL`** (host like `*.proxy.rlwy.net`) and paste it as Vercel `DATABASE_URL`. Optionally also set `DATABASE_PUBLIC_URL` — the app uses it automatically when `DATABASE_URL` is internal.
+
+```env
 HOST=https://your-app.vercel.app
 NEXT_PUBLIC_HOST=https://your-app.vercel.app
 LARIPAY_RETURN_URL=https://your-app.vercel.app/payment/return

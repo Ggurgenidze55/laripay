@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 import prisma from '@/lib/prisma';
 import { ensureLariPaySeed } from '@/lib/laripay/seed';
 import { isSubscriptionActive } from '@/lib/laripay/billing';
 import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError } from '@/lib/laripay/api-response';
 import { getMerchantIntegrationInfo } from '@/lib/laripay/integration-platform';
+import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
+import { ensureDatabaseReady, withDbRetry } from '@/lib/laripay/with-db-retry';
 
 export async function GET(request: NextRequest) {
   try {
-    await ensureLariPaySeed();
+    await ensureDatabaseReady();
+    await withDbRetry(() => ensureLariPaySeed());
 
     const auth = await authenticatePortalRequest(request);
     if ('error' in auth) {
@@ -20,6 +24,9 @@ export async function GET(request: NextRequest) {
     return buildDashboardResponse(auth.merchantId);
   } catch (err) {
     console.error('[laripay/dashboard]', err);
+    if (isTransientDbError(err)) {
+      return laripayError(transientDbMessage(), 503, 'database_unavailable');
+    }
     const message =
       err instanceof Error ? err.message : 'Dashboard unavailable';
     return laripayError(message, 500, 'internal_error');
