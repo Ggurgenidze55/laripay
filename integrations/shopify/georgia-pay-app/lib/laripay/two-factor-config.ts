@@ -1,8 +1,6 @@
 import { platformEnv } from '@/lib/laripay-env';
-import { isEmailDeliveryConfigured } from './otp-delivery';
 
-/** 2FA only when LARIPAY_REQUIRE_2FA=1 and email OTP is configured. Default off. */
+/** 2FA only when explicitly enabled with LARIPAY_REQUIRE_2FA=1. */
 export function is2faRequired(): boolean {
-  if (platformEnv('REQUIRE_2FA') !== '1') return false;
-  return isEmailDeliveryConfigured();
+  return platformEnv('REQUIRE_2FA') === '1';
 }
