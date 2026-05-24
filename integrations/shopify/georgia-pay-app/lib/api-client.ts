@@ -24,15 +24,15 @@ export async function parseApiJson(res: Response): Promise<unknown> {
   if (res.status === 500 || res.status === 503) {
     throw new ApiResponseError(
       res.status === 503
-        ? 'Database is waking up or not configured. Wait 15–20 seconds and try again.'
-        : 'Server error. If this is Vercel, set DATABASE_URL to Railway DATABASE_PUBLIC_URL and redeploy.',
+        ? 'Database is unavailable. Check server configuration or try again shortly.'
+        : 'Server error. Refresh the page and try again.',
       res.status,
     );
   }
 
   if (res.status >= 502) {
     throw new ApiResponseError(
-      'Server is waking up or temporarily unavailable. Wait 10–20 seconds and try again.',
+      'Server is temporarily unavailable. Try again in a few seconds.',
       res.status,
     );
   }
@@ -61,10 +61,10 @@ export function asString(value: unknown): string {
 export function formatFetchError(err: unknown, fallback: string): string {
   if (err instanceof ApiResponseError) return err.message;
   if (err instanceof TypeError && /fetch|network|load failed/i.test(err.message)) {
-    return 'Connection lost while contacting the server. Wait 10–15 seconds and try again.';
+    return 'Connection lost while contacting the server. Try again.';
   }
   if (err instanceof DOMException && err.name === 'AbortError') {
-    return 'Request timed out. The database may still be waking up — try again in a few seconds.';
+    return 'Request timed out. Try again.';
   }
   return err instanceof Error ? err.message : fallback;
 }
@@ -77,21 +77,24 @@ async function isDatabaseUnavailable503(res: Response): Promise<boolean> {
   if (res.status !== 503) return false;
   try {
     const data = (await res.clone().json()) as { error?: { code?: string } };
-    return data?.error?.code === 'database_unavailable';
+    return (
+      data?.error?.code === 'database_unavailable' ||
+      data?.error?.code === 'database_misconfigured'
+    );
   } catch {
     return true;
   }
 }
 
-/** Retry auth/API calls while Postgres wakes (Railway free tier). */
+/** Single auth request with at most one quick retry on cold Postgres. */
 export async function fetchWithDbRetry(
   input: RequestInfo | URL,
   init?: RequestInit,
   attempt = 0,
-  maxAttempts = 4,
+  maxAttempts = 2,
 ): Promise<Response> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 55000);
+  const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
     const res = await fetch(input, {
@@ -99,27 +102,26 @@ export async function fetchWithDbRetry(
       signal: controller.signal,
     });
 
-    if (res.status === 503 && attempt < maxAttempts && (await isDatabaseUnavailable503(res))) {
-      await sleep(3000);
+    if (
+      res.status === 503 &&
+      attempt < maxAttempts &&
+      (await isDatabaseUnavailable503(res))
+    ) {
+      const data = (await res.clone().json()) as { error?: { code?: string } };
+      if (data?.error?.code === 'database_misconfigured') {
+        return res;
+      }
+      await sleep(1500);
       return fetchWithDbRetry(input, init, attempt + 1, maxAttempts);
     }
     return res;
   } catch (err) {
     if (attempt < maxAttempts) {
-      await sleep(3000);
+      await sleep(1500);
       return fetchWithDbRetry(input, init, attempt + 1, maxAttempts);
     }
     throw err;
   } finally {
     clearTimeout(timeout);
-  }
-}
-
-/** Ping health before auth to wake Postgres on cold start. */
-export async function warmDatabase(): Promise<void> {
-  try {
-    await fetch('/api/health', { credentials: 'include', cache: 'no-store' });
-  } catch {
-    /* ignore — login will retry */
   }
 }

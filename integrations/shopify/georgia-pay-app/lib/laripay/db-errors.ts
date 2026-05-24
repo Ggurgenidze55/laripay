@@ -29,5 +29,18 @@ export function isTransientDbError(err: unknown): boolean {
 }
 
 export function transientDbMessage(): string {
-  return 'Database is waking up. Wait 15–20 seconds and try again.';
+  return 'Database is waking up. Wait a few seconds and try again.';
+}
+
+export function databaseMisconfiguredUserMessage(hint?: string): string {
+  if (hint?.includes('DATABASE_URL is not set')) {
+    return 'Database is not connected on this server. Set DATABASE_URL (Railway DATABASE_PUBLIC_URL) and redeploy.';
+  }
+  if (hint?.includes('Local Postgres') || hint?.includes('localhost')) {
+    return 'Local database is not running. Start Postgres or set Railway DATABASE_PUBLIC_URL in .env.';
+  }
+  if (hint?.includes('DATABASE_PUBLIC_URL')) {
+    return 'Database URL is misconfigured. Use Railway DATABASE_PUBLIC_URL on Vercel.';
+  }
+  return hint || 'Database is unavailable. Try again in a few seconds.';
 }

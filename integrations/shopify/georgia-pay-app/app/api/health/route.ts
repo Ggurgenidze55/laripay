@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { databaseConfigHint } from '@/lib/laripay/database-url';
+import { databaseMisconfiguredUserMessage } from '@/lib/laripay/db-errors';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -18,6 +19,7 @@ export async function GET() {
         phase: 3,
         database: 'misconfigured',
         hint: configHint,
+        message: databaseMisconfiguredUserMessage(configHint),
         version: process.env.npm_package_version || '1.0.0',
         environment: process.env.NODE_ENV || 'development',
         latency_ms: Date.now() - started,

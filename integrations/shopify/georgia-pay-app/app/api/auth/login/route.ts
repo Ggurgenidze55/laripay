@@ -6,7 +6,12 @@ import { is2faRequired } from '@/lib/laripay/two-factor-config';
 import { verifyPassword } from '@/lib/laripay/user-auth';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { mapOtpDeliveryError } from '@/lib/laripay/otp-errors';
-import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
+import {
+  databaseMisconfiguredUserMessage,
+  isTransientDbError,
+  transientDbMessage,
+} from '@/lib/laripay/db-errors';
+import { databaseMisconfiguredMessage } from '@/lib/laripay/db-config';
 import { withDbRetry } from '@/lib/laripay/with-db-retry';
 
 export const dynamic = 'force-dynamic';
@@ -40,11 +45,14 @@ async function handleLogin(request: NextRequest) {
     return laripayError('email and password are required');
   }
 
+  const misconfigured = databaseMisconfiguredMessage();
+  if (misconfigured) {
+    return laripayError(databaseMisconfiguredUserMessage(misconfigured), 503, 'database_misconfigured');
+  }
+
   try {
     return await withDbRetry(
       async () => {
-        await prisma.$queryRaw`SELECT 1`;
-
         const user = await prisma.platformUser.findUnique({
           where: { email },
           include: { merchant: true },
@@ -79,7 +87,7 @@ async function handleLogin(request: NextRequest) {
           message: 'Verification codes sent to your email and phone.',
         });
       },
-      { attempts: 6, delayMs: 2000 },
+      { attempts: 3, delayMs: 1000 },
     );
   } catch (err) {
     if (isTransientDbError(err)) {

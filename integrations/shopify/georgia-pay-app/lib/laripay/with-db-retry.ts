@@ -3,7 +3,7 @@ import { isTransientDbError } from './db-errors';
 
 export async function withDbRetry<T>(
   fn: () => Promise<T>,
-  { attempts = 8, delayMs = 3000 } = {},
+  { attempts = 3, delayMs = 1000 } = {},
 ): Promise<T> {
   let lastError: unknown;
   for (let i = 0; i < attempts; i++) {
@@ -20,7 +20,7 @@ export async function withDbRetry<T>(
 
 /** Wait until Postgres accepts connections (Railway free tier cold start). */
 export async function ensureDatabaseReady(
-  { attempts = 10, delayMs = 3000 } = {},
+  { attempts = 4, delayMs = 1500 } = {},
 ): Promise<void> {
   await withDbRetry(async () => {
     await prisma.$queryRaw`SELECT 1`;
