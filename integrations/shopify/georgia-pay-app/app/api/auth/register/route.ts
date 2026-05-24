@@ -9,8 +9,18 @@ import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { mapOtpDeliveryError } from '@/lib/laripay/otp-errors';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+  try {
+    return await handleRegister(request);
+  } catch (err) {
+    console.error('[auth/register]', err);
+    return laripayError(err instanceof Error ? err.message : 'Registration failed', 500);
+  }
+}
+
+async function handleRegister(request: NextRequest) {
   if (platformEnv('ALLOW_SIGNUP') !== '1') {
     return laripayError('Registration is disabled on this server', 403);
   }

@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { apiErrorMessage, parseApiJson } from '@/lib/api-client';
 import { RegisterVerifyPanel } from './register-verify-panel';
 import { TwoFactorPanel } from './two-factor-panel';
 
@@ -60,13 +61,13 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
           slug: form.slug || undefined,
         }),
       });
-      const data = await res.json();
+      const data = (await parseApiJson(res)) as Record<string, unknown>;
       if (!res.ok) {
-        setError(data?.error?.message || a.registerFailed);
+        setError(apiErrorMessage(data, a.registerFailed));
         return;
       }
       if (data.api_key) {
-        setApiKey(data.api_key);
+        setApiKey(String(data.api_key));
         try {
           sessionStorage.setItem('laripay_api_key', data.api_key);
         } catch {
@@ -74,10 +75,10 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
         }
         return;
       }
-      setPendingId(data.pending_id);
+      setPendingId(String(data.pending_id || ''));
       setRegisterStep('verify_email');
     } catch (err) {
-      setError(String(err));
+      setError(err instanceof Error ? err.message : a.registerFailed);
     } finally {
       setLoading(false);
     }
@@ -94,9 +95,9 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
         credentials: 'include',
         body: JSON.stringify({ email: form.email, password: form.password }),
       });
-      const data = await res.json();
+      const data = (await parseApiJson(res)) as Record<string, unknown>;
       if (!res.ok) {
-        setError(data?.error?.message || a.loginFailed);
+        setError(apiErrorMessage(data, a.loginFailed));
         return;
       }
       if (!data.requires_2fa && !data.challenge_id) {
@@ -104,11 +105,11 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
         router.refresh();
         return;
       }
-      setChallengeId(data.challenge_id);
-      setPhoneMasked(data.phone_masked || '');
+      setChallengeId(String(data.challenge_id || ''));
+      setPhoneMasked(String(data.phone_masked || ''));
       setLoginStep('2fa');
     } catch (err) {
-      setError(String(err));
+      setError(err instanceof Error ? err.message : a.loginFailed);
     } finally {
       setLoading(false);
     }
@@ -128,9 +129,9 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
           phone_code: phoneCode,
         }),
       });
-      const data = await res.json();
+      const data = (await parseApiJson(res)) as Record<string, unknown>;
       if (!res.ok) {
-        setError(data?.error?.message || a.loginFailed);
+        setError(apiErrorMessage(data, a.loginFailed));
         return;
       }
       if (!data.requires_2fa && !data.challenge_id) {
@@ -138,11 +139,11 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
         router.refresh();
         return;
       }
-      setChallengeId(data.challenge_id);
-      setPhoneMasked(data.phone_masked || '');
+      setChallengeId(String(data.challenge_id || ''));
+      setPhoneMasked(String(data.phone_masked || ''));
       setLoginStep('2fa');
     } catch (err) {
-      setError(String(err));
+      setError(err instanceof Error ? err.message : a.loginFailed);
     } finally {
       setLoading(false);
     }

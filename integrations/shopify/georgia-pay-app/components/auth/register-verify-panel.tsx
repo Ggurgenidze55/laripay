@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { apiErrorMessage, parseApiJson } from '@/lib/api-client';
 
 type Step = 'verify_email' | 'verify_phone';
 
@@ -42,19 +43,19 @@ export function RegisterVerifyPanel({
         credentials: 'include',
         body: JSON.stringify({ pending_id: pendingId, channel, code }),
       });
-      const data = await res.json();
+      const data = (await parseApiJson(res)) as Record<string, unknown>;
       if (!res.ok) {
-        setError(data?.error?.message || f.invalidCode);
+        setError(apiErrorMessage(data, f.invalidCode));
         return;
       }
       if (data.api_key) {
-        onVerified({ api_key: data.api_key });
+        onVerified({ api_key: String(data.api_key) });
         return;
       }
-      onVerified({ next_step: data.next_step });
+      onVerified({ next_step: String(data.next_step || '') });
       setCode('');
     } catch (e) {
-      setError(String(e));
+      setError(e instanceof Error ? e.message : f.invalidCode);
     } finally {
       setLoading(false);
     }
