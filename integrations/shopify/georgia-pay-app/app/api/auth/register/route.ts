@@ -8,9 +8,11 @@ import { is2faRequired } from '@/lib/laripay/two-factor-config';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { mapOtpDeliveryError } from '@/lib/laripay/otp-errors';
 import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
+import { ensureDatabaseReady, withDbRetry } from '@/lib/laripay/with-db-retry';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,15 +55,26 @@ async function handleRegister(request: NextRequest) {
   }
 
   try {
+    await ensureDatabaseReady();
+  } catch (err) {
+    if (isTransientDbError(err)) {
+      return laripayError(transientDbMessage(), 503, 'database_unavailable');
+    }
+    throw err;
+  }
+
+  try {
     if (!require2fa) {
-      const { user, merchant, secretKey } = await registerUserWithMerchant({
+      const { user, merchant, secretKey } = await withDbRetry(() =>
+        registerUserWithMerchant({
         email,
         password,
         name: name || businessName,
         businessName,
         slug,
         phone: phone || undefined,
-      });
+        }),
+      );
       return jsonWithMerchantSession(
         { ...user, merchant },
         {
@@ -72,14 +85,16 @@ async function handleRegister(request: NextRequest) {
       );
     }
 
-    const { pendingId } = await startRegistrationPending({
-      email,
-      password,
-      name: name || businessName,
-      businessName,
-      phone: phone!,
-      slug,
-    });
+    const { pendingId } = await withDbRetry(() =>
+      startRegistrationPending({
+        email,
+        password,
+        name: name || businessName,
+        businessName,
+        phone: phone!,
+        slug,
+      }),
+    );
 
     return laripayJson(
       {

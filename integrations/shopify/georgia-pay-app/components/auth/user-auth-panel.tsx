@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -42,6 +42,10 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
     slug: '',
   });
 
+  useEffect(() => {
+    fetch('/api/health', { credentials: 'include' }).catch(() => {});
+  }, []);
+
   async function postRegister(attempt = 0): Promise<Response> {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
@@ -56,8 +60,8 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
         slug: form.slug || undefined,
       }),
     });
-    if (res.status >= 500 && attempt < 2) {
-      await new Promise((r) => setTimeout(r, 4000));
+    if (res.status >= 500 && attempt < 4) {
+      await new Promise((r) => setTimeout(r, 5000));
       return postRegister(attempt + 1);
     }
     return res;
