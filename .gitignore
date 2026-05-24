@@ -11,3 +11,4 @@ services/laripay-core/dist/
 integrations/shopify/georgia-pay-app/prisma/dev.db
 integrations/shopify/georgia-pay-app/prisma/dev.db-journal
 deploy/.env.production
+.vercel

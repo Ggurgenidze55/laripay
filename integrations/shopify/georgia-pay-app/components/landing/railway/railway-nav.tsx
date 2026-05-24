@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useLocale } from '@/components/i18n/LocaleProvider';
+import { useMerchantSession } from '@/hooks/use-merchant-session';
 import { getSiteNav } from '@/lib/site-links';
 import { localePath } from '@/lib/i18n/routing';
 import { LanguageToggle } from '@/components/i18n/LanguageToggle';
@@ -10,10 +11,15 @@ import { cn } from '@/lib/utils';
 
 export function RailwayNav() {
   const { locale, t, route } = useLocale();
+  const { isLoggedIn, status } = useMerchantSession();
   const nav = useMemo(() => getSiteNav(locale), [locale]);
   const homeHref = localePath(locale);
   const h = t.landing.hero;
   const [open, setOpen] = useState(false);
+
+  const showGuestActions = !isLoggedIn && status !== 'loading';
+  const dashboardHref = route('dashboard');
+  const adminHref = route('admin');
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">
@@ -46,25 +52,45 @@ export function RailwayNav() {
 
           <div className="flex items-center gap-2">
             <LanguageToggle className="hidden sm:inline-flex [&_button]:border-white/10 [&_button]:bg-white/5 [&_button]:text-[#a1a1aa] [&_button]:hover:text-white" />
-            <Link
-              href={route('login')}
-              className="hidden rounded-lg px-3 py-1.5 text-[13px] text-[#a1a1aa] transition-colors hover:text-white sm:inline-block"
-            >
-              {locale === 'ka' ? 'შესვლა' : 'Sign in'}
-            </Link>
-            <Link
-              href={route('onboard')}
-              className="hidden rounded-lg bg-white px-4 py-1.5 text-[13px] font-semibold text-[#0b0a10] transition-all hover:shadow-[0_0_24px_-4px_rgba(255,255,255,0.35)] sm:inline-flex"
-            >
-              {h.startBuilding}
-            </Link>
+            {status === 'merchant' ? (
+              <Link
+                href={dashboardHref}
+                className="hidden rounded-lg bg-white px-4 py-1.5 text-[13px] font-semibold text-[#0b0a10] transition-all hover:shadow-[0_0_24px_-4px_rgba(255,255,255,0.35)] sm:inline-flex"
+              >
+                {t.nav.dashboard}
+              </Link>
+            ) : null}
+            {status === 'admin' ? (
+              <Link
+                href={adminHref}
+                className="hidden rounded-lg bg-white px-4 py-1.5 text-[13px] font-semibold text-[#0b0a10] transition-all hover:shadow-[0_0_24px_-4px_rgba(255,255,255,0.35)] sm:inline-flex"
+              >
+                {t.nav.console}
+              </Link>
+            ) : null}
+            {showGuestActions ? (
+              <>
+                <Link
+                  href={route('login')}
+                  className="hidden rounded-lg px-3 py-1.5 text-[13px] text-[#a1a1aa] transition-colors hover:text-white sm:inline-block"
+                >
+                  {locale === 'ka' ? 'შესვლა' : 'Sign in'}
+                </Link>
+                <Link
+                  href={route('onboard')}
+                  className="hidden rounded-lg bg-white px-4 py-1.5 text-[13px] font-semibold text-[#0b0a10] transition-all hover:shadow-[0_0_24px_-4px_rgba(255,255,255,0.35)] sm:inline-flex"
+                >
+                  {h.startBuilding}
+                </Link>
+              </>
+            ) : null}
             <button
               type="button"
               aria-expanded={open}
               className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-[#a1a1aa] md:hidden"
               onClick={() => setOpen((v) => !v)}
             >
-              Menu
+              {t.nav.menu}
             </button>
           </div>
         </div>
@@ -80,13 +106,42 @@ export function RailwayNav() {
                 {item.label}
               </Link>
             ))}
-            <Link
-              href={route('onboard')}
-              className="mt-2 block rounded-lg bg-white py-2 text-center text-sm font-semibold text-[#0b0a10]"
-              onClick={() => setOpen(false)}
-            >
-              {h.startBuilding}
-            </Link>
+            {status === 'merchant' ? (
+              <Link
+                href={dashboardHref}
+                className="mt-2 block rounded-lg bg-white py-2 text-center text-sm font-semibold text-[#0b0a10]"
+                onClick={() => setOpen(false)}
+              >
+                {t.nav.dashboard}
+              </Link>
+            ) : null}
+            {status === 'admin' ? (
+              <Link
+                href={adminHref}
+                className="mt-2 block rounded-lg bg-white py-2 text-center text-sm font-semibold text-[#0b0a10]"
+                onClick={() => setOpen(false)}
+              >
+                {t.nav.console}
+              </Link>
+            ) : null}
+            {showGuestActions ? (
+              <>
+                <Link
+                  href={route('login')}
+                  className="mt-2 block rounded-lg px-3 py-2 text-center text-sm text-[#a1a1aa] hover:bg-white/[0.04] hover:text-white"
+                  onClick={() => setOpen(false)}
+                >
+                  {locale === 'ka' ? 'შესვლა' : 'Sign in'}
+                </Link>
+                <Link
+                  href={route('onboard')}
+                  className="mt-2 block rounded-lg bg-white py-2 text-center text-sm font-semibold text-[#0b0a10]"
+                  onClick={() => setOpen(false)}
+                >
+                  {h.startBuilding}
+                </Link>
+              </>
+            ) : null}
           </nav>
         ) : null}
       </header>

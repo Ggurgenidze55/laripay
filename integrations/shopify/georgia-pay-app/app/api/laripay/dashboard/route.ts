@@ -8,6 +8,7 @@ import { isSubscriptionActive } from '@/lib/laripay/billing';
 import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError } from '@/lib/laripay/api-response';
 import { getMerchantIntegrationInfo } from '@/lib/laripay/integration-platform';
+import { buildMerchantServices } from '@/lib/laripay/merchant-services';
 import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
 import { ensureDatabaseReady, withDbRetry } from '@/lib/laripay/with-db-retry';
 
@@ -72,6 +73,7 @@ async function buildDashboardResponse(merchantId: string) {
   });
 
   const integration = await getMerchantIntegrationInfo(merchant.id);
+  const services = await buildMerchantServices(merchant);
 
   return NextResponse.json({
     merchant: {
@@ -124,6 +126,12 @@ async function buildDashboardResponse(merchantId: string) {
       last_used_at: k.lastUsedAt,
     })),
     plans,
+    services: services.map((s) => ({
+      id: s.id,
+      enabled: s.enabled,
+      region: s.region,
+      ...(s.integrationPlatform ? { integration_platform: s.integrationPlatform } : {}),
+    })),
     phase: 2,
   });
 }

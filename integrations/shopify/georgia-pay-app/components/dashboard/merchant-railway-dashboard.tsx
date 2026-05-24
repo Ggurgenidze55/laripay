@@ -9,6 +9,10 @@ import { StatusBadge } from '@/components/laripay/StatusBadge';
 import { IntegrationPlatformBadge } from '@/components/laripay/integration-platform-badge';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
+import {
+  countEnabledServices,
+  type MerchantServiceId,
+} from '@/lib/laripay/merchant-services';
 
 export type MerchantDashboardData = {
   merchant: {
@@ -50,6 +54,12 @@ export type MerchantDashboardData = {
   }[];
   api_keys: { id: string; prefix: string; mode: string; name: string | null }[];
   plans: { code: string; name: string; priceGel: number; description: string | null }[];
+  services?: {
+    id: MerchantServiceId;
+    enabled: boolean;
+    region: string;
+    integration_platform?: IntegrationPlatformId;
+  }[];
 };
 
 type Tab = 'overview' | 'transactions' | 'integrations' | 'webhooks' | 'billing';
@@ -109,23 +119,69 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscre
 
   const banksCount = (data.merchant.bank_configured?.tbc ? 1 : 0) + (data.merchant.bank_configured?.bog ? 1 : 0);
 
-  const services = useMemo(
-    () => [
-      { name: r.services.checkout, region: 'eu-west', live: true },
-      { name: r.services.webhooks, region: 'eu-west', live: true },
-      { name: r.services.tbc, region: 'ge-tbc', live: !!data.merchant.bank_configured?.tbc },
-      { name: r.services.bog, region: 'ge-bog', live: !!data.merchant.bank_configured?.bog },
-      { name: r.services.delivery, region: 'ge', live: true },
-      { name: r.services.warehouse, region: 'ge', live: true },
-      { name: r.services.installments, region: 'ge', live: true },
+  const serviceLabel = (id: MerchantServiceId, platform?: IntegrationPlatformId) => {
+    if (id === 'integration') {
+      const p = platform ?? data.merchant.integration?.platform;
+      return p === 'shopify' ? r.services.shopify : r.services.restApi;
+    }
+    return r.services[id];
+  };
+
+  const services = useMemo(() => {
+    if (data.services?.length) {
+      return data.services.map((s) => ({
+        id: s.id,
+        name: serviceLabel(s.id, s.integration_platform ?? data.merchant.integration?.platform),
+        region: s.region,
+        live: s.enabled,
+      }));
+    }
+    const hasKeys = data.api_keys.length > 0;
+    const tbc = !!data.merchant.bank_configured?.tbc;
+    const bog = !!data.merchant.bank_configured?.bog;
+    const banksAny = tbc || bog;
+    return [
+      { id: 'checkout' as const, name: r.services.checkout, region: 'eu-west', live: hasKeys || banksAny },
+      { id: 'webhooks' as const, name: r.services.webhooks, region: 'eu-west', live: false },
+      { id: 'tbc' as const, name: r.services.tbc, region: 'ge-tbc', live: tbc },
+      { id: 'bog' as const, name: r.services.bog, region: 'ge-bog', live: bog },
+      { id: 'delivery' as const, name: r.services.delivery, region: 'ge', live: false },
+      { id: 'warehouse' as const, name: r.services.warehouse, region: 'ge', live: false },
+      { id: 'installments' as const, name: r.services.installments, region: 'ge', live: banksAny },
       {
-        name: data.merchant.integration?.platform === 'shopify' ? r.services.shopify : r.services.restApi,
+        id: 'integration' as const,
+        name:
+          data.merchant.integration?.platform === 'shopify' ? r.services.shopify : r.services.restApi,
         region: data.merchant.integration?.platform || 'api',
-        live: true,
+        live: hasKeys || banksAny,
       },
-    ],
-    [data, r.services],
-  );
+    ];
+  }, [data, r.services]);
+
+  const serviceHealth = useMemo(() => {
+    const rows = data.services?.length
+      ? data.services.map((s) => ({ id: s.id, enabled: s.enabled, region: s.region }))
+      : services.map((s) => ({ id: s.id, enabled: s.live, region: s.region }));
+    return countEnabledServices(rows);
+  }, [data.services, services]);
+
+  const FEATURE_SERVICE_IDS: (MerchantServiceId | null)[] = [
+    'checkout',
+    'checkout',
+    'webhooks',
+    'integration',
+    'integration',
+    'delivery',
+    'warehouse',
+    'installments',
+    null,
+  ];
+
+  const isServiceEnabled = (id: MerchantServiceId | null) => {
+    if (!id) return true;
+    const row = services.find((s) => s.id === id);
+    return row?.live ?? false;
+  };
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: d.tabs.overview },
@@ -245,12 +301,36 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscre
                 />
               ) : null}
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#22c55e]/25 bg-[#22c55e]/10 px-2 py-0.5 text-[10px] font-medium text-[#4ade80]">
+            <span
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium',
+                serviceHealth.allEnabled
+                  ? 'border-[#22c55e]/25 bg-[#22c55e]/10 text-[#4ade80]'
+                  : serviceHealth.enabled > 0
+                    ? 'border-[#eab308]/25 bg-[#eab308]/10 text-[#fbbf24]'
+                    : 'border-white/[0.08] bg-white/[0.03] text-[#71717a]',
+              )}
+            >
               <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ade80] opacity-60" />
-                <span className="relative h-1.5 w-1.5 rounded-full bg-[#4ade80]" />
+                {serviceHealth.allEnabled ? (
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ade80] opacity-60" />
+                ) : null}
+                <span
+                  className={cn(
+                    'relative h-1.5 w-1.5 rounded-full',
+                    serviceHealth.allEnabled
+                      ? 'bg-[#4ade80]'
+                      : serviceHealth.enabled > 0
+                        ? 'bg-[#fbbf24]'
+                        : 'bg-[#52525b]',
+                  )}
+                />
               </span>
-              {r.allOperational}
+              {serviceHealth.allEnabled
+                ? r.allOperational
+                : r.servicesActiveCount
+                    .replace('{enabled}', String(serviceHealth.enabled))
+                    .replace('{total}', String(serviceHealth.total))}
             </span>
           </div>
 
@@ -277,7 +357,7 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscre
               <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-[#52525b]">{r.servicesTitle}</p>
               <ul className="space-y-1">
                 {services.map((s, i) => (
-                  <li key={s.name}>
+                  <li key={s.id ?? s.name}>
                     <button
                       type="button"
                       onClick={() => setSelectedService(i)}
@@ -286,22 +366,37 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscre
                         selectedService === i
                           ? 'bg-[#8b5cf6]/15 ring-1 ring-[#8b5cf6]/25'
                           : 'hover:bg-white/[0.03]',
+                        !s.live && selectedService !== i && 'opacity-60',
                       )}
                     >
                       <motion.div className="flex items-center gap-2">
                         <span
                           className={cn(
-                            'h-1.5 w-1.5 rounded-full',
-                            s.live ? 'bg-[#4ade80] shadow-[0_0_6px_#4ade80]' : 'bg-[#52525b]',
+                            'h-1.5 w-1.5 shrink-0 rounded-full',
+                            s.live ? 'bg-[#4ade80] shadow-[0_0_6px_#4ade80]' : 'bg-[#3f3f46]',
                           )}
                         />
                         <span
                           className={cn(
-                            'font-mono text-xs',
-                            selectedService === i ? 'text-[#e9d5ff]' : 'text-[#71717a]',
+                            'min-w-0 flex-1 truncate font-mono text-xs',
+                            s.live
+                              ? selectedService === i
+                                ? 'text-[#e9d5ff]'
+                                : 'text-[#a1a1aa]'
+                              : 'text-[#52525b]',
                           )}
                         >
                           {s.name}
+                        </span>
+                        <span
+                          className={cn(
+                            'shrink-0 rounded px-1 py-px font-mono text-[9px] uppercase tracking-wide',
+                            s.live
+                              ? 'bg-[#22c55e]/15 text-[#4ade80]'
+                              : 'bg-white/[0.04] text-[#52525b]',
+                          )}
+                        >
+                          {s.live ? r.serviceOn : r.serviceOff}
                         </span>
                       </motion.div>
                       <p className="mt-0.5 pl-3.5 font-mono text-[10px] text-[#52525b]">{String(s.region)}</p>
@@ -443,18 +538,43 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscre
                 <div className="space-y-4">
                   <p className="text-sm text-[#a1a1aa]">{r.integrationsIntro}</p>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {r.features.map((f) => (
+                    {r.features.map((f, idx) => {
+                      const svcId = FEATURE_SERVICE_IDS[idx] ?? null;
+                      const on = isServiceEnabled(svcId);
+                      return (
                       <div
                         key={f.title}
-                        className="rounded-lg border border-white/[0.06] bg-[#13111a] p-3"
+                        className={cn(
+                          'rounded-lg border bg-[#13111a] p-3',
+                          on ? 'border-[#22c55e]/20' : 'border-white/[0.06] opacity-75',
+                        )}
                       >
-                        <p className="text-sm font-medium text-white">{f.title}</p>
+                        <div className="flex items-start justify-between gap-2">
+                          <p className={cn('text-sm font-medium', on ? 'text-white' : 'text-[#71717a]')}>{f.title}</p>
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[9px] uppercase',
+                              on
+                                ? 'bg-[#22c55e]/15 text-[#4ade80]'
+                                : 'bg-white/[0.04] text-[#52525b]',
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                'h-1 w-1 rounded-full',
+                                on ? 'bg-[#4ade80] shadow-[0_0_4px_#4ade80]' : 'bg-[#52525b]',
+                              )}
+                            />
+                            {on ? r.serviceOn : r.serviceOff}
+                          </span>
+                        </div>
                         <p className="mt-1 text-[11px] text-[#71717a]">{f.desc}</p>
                         {'endpoint' in f && f.endpoint ? (
                           <p className="mt-2 font-mono text-[10px] text-[#c4b5fd]">{f.endpoint}</p>
                         ) : null}
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                   <div className="rounded-lg border border-white/[0.06] bg-[#13111a] p-4">
                     <p className="text-xs font-medium text-[#a1a1aa]">{d.apiKeys}</p>
