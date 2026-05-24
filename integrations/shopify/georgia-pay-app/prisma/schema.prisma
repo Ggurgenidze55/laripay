@@ -87,7 +87,7 @@ model PlatformUser {
   phone             String?
   phoneVerifiedAt   DateTime?
   emailVerifiedAt   DateTime?
-  twoFactorRequired Boolean   @default(true)
+  twoFactorRequired Boolean   @default(false)
   role              String    @default("merchant")
   merchantId        String?   @unique
   merchant          Merchant? @relation(fields: [merchantId], references: [id], onDelete: SetNull)

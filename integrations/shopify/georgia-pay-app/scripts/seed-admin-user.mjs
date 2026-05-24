@@ -47,7 +47,7 @@ async function main() {
         phoneVerifiedAt: now,
         emailVerifiedAt: now,
         role: 'platform_admin',
-        twoFactorRequired: true,
+        twoFactorRequired: false,
         merchantId: null,
       },
     });
@@ -62,7 +62,7 @@ async function main() {
         phoneVerifiedAt: now,
         emailVerifiedAt: now,
         role: 'platform_admin',
-        twoFactorRequired: true,
+        twoFactorRequired: false,
         merchantId: null,
       },
     });

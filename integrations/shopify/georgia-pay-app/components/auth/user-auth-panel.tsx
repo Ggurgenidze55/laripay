@@ -306,7 +306,9 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-foreground-muted">{a.phone}</label>
+                        <label className="text-xs text-foreground-muted">
+                          {a.phone} ({a.optional})
+                        </label>
                         <Input
                           type="tel"
                           placeholder="+995 5XX XX XX XX"

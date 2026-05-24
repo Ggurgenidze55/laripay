@@ -18,7 +18,7 @@ Deploy the Next.js app without Docker. Railway builds from Git and runs `npm sta
    | `NEXT_PUBLIC_HOST` | same as `HOST` |
    | `LARIPAY_ALLOW_SIGNUP` | `1` (if public registration is wanted) |
    | `LARIPAY_ADMIN_SECRET` | strong random secret |
-   | `LARIPAY_REQUIRE_2FA` | `0` until Resend/Twilio are configured |
+   | `LARIPAY_REQUIRE_2FA` | `0` (2FA disabled until Resend/Twilio are configured) |
 
    Copy bank keys, Shopify keys, and OTP email/SMS vars from [`.env.example`](./.env.example) as needed.
 
