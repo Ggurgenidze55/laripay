@@ -23,7 +23,9 @@ export async function parseApiJson(res: Response): Promise<unknown> {
 
   if (res.status === 500 || res.status === 503) {
     throw new ApiResponseError(
-      'Server or database is waking up. Wait 15–20 seconds and try again.',
+      res.status === 503
+        ? 'Database is waking up or not configured. Wait 15–20 seconds and try again.'
+        : 'Server error. If this is Vercel, set DATABASE_URL to Railway DATABASE_PUBLIC_URL and redeploy.',
       res.status,
     );
   }

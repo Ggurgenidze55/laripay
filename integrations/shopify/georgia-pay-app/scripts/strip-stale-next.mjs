@@ -12,7 +12,38 @@ const productionArtifacts =
   fs.existsSync(path.join(cacheDir, 'server-production')) ||
   fs.existsSync(path.join(cacheDir, 'client-production'));
 
-if (productionArtifacts) {
+const CHUNK_RE = /(?:require|import)\(['"]\.\/(\d+\.js)['"]\)/g;
+
+function hasMissingServerChunks() {
+  const serverDir = path.join(nextDir, 'server');
+  if (!fs.existsSync(serverDir)) return false;
+
+  const queue = [serverDir];
+  while (queue.length) {
+    const dir = queue.pop();
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        queue.push(full);
+        continue;
+      }
+      if (!entry.name.endsWith('.js')) continue;
+
+      const source = fs.readFileSync(full, 'utf8');
+      for (const match of source.matchAll(CHUNK_RE)) {
+        if (!fs.existsSync(path.join(dir, match[1]))) return true;
+      }
+    }
+  }
+  return false;
+}
+
+const brokenDevCache = hasMissingServerChunks();
+
+if (productionArtifacts || brokenDevCache) {
   fs.rmSync(nextDir, { recursive: true, force: true });
-  console.log('[laripay] Cleared stale production .next cache before dev.');
+  const reason = productionArtifacts
+    ? 'stale production .next cache'
+    : 'corrupt dev chunk cache';
+  console.log(`[laripay] Cleared ${reason} before dev.`);
 }

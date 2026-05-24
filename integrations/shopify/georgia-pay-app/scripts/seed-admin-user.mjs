@@ -6,7 +6,7 @@
  *   LARIPAY_ADMIN_PHONE=+9955XXXXXXXX npm run seed:admin
  */
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
