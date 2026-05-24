@@ -21,6 +21,13 @@ export async function parseApiJson(res: Response): Promise<unknown> {
     }
   }
 
+  if (res.status === 500 || res.status === 503) {
+    throw new ApiResponseError(
+      'Server or database is waking up. Wait 15–20 seconds and try again.',
+      res.status,
+    );
+  }
+
   if (res.status >= 502) {
     throw new ApiResponseError(
       'Server is waking up or temporarily unavailable. Wait 10–20 seconds and try again.',

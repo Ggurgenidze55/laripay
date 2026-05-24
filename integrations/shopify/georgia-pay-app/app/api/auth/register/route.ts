@@ -7,6 +7,7 @@ import { jsonWithMerchantSession } from '@/lib/laripay/session-response';
 import { is2faRequired } from '@/lib/laripay/two-factor-config';
 import { laripayError, laripayJson } from '@/lib/laripay/api-response';
 import { mapOtpDeliveryError } from '@/lib/laripay/otp-errors';
+import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -90,6 +91,9 @@ async function handleRegister(request: NextRequest) {
       202,
     );
   } catch (err) {
+    if (isTransientDbError(err)) {
+      return laripayError(transientDbMessage(), 503, 'database_unavailable');
+    }
     const code = err instanceof Error ? err.message : '';
     if (code === 'EMAIL_TAKEN') {
       return laripayError(

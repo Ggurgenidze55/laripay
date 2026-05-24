@@ -42,25 +42,34 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
     slug: '',
   });
 
+  async function postRegister(attempt = 0): Promise<Response> {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        phone: form.phone,
+        business_name: form.businessName,
+        slug: form.slug || undefined,
+      }),
+    });
+    if (res.status >= 500 && attempt < 2) {
+      await new Promise((r) => setTimeout(r, 4000));
+      return postRegister(attempt + 1);
+    }
+    return res;
+  }
+
   async function submitRegister(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
     setApiKey(null);
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          phone: form.phone,
-          business_name: form.businessName,
-          slug: form.slug || undefined,
-        }),
-      });
+      const res = await postRegister();
       const data = (await parseApiJson(res)) as Record<string, unknown>;
       if (!res.ok) {
         setError(apiErrorMessage(data, a.registerFailed));
