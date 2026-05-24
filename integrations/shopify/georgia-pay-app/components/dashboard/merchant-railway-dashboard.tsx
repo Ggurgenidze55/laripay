@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { formatGel } from '@/lib/utils';
 import { StatusBadge } from '@/components/laripay/StatusBadge';
 import { IntegrationPlatformBadge } from '@/components/laripay/integration-platform-badge';
+import { MerchantIntegrationsHub } from '@/components/dashboard/merchant-integrations-hub';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
 import {
@@ -535,72 +536,9 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscre
               )}
 
               {tab === 'integrations' && (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#a1a1aa]">{r.integrationsIntro}</p>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {r.features.map((f, idx) => {
-                      const svcId = FEATURE_SERVICE_IDS[idx] ?? null;
-                      const on = isServiceEnabled(svcId);
-                      return (
-                      <div
-                        key={f.title}
-                        className={cn(
-                          'rounded-lg border bg-[#13111a] p-3',
-                          on ? 'border-[#22c55e]/20' : 'border-white/[0.06] opacity-75',
-                        )}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className={cn('text-sm font-medium', on ? 'text-white' : 'text-[#71717a]')}>{f.title}</p>
-                          <span
-                            className={cn(
-                              'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[9px] uppercase',
-                              on
-                                ? 'bg-[#22c55e]/15 text-[#4ade80]'
-                                : 'bg-white/[0.04] text-[#52525b]',
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                'h-1 w-1 rounded-full',
-                                on ? 'bg-[#4ade80] shadow-[0_0_4px_#4ade80]' : 'bg-[#52525b]',
-                              )}
-                            />
-                            {on ? r.serviceOn : r.serviceOff}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-[11px] text-[#71717a]">{f.desc}</p>
-                        {'endpoint' in f && f.endpoint ? (
-                          <p className="mt-2 font-mono text-[10px] text-[#c4b5fd]">{f.endpoint}</p>
-                        ) : null}
-                      </div>
-                    );
-                    })}
-                  </div>
-                  <div className="rounded-lg border border-white/[0.06] bg-[#13111a] p-4">
-                    <p className="text-xs font-medium text-[#a1a1aa]">{d.apiKeys}</p>
-                    <ul className="mt-2 space-y-2">
-                      {data.api_keys.map((k) => (
-                        <li key={k.id} className="flex items-center justify-between font-mono text-xs">
-                          <code className="text-[#71717a]">{k.prefix}…</code>
-                          <span className="rounded bg-[#8b5cf6]/20 px-1.5 py-0.5 text-[10px] uppercase text-[#c4b5fd]">
-                            {k.mode}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="flex flex-wrap gap-3 text-xs">
-                    <Link href={route('integrations')} className="text-[#a78bfa] hover:underline">
-                      {r.allIntegrations}
-                    </Link>
-                    <Link href={route('docsApi')} className="text-[#a78bfa] hover:underline">
-                      {d.openDocs}
-                    </Link>
-                    <Link href={route('platform')} className="text-[#a78bfa] hover:underline">
-                      {d.platformTools.viewPlatform}
-                    </Link>
-                  </div>
-                </div>
+                <MerchantIntegrationsHub
+                  initialPlatform={data.merchant.integration?.platform}
+                />
               )}
 
               {tab === 'webhooks' && (
