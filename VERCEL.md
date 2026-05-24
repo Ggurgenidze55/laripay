@@ -55,12 +55,13 @@ Shopify (თუ გჭირდება): `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRE
 ## Deploy
 
 ```bash
-# CLI-ით (repo root-დან)
 cd integrations/shopify/georgia-pay-app
-npx vercel
+npx vercel deploy --prod
 ```
 
 ან GitHub → Import `Ggurgenidze55/laripay` → Root Directory = `integrations/shopify/georgia-pay-app`.
+
+`build:vercel` აგენერირებს `integration-packages/*.zip`-ს build-ის დროს (plugin download API). თუ deploy ვერ გადის *250 MB serverless* შეცდომით, განაახლე `main` — live `zip` runtime-ზე აღარ გამოიყენება.
 
 ## შენიშვნები
 

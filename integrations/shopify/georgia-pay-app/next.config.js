@@ -35,6 +35,12 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ['@shopify/shopify-api', '@prisma/client', 'bcryptjs'],
+    // Pre-built plugin ZIPs only — avoid tracing ../../wordpress (250MB serverless limit).
+    outputFileTracingIncludes: {
+      '/api/laripay/merchant/integrations/download/[plugin]': [
+        './integration-packages/**/*.zip',
+      ],
+    },
     // Do not set outputFileTracingRoot on Vercel when vercel-app.sh copies .next to repo root —
     // tracing root `integrations/` makes Vercel look for shopify/georgia-pay-app/.next (ENOENT).
     // Do not use optimizePackageImports for framer-motion — breaks dev vendor-chunks (.next/server/vendor-chunks/framer-motion.js).

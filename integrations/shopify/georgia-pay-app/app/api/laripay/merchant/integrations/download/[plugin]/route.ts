@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError } from '@/lib/laripay/api-response';
-import { isIntegrationPackageId, zipIntegrationPackage } from '@/lib/laripay/integration-packages';
+import {
+  isIntegrationPackageId,
+  readIntegrationPackage,
+} from '@/lib/laripay/integration-packages';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -20,7 +23,7 @@ export async function GET(
   }
 
   try {
-    const buf = await zipIntegrationPackage(params.plugin);
+    const buf = await readIntegrationPackage(params.plugin);
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {

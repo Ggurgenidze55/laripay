@@ -7,3 +7,5 @@ prisma/dev.db-journal
 prisma/.admin-credentials.json
 *.log
 .vercel
+integration-packages/*.zip
+tsconfig.tsbuildinfo

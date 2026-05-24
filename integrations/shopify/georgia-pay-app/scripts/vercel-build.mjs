@@ -39,4 +39,13 @@ if (dbUrl && /^postgres(ql)?:\/\//i.test(dbUrl) && !skipMigrate) {
   console.warn('[production-build] DATABASE_URL not set — skipping migrate.');
 }
 
+try {
+  run('node scripts/build-integration-packages.mjs');
+} catch (err) {
+  console.warn(
+    '[production-build] integration package build failed; plugin downloads may be unavailable:',
+    err?.message || err,
+  );
+}
+
 run('npx next build');

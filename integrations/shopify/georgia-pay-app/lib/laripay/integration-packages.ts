@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 
 export type IntegrationPackageId =
@@ -28,6 +28,23 @@ export function resolveIntegrationPackageDir(packageId: IntegrationPackageId): s
   const root = path.resolve(process.cwd(), spec.parent, spec.folder);
   if (!existsSync(root)) return null;
   return root;
+}
+
+const PREBUILD_DIR = path.join(process.cwd(), 'integration-packages');
+
+export function getPrebuiltPackagePath(packageId: IntegrationPackageId): string {
+  return path.join(PREBUILD_DIR, `${packageId}.zip`);
+}
+
+/** Prefer pre-built ZIP (Vercel/Railway); fall back to live zip in local dev. */
+export async function readIntegrationPackage(
+  packageId: IntegrationPackageId,
+): Promise<Buffer> {
+  const prebuilt = getPrebuiltPackagePath(packageId);
+  if (existsSync(prebuilt)) {
+    return readFileSync(prebuilt);
+  }
+  return zipIntegrationPackage(packageId);
 }
 
 export function zipIntegrationPackage(packageId: IntegrationPackageId): Promise<Buffer> {
