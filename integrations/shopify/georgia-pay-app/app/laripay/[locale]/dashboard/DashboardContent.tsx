@@ -104,6 +104,7 @@ export default function DashboardContent() {
           data={data}
           hasLiveKey={hasLiveKey}
           onSignOut={logout}
+          onRefresh={loadDashboard}
           fullscreen
         />
       </div>

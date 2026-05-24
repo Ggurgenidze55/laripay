@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError } from '@/lib/laripay/api-response';
-import { zipWordPressPlugin } from '@/lib/laripay/zip-wordpress-plugin';
+import { isIntegrationPackageId, zipIntegrationPackage } from '@/lib/laripay/integration-packages';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -15,8 +15,12 @@ export async function GET(
     return laripayError(auth.error, auth.status, 'authentication_error');
   }
 
+  if (!isIntegrationPackageId(params.plugin)) {
+    return laripayError('Unknown package', 404);
+  }
+
   try {
-    const buf = await zipWordPressPlugin(params.plugin);
+    const buf = await zipIntegrationPackage(params.plugin);
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {

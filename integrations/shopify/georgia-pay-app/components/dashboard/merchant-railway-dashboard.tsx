@@ -8,6 +8,8 @@ import { formatGel } from '@/lib/utils';
 import { StatusBadge } from '@/components/laripay/StatusBadge';
 import { IntegrationPlatformBadge } from '@/components/laripay/integration-platform-badge';
 import { MerchantIntegrationsHub } from '@/components/dashboard/merchant-integrations-hub';
+import { MerchantBankSettings } from '@/components/dashboard/merchant-bank-settings';
+import { MerchantWebhooksPanel } from '@/components/dashboard/merchant-webhooks-panel';
 import { useLocale } from '@/components/i18n/LocaleProvider';
 import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
 import {
@@ -63,12 +65,13 @@ export type MerchantDashboardData = {
   }[];
 };
 
-type Tab = 'overview' | 'transactions' | 'integrations' | 'webhooks' | 'billing';
+type Tab = 'overview' | 'transactions' | 'integrations' | 'settings' | 'webhooks' | 'billing';
 
 type Props = {
   data: MerchantDashboardData;
   hasLiveKey: boolean;
   onSignOut: () => void;
+  onRefresh?: () => void;
   /** Fill viewport app shell — hides duplicate header/actions */
   fullscreen?: boolean;
 };
@@ -110,7 +113,13 @@ function eventLogs(payments: MerchantDashboardData['recent_payments'], refunds: 
   return lines;
 }
 
-export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscreen = false }: Props) {
+export function MerchantRailwayDashboard({
+  data,
+  hasLiveKey,
+  onSignOut,
+  onRefresh,
+  fullscreen = false,
+}: Props) {
   const { t, route } = useLocale();
   const d = t.dashboard;
   const r = d.railway;
@@ -184,10 +193,14 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscre
     return row?.live ?? false;
   };
 
+  const apiBaseUrl =
+    typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: d.tabs.overview },
     { id: 'transactions', label: d.tabs.transactions },
     { id: 'integrations', label: d.tabs.integrations },
+    { id: 'settings', label: d.tabs.settings },
     { id: 'webhooks', label: d.tabs.webhooks },
     { id: 'billing', label: d.tabs.billing },
   ];
@@ -538,31 +551,34 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscre
               {tab === 'integrations' && (
                 <MerchantIntegrationsHub
                   initialPlatform={data.merchant.integration?.platform}
+                  onOpenBankSettings={() => setTab('settings')}
+                />
+              )}
+
+              {tab === 'settings' && (
+                <MerchantBankSettings
+                  onSaved={() => {
+                    onRefresh?.();
+                  }}
                 />
               )}
 
               {tab === 'webhooks' && (
-                <motion.div className="space-y-4">
-                  <p className="text-sm text-[#a1a1aa]">{r.webhooksIntro}</p>
+                <div className="space-y-6">
+                  <MerchantWebhooksPanel apiBaseUrl={apiBaseUrl} />
                   <div className="rounded-lg border border-white/[0.06] bg-[#0b0a10] p-4">
-                    <pre className="max-h-[280px] overflow-auto font-mono text-[11px] leading-relaxed text-[#71717a]">
+                    <p className="mb-3 text-[10px] font-medium uppercase tracking-wider text-[#52525b]">
+                      {d.liveTransactions}
+                    </p>
+                    <pre className="max-h-[200px] overflow-auto font-mono text-[11px] leading-relaxed text-[#71717a]">
                       {logs.map((line, i) => (
-                        <motion.div key={`${line}-${i}`} className={line.includes('succeeded') ? 'text-[#4ade80]' : ''}>
+                        <div key={`${line}-${i}`} className={line.includes('succeeded') ? 'text-[#4ade80]' : ''}>
                           {line}
-                        </motion.div>
+                        </div>
                       ))}
                     </pre>
                   </div>
-                  <ul className="space-y-2 text-[11px] text-[#71717a]">
-                    {r.webhookEvents.map((evt) => (
-                      <li key={evt} className="flex items-center gap-2">
-                        <span className="h-1 w-1 rounded-full bg-[#8b5cf6]" />
-                        <code className="text-[#c4b5fd]">{evt}</code>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-xs text-[#52525b]">{d.bankHostedNote}</p>
-                </motion.div>
+                </div>
               )}
 
               {tab === 'billing' && (

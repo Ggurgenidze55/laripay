@@ -37,9 +37,10 @@ type HubData = {
 
 type Props = {
   initialPlatform?: IntegrationPlatformId;
+  onOpenBankSettings?: () => void;
 };
 
-export function MerchantIntegrationsHub({ initialPlatform }: Props) {
+export function MerchantIntegrationsHub({ initialPlatform, onOpenBankSettings }: Props) {
   const { t, route, locale } = useLocale();
   const h = t.dashboard.integrationsHub;
   const [data, setData] = useState<HubData | null>(null);
@@ -380,12 +381,15 @@ export function MerchantIntegrationsHub({ initialPlatform }: Props) {
             <Link href={route('integrations')} className="text-[#a78bfa] hover:underline">
               {h.allGuides}
             </Link>
-            <Link
-              href={route('integrations')}
-              className="text-[#71717a] hover:text-white"
-            >
-              {locale === 'ka' ? 'ბანკები' : 'Bank setup'} → {route('platform')}
-            </Link>
+            {onOpenBankSettings ? (
+              <button
+                type="button"
+                onClick={onOpenBankSettings}
+                className="text-[#a78bfa] hover:underline"
+              >
+                {h.openBankSettings}
+              </button>
+            ) : null}
           </div>
 
           {message ? <p className="text-xs text-[#4ade80]">{message}</p> : null}

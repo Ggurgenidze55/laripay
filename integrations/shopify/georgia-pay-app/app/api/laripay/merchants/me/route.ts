@@ -27,6 +27,12 @@ export async function GET(request: NextRequest) {
       tbc: Boolean(merchant.tbcClientId && merchant.tbcClientSecret),
       bog: Boolean(merchant.bogPublicKey && merchant.bogSecretKey),
     },
+    tbc_client_id: merchant.tbcClientId || '',
+    tbc_has_secret: Boolean(merchant.tbcClientSecret),
+    tbc_api_key: merchant.tbcApiKey || '',
+    bog_public_key: merchant.bogPublicKey || '',
+    bog_has_secret: Boolean(merchant.bogSecretKey),
+    bog_callback_public_key: merchant.bogCallbackPublicKey || '',
   });
 }
 

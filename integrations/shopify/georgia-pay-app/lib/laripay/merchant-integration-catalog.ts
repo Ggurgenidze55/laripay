@@ -1,11 +1,10 @@
 import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
-
-export type WordPressPluginId = 'georgia-pay' | 'georgia-delivery' | 'georgia-warehouse';
+import type { IntegrationPackageId } from '@/lib/laripay/integration-packages';
 
 export type IntegrationCatalogEntry = {
   id: IntegrationPlatformId;
   status: 'available' | 'beta';
-  pluginDownloads: WordPressPluginId[];
+  pluginDownloads: IntegrationPackageId[];
   docsPath: string;
   requiresApiKey: boolean;
   requiresBank: boolean;
@@ -39,7 +38,7 @@ export const MERCHANT_INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
   {
     id: 'cscart',
     status: 'beta',
-    pluginDownloads: [],
+    pluginDownloads: ['laripay-cscart'],
     docsPath: 'integrations',
     requiresApiKey: true,
     requiresBank: true,
@@ -47,7 +46,7 @@ export const MERCHANT_INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
   {
     id: 'opencart',
     status: 'beta',
-    pluginDownloads: [],
+    pluginDownloads: ['laripay-opencart'],
     docsPath: 'integrations',
     requiresApiKey: true,
     requiresBank: true,
@@ -55,7 +54,7 @@ export const MERCHANT_INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
   {
     id: 'prestashop',
     status: 'beta',
-    pluginDownloads: [],
+    pluginDownloads: ['laripay-prestashop'],
     docsPath: 'integrations',
     requiresApiKey: true,
     requiresBank: true,
