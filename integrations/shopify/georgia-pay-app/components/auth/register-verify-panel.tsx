@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/components/i18n/LocaleProvider';
-import { apiErrorMessage, parseApiJson } from '@/lib/api-client';
+import { apiErrorMessage, asString, parseApiJson } from '@/lib/api-client';
 
 type Step = 'verify_email' | 'verify_phone';
 
@@ -49,7 +49,7 @@ export function RegisterVerifyPanel({
         return;
       }
       if (data.api_key) {
-        onVerified({ api_key: String(data.api_key) });
+        onVerified({ api_key: asString(data.api_key) });
         return;
       }
       onVerified({ next_step: String(data.next_step || '') });

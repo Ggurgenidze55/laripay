@@ -11,7 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useLocale } from '@/components/i18n/LocaleProvider';
-import { apiErrorMessage, fetchWithDbRetry, formatFetchError, parseApiJson, warmDatabase } from '@/lib/api-client';
+import { apiErrorMessage, asString, fetchWithDbRetry, formatFetchError, parseApiJson, warmDatabase } from '@/lib/api-client';
 import { RegisterVerifyPanel } from './register-verify-panel';
 import { TwoFactorPanel } from './two-factor-panel';
 
@@ -76,9 +76,10 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
         return;
       }
       if (data.api_key) {
-        setApiKey(String(data.api_key));
+        const key = asString(data.api_key);
+        setApiKey(key);
         try {
-          sessionStorage.setItem('laripay_api_key', String(data.api_key));
+          sessionStorage.setItem('laripay_api_key', key);
         } catch {
           /* ignore */
         }
@@ -238,9 +239,10 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
                   step={registerStep === 'verify_email' ? 'verify_email' : 'verify_phone'}
                   onVerified={(data) => {
                     if (data.api_key) {
-                      setApiKey(String(data.api_key));
+                      const key = asString(data.api_key);
+                      setApiKey(key);
                       try {
-                        sessionStorage.setItem('laripay_api_key', String(data.api_key));
+                        sessionStorage.setItem('laripay_api_key', key);
                       } catch {
                         /* ignore */
                       }

@@ -7,6 +7,7 @@ import { AdminShell } from './admin-shell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { asString } from '@/lib/api-client';
 import { parseApiJson } from '@/lib/parse-api-json';
 import { localePath } from '@/lib/i18n/routing';
 import { IntegrationPlatformBadge } from '@/components/laripay/integration-platform-badge';
@@ -167,7 +168,7 @@ export function AdminMerchantDetail({ merchantId }: { merchantId: string }) {
       body: JSON.stringify({ mode, name: `admin-${mode}` }),
     });
     const { data: d } = await parseApiJson<{ api_key?: string }>(res);
-    if (d?.api_key) setNewKey(d.api_key);
+    if (d?.api_key) setNewKey(asString(d.api_key));
     await load();
   }
 

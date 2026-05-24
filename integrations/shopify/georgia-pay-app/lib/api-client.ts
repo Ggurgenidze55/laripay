@@ -49,6 +49,13 @@ export function apiErrorMessage(data: unknown, fallback: string): string {
   return fallback;
 }
 
+/** Coerce unknown JSON fields to string for React state / sessionStorage. */
+export function asString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value == null) return '';
+  return String(value);
+}
+
 export function formatFetchError(err: unknown, fallback: string): string {
   if (err instanceof ApiResponseError) return err.message;
   if (err instanceof TypeError && /fetch|network|load failed/i.test(err.message)) {
