@@ -20,14 +20,12 @@ export default function PricingPage({ params }: Props) {
   const p = getDictionary(locale).pages.pricing;
 
   return (
-    <div className="-mx-6 space-y-16 lg:-mx-8">
-      <div className="px-6 lg:px-8">
-        <MarketingPage eyebrow={p.eyebrow} title={p.title} description={p.description}>
-          <p className="text-foreground-muted">{p.includes}</p>
-        </MarketingPage>
-      </div>
+    <div className="space-y-16">
+      <MarketingPage eyebrow={p.eyebrow} title={p.title} description={p.description}>
+        <p className="text-foreground-muted">{p.includes}</p>
+      </MarketingPage>
       <PricingSection />
-      <div className="mx-auto max-w-3xl px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl">
         <MarketingSection title={p.faqTitle}>
           <FaqList items={p.faq} />
         </MarketingSection>

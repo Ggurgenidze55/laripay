@@ -53,7 +53,7 @@ export default function DashboardContent() {
 
   if (loading && !loggedIn) {
     return (
-      <motion.div className="railway-theme flex min-h-[50vh] items-center justify-center bg-[#0b0a10]">
+      <motion.div className="flex min-h-[50vh] items-center justify-center">
         <motion.div
           className="h-8 w-8 rounded-full border-2 border-[#8b5cf6]/30 border-t-[#a78bfa]"
           animate={{ rotate: 360 }}
@@ -65,7 +65,7 @@ export default function DashboardContent() {
 
   if (!loggedIn) {
     return (
-      <motion.div className="railway-theme mx-auto max-w-lg rounded-2xl border border-white/[0.08] bg-[#0f0d14] p-6 text-[#e4e4e7]">
+      <motion.div className="mx-auto max-w-lg rounded-2xl border border-white/[0.08] bg-[#0f0d14] p-6">
         {error ? <p className="mb-4 text-sm text-red-300">{error}</p> : null}
         <MerchantConsoleLoginPanel onLoggedIn={loadDashboard} />
       </motion.div>
@@ -77,7 +77,7 @@ export default function DashboardContent() {
   const hasLiveKey = data.api_keys.some((k) => k.mode === 'live');
 
   return (
-    <motion.div className="railway-theme -mx-6 -mt-10 min-h-[calc(100vh-4rem)] bg-[#0b0a10] px-4 py-8 text-[#e4e4e7] lg:-mx-8 lg:px-6">
+    <motion.div className="min-h-[60vh] py-4">
       {paidSuccess && (
         <motion.div className="mx-auto mb-6 max-w-[1280px] rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
           {d.paidSuccess}

@@ -262,6 +262,41 @@
   color: #fff;
 }
 
+.railway-theme .text-tx-primary,
+.railway-theme .text-section,
+.railway-theme .text-card-h {
+  color: #e4e4e7;
+}
+
+.railway-theme .text-tx-body,
+.railway-theme .text-tx-secondary,
+.railway-theme .marketing-page-body,
+.railway-theme .text-foreground-muted {
+  color: #a1a1aa;
+}
+
+.railway-theme .landing-section-label {
+  color: #a78bfa;
+}
+
+.railway-theme .landing-section-label::before {
+  background-color: #8b5cf6;
+}
+
+.railway-theme .marketing-section-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #0f0d14;
+  border-radius: 1rem;
+}
+
+.railway-theme .prose-laripay a {
+  color: #a78bfa;
+}
+
+.railway-theme .prose-laripay strong {
+  color: #e4e4e7;
+}
+
 @keyframes railway-orb-drift {
   0%,
   100% {
