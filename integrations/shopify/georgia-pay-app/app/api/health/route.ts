@@ -8,7 +8,12 @@ export async function GET() {
   let db = 'ok';
 
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('db_timeout')), 3000);
+      }),
+    ]);
   } catch {
     db = 'error';
   }

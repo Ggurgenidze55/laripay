@@ -11,3 +11,5 @@ healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
+
+# App listens on Railway's $PORT (often 8080). When generating a public domain, use that port.
