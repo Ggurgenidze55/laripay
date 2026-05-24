@@ -19,7 +19,8 @@
     "payka:setup": "curl -s http://localhost:3000/api/laripay/setup | python3 -m json.tool",
     "shopify": "npx shopify",
     "shopify:link": "npx shopify app config link",
-    "shopify:dev": "npx shopify app dev"
+    "shopify:dev": "npx shopify app dev",
+    "vercel:env": "node scripts/sync-vercel-env.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
