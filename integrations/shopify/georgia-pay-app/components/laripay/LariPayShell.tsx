@@ -8,7 +8,7 @@ import { RailwayNav } from '@/components/landing/railway/railway-nav';
 import { cn } from '@/lib/utils';
 
 const LANDING_RE = /^\/laripay\/(en|ka)\/?$/;
-const FULL_BLEED_RE = /^\/laripay\/(en|ka)\/dashboard\/?$/;
+const APP_SHELL_RE = /^\/laripay\/(en|ka)\/dashboard\/?$/;
 const WIDE_MAIN_RE =
   /^\/laripay\/(en|ka)\/(pricing|platform|integrations|docs|demo)(\/|$)/;
 
@@ -19,7 +19,10 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  const fullBleed = FULL_BLEED_RE.test(pathname);
+  if (APP_SHELL_RE.test(pathname)) {
+    return <>{children}</>;
+  }
+
   const wideMain = WIDE_MAIN_RE.test(pathname);
 
   return (
@@ -29,11 +32,9 @@ export function LariPayShell({ children }: { children: React.ReactNode }) {
       <main
         className={cn(
           'relative flex-1',
-          fullBleed
-            ? 'px-4 pb-8 pt-20 sm:px-6'
-            : wideMain
-              ? 'mx-auto w-full max-w-[1280px] px-4 pb-12 pt-24 sm:px-6'
-              : 'mx-auto w-full max-w-3xl px-4 pb-12 pt-24 sm:px-6',
+          wideMain
+            ? 'mx-auto w-full max-w-[1280px] px-4 pb-12 pt-24 sm:px-6'
+            : 'mx-auto w-full max-w-3xl px-4 pb-12 pt-24 sm:px-6',
         )}
       >
         <AnimatePresence mode="wait">

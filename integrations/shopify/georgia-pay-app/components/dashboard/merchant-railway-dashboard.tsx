@@ -58,6 +58,8 @@ type Props = {
   data: MerchantDashboardData;
   hasLiveKey: boolean;
   onSignOut: () => void;
+  /** Fill viewport app shell — hides duplicate header/actions */
+  fullscreen?: boolean;
 };
 
 function volumeBars(payments: MerchantDashboardData['recent_payments']) {
@@ -97,7 +99,7 @@ function eventLogs(payments: MerchantDashboardData['recent_payments'], refunds: 
   return lines;
 }
 
-export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut }: Props) {
+export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut, fullscreen = false }: Props) {
   const { t, route } = useLocale();
   const d = t.dashboard;
   const r = d.railway;
@@ -158,7 +160,12 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut }: Props)
   const statValues = [String(data.stats.payments_succeeded), String(banksCount || 7), 'GEL'];
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mx-auto w-full max-w-[1280px]">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn('flex min-h-0 w-full flex-col', fullscreen ? 'h-full flex-1' : 'mx-auto max-w-[1280px]')}
+    >
+      {!fullscreen ? (
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -210,18 +217,33 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut }: Props)
           </button>
         </motion.div>
       </motion.div>
+      ) : null}
 
-      <div className="relative">
+      <motion.div className={cn('relative min-h-0', fullscreen && 'flex flex-1 flex-col')}>
+        {!fullscreen ? (
         <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-[#8b5cf6]/30 via-[#8b5cf6]/8 to-transparent opacity-50" />
-        <motion.div className="relative overflow-hidden rounded-2xl border border-white/[0.12] bg-[#0f0d14] shadow-[0_24px_80px_-24px_rgba(0,0,0,0.9)]">
-          <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#13111a]/80 px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#ef4444]/90" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#eab308]/90" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#22c55e]/90" />
-              <span className="ml-2 font-mono text-[11px] text-[#71717a]">
+        ) : null}
+        <motion.div
+          className={cn(
+            'relative flex min-h-0 flex-col overflow-hidden border border-white/[0.12] bg-[#0f0d14] shadow-[0_24px_80px_-24px_rgba(0,0,0,0.9)]',
+            fullscreen ? 'h-full flex-1 rounded-xl' : 'rounded-2xl',
+          )}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] bg-[#13111a]/80 px-4 py-2.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#ef4444]/90" />
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#eab308]/90" />
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#22c55e]/90" />
+              <span className="ml-2 truncate font-mono text-[11px] text-[#71717a]">
                 {data.merchant.slug} / production
               </span>
+              {fullscreen && data.merchant.integration ? (
+                <IntegrationPlatformBadge
+                  platform={data.merchant.integration.platform}
+                  label={data.merchant.integration.label}
+                  inferred={data.merchant.integration.inferred}
+                />
+              ) : null}
             </div>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#22c55e]/25 bg-[#22c55e]/10 px-2 py-0.5 text-[10px] font-medium text-[#4ade80]">
               <span className="relative flex h-1.5 w-1.5">
@@ -250,8 +272,8 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut }: Props)
             ))}
           </div>
 
-          <div className="grid lg:grid-cols-[240px_1fr_220px]">
-            <aside className="hidden border-r border-white/[0.06] p-4 lg:block">
+          <div className="grid min-h-0 flex-1 lg:grid-cols-[240px_1fr_220px]">
+            <aside className="hidden min-h-0 overflow-y-auto border-r border-white/[0.06] p-4 lg:block">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-[#52525b]">{r.servicesTitle}</p>
               <ul className="space-y-1">
                 {services.map((s, i) => (
@@ -289,7 +311,7 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut }: Props)
               </ul>
             </aside>
 
-            <div className="min-h-[420px] p-4 sm:p-5">
+            <div className="min-h-0 overflow-y-auto p-4 sm:p-5">
               {tab === 'overview' && (
                 <>
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -526,7 +548,7 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut }: Props)
               )}
             </div>
 
-            <aside className="hidden border-l border-white/[0.06] p-4 lg:block">
+            <aside className="hidden min-h-0 overflow-y-auto border-l border-white/[0.06] p-4 lg:block">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.15em] text-[#52525b]">{r.observability}</p>
               <div className="space-y-3">
                 {[
@@ -564,7 +586,7 @@ export function MerchantRailwayDashboard({ data, hasLiveKey, onSignOut }: Props)
             </aside>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
