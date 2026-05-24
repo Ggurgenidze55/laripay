@@ -33,12 +33,21 @@ const nextConfig = {
       { source: '/api/payka/:path*', destination: '/api/laripay/:path*', permanent: true },
     ];
   },
+  ...(process.env.VERCEL
+    ? { outputFileTracingRoot: path.join(__dirname) }
+    : {}),
   experimental: {
     serverComponentsExternalPackages: ['@shopify/shopify-api', '@prisma/client', 'bcryptjs'],
-    // Pre-built plugin ZIPs only — avoid tracing ../../wordpress (250MB serverless limit).
     outputFileTracingIncludes: {
       '/api/laripay/merchant/integrations/download/[plugin]': [
         './integration-packages/**/*.zip',
+      ],
+    },
+    outputFileTracingExcludes: {
+      '/api/laripay/merchant/integrations/download/[plugin]': [
+        './node_modules/@next/**',
+        './node_modules/next/**',
+        './.next/**',
       ],
     },
     // Do not set outputFileTracingRoot on Vercel when vercel-app.sh copies .next to repo root —

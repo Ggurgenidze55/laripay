@@ -1,5 +1,5 @@
 import type { IntegrationPlatformId } from '@/lib/laripay/integration-platform';
-import type { IntegrationPackageId } from '@/lib/laripay/integration-packages';
+import type { IntegrationPackageId } from '@/lib/laripay/integration-package-ids';
 
 export type IntegrationCatalogEntry = {
   id: IntegrationPlatformId;

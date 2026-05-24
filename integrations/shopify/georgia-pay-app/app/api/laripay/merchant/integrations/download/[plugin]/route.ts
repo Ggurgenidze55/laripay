@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePortalRequest } from '@/lib/laripay/portal-session';
 import { laripayError } from '@/lib/laripay/api-response';
-import {
-  isIntegrationPackageId,
-  readIntegrationPackage,
-} from '@/lib/laripay/integration-packages';
+import { isIntegrationPackageId } from '@/lib/laripay/integration-package-ids';
+import { readIntegrationPackage } from '@/lib/laripay/read-integration-package';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
