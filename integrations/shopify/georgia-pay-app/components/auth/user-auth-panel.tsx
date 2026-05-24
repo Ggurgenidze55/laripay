@@ -69,7 +69,7 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
       if (data.api_key) {
         setApiKey(String(data.api_key));
         try {
-          sessionStorage.setItem('laripay_api_key', data.api_key);
+          sessionStorage.setItem('laripay_api_key', String(data.api_key));
         } catch {
           /* ignore */
         }
@@ -228,9 +228,9 @@ export function UserAuthPanel({ initialMode = 'register' }: { initialMode?: Mode
                   step={registerStep === 'verify_email' ? 'verify_email' : 'verify_phone'}
                   onVerified={(data) => {
                     if (data.api_key) {
-                      setApiKey(data.api_key);
+                      setApiKey(String(data.api_key));
                       try {
-                        sessionStorage.setItem('laripay_api_key', data.api_key);
+                        sessionStorage.setItem('laripay_api_key', String(data.api_key));
                       } catch {
                         /* ignore */
                       }
