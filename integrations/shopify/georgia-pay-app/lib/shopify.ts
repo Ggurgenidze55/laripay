@@ -1,8 +1,14 @@
-import '@shopify/shopify-api/adapters/node';
+import '@shopify/shopify-api/adapters/web-api';
 import { shopifyApi, ApiVersion, Session, Shopify } from '@shopify/shopify-api';
 import prisma from './prisma';
 
 let shopifyInstance: Shopify | null = null;
+
+function parseScopes(): string[] {
+  const raw = process.env.SCOPES?.trim();
+  if (!raw) return [];
+  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+}
 
 function getShopify(): Shopify {
   if (shopifyInstance) return shopifyInstance;
@@ -10,12 +16,11 @@ function getShopify(): Shopify {
   const apiKey = process.env.SHOPIFY_API_KEY || 'build-placeholder';
   const apiSecret = process.env.SHOPIFY_API_SECRET || 'build-placeholder';
   const hostName = (process.env.HOST || 'http://localhost:3000').replace(/^https?:\/\//, '');
-  const scopes = (process.env.SCOPES || 'write_payment_sessions,read_payment_sessions').split(',');
 
   shopifyInstance = shopifyApi({
     apiKey,
     apiSecretKey: apiSecret,
-    scopes,
+    scopes: parseScopes(),
     hostName,
     apiVersion: ApiVersion.October24,
     isEmbeddedApp: false,
