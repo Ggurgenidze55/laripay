@@ -149,6 +149,43 @@ export async function getOrder(
   return data.order;
 }
 
+// ── Cancel order ──
+
+const ORDER_CANCEL = `
+  mutation orderCancel($orderId: ID!, $reason: OrderCancelReason!, $notifyCustomer: Boolean, $staffNote: String) {
+    orderCancel(orderId: $orderId, reason: $reason, notifyCustomer: $notifyCustomer, staffNote: $staffNote) {
+      orderCancelUserErrors { field message }
+    }
+  }
+`;
+
+export async function cancelOrder(
+  shopDomain: string,
+  orderId: string,
+  opts: { reason?: string; notifyCustomer?: boolean; staffNote?: string } = {},
+): Promise<{ success: boolean; error?: string }> {
+  const gid = orderId.startsWith('gid://') ? orderId : `gid://shopify/Order/${orderId}`;
+
+  type Res = {
+    orderCancel: {
+      orderCancelUserErrors: { field: string[]; message: string }[];
+    };
+  };
+
+  const data = await adminGraphql<Res>(shopDomain, ORDER_CANCEL, {
+    orderId: gid,
+    reason: opts.reason || 'CUSTOMER',
+    notifyCustomer: opts.notifyCustomer ?? true,
+    staffNote: opts.staffNote || 'Payment declined via LariPay',
+  });
+
+  const errors = data.orderCancel.orderCancelUserErrors;
+  if (errors.length > 0) {
+    return { success: false, error: errors.map((e) => e.message).join('; ') };
+  }
+  return { success: true };
+}
+
 // ── Add order note ──
 
 const ORDER_UPDATE = `

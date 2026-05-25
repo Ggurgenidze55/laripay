@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { markShopifyOrderPaidFromSession } from '@/lib/laripay/shopify-manual-payment';
+import { cancelOrder } from '@/lib/shopify-admin';
 import { dispatchMerchantWebhook } from '@/lib/laripay/webhooks-outbound';
 
 export const runtime = 'nodejs';
+
+function parseShopifyMeta(session: { clientReferenceId: string | null; metadata: string | null }) {
+  if (!session.clientReferenceId?.startsWith('shopify_order_')) return null;
+  try {
+    const meta = session.metadata ? JSON.parse(session.metadata) : {};
+    return {
+      orderId: meta.shopify_order_id || meta.shopify_order_gid,
+      shopDomain: meta.shop_domain as string | undefined,
+      orderStatusUrl: meta.order_status_url as string | undefined,
+    };
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
   const { sessionId, action } = await request.json();
@@ -21,6 +36,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 });
   }
 
+  const shopifyInfo = parseShopifyMeta(session);
+
   if (action === 'approve') {
     await prisma.checkoutSession.update({
       where: { id: sessionId },
@@ -35,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     let shopifyMarked = false;
-    if (session.clientReferenceId?.startsWith('shopify_order_')) {
+    if (shopifyInfo) {
       shopifyMarked = await markShopifyOrderPaidFromSession(sessionId);
     }
 
@@ -72,12 +89,37 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`[test-payment] DECLINED session ${sessionId}`);
+    let shopifyCancelled = false;
+    if (shopifyInfo?.shopDomain && shopifyInfo.orderId) {
+      try {
+        const result = await cancelOrder(shopifyInfo.shopDomain, String(shopifyInfo.orderId), {
+          notifyCustomer: true,
+          staffNote: 'Payment declined by customer via LariPay',
+        });
+        shopifyCancelled = result.success;
+        console.log(`[test-payment] Cancel order result:`, result);
+      } catch (err) {
+        console.error(`[test-payment] Failed to cancel Shopify order:`, err);
+      }
+    }
+
+    await dispatchMerchantWebhook(session.merchantId, 'checkout.session.expired', {
+      id: session.id,
+      object: 'checkout.session',
+      status: 'declined',
+      amount: session.amount,
+      currency: session.currency,
+      test_mode: true,
+    }).catch(() => {});
+
+    console.log(`[test-payment] DECLINED session ${sessionId}, shopify cancelled: ${shopifyCancelled}`);
 
     return NextResponse.json({
       success: true,
       status: 'declined',
       sessionId,
+      shopifyCancelled,
+      cancelUrl: session.cancelUrl,
     });
   }
 
