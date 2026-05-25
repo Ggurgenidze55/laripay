@@ -57,7 +57,15 @@ export async function GET(request: NextRequest) {
     const tokenData = await tokenRes.json() as { access_token: string; scope: string };
     const accessToken = tokenData.access_token;
 
-    await saveShopSession(shop, accessToken);
+    console.log(`[auth/callback] Token exchange OK for ${shop}, scope: ${tokenData.scope}, token length: ${accessToken?.length || 0}`);
+
+    try {
+      await saveShopSession(shop, accessToken);
+      console.log(`[auth/callback] Shop session saved for ${shop}`);
+    } catch (dbErr) {
+      console.error(`[auth/callback] saveShopSession FAILED for ${shop}:`, dbErr);
+      return NextResponse.json({ error: `DB save failed: ${dbErr}` }, { status: 500 });
+    }
 
     const { ensureLariPayMerchantForShop } = await import('@/lib/laripay/provision-merchant');
     await ensureLariPayMerchantForShop(shop).catch((err) => {
