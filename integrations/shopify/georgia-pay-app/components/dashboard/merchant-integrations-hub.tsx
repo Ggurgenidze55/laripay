@@ -41,6 +41,13 @@ type Props = {
   onRefresh?: () => void;
 };
 
+type DetectionResult = {
+  platform: IntegrationPlatformId;
+  confidence: 'high' | 'medium' | 'low';
+  signals: string[];
+  site_url: string;
+};
+
 export function MerchantIntegrationsHub({
   initialPlatform,
   onOpenBankSettings,
@@ -48,6 +55,7 @@ export function MerchantIntegrationsHub({
 }: Props) {
   const { t, route, locale } = useLocale();
   const h = t.dashboard.integrationsHub;
+  const sd = (h as Record<string, unknown>).siteDetection as Record<string, unknown> | undefined;
   const [data, setData] = useState<HubData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -59,6 +67,11 @@ export function MerchantIntegrationsHub({
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+
+  const [siteUrl, setSiteUrl] = useState('');
+  const [detecting, setDetecting] = useState(false);
+  const [detection, setDetection] = useState<DetectionResult | null>(null);
+  const [detectionDone, setDetectionDone] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -85,6 +98,40 @@ export function MerchantIntegrationsHub({
   }, [data, selected]);
 
   const steps = (h.platforms as Record<string, { steps: string[] }>)[selected]?.steps ?? [];
+
+  async function detectSite() {
+    if (!siteUrl.trim()) return;
+    setDetecting(true);
+    setDetection(null);
+    setDetectionDone(false);
+    setMessage('');
+    try {
+      const res = await fetch('/api/laripay/merchant/detect-site', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ site_url: siteUrl.trim() }),
+      });
+      const json = await res.json();
+      if (res.ok && json.detection) {
+        const det = json.detection as DetectionResult;
+        setDetection(det);
+        setDetectionDone(true);
+        setSelected(det.platform);
+        setStoreRef(det.site_url);
+      } else {
+        setMessage(json?.error?.message || (sd?.notDetected as string) || 'Detection failed');
+        setDetectionDone(true);
+      }
+    } catch {
+      setMessage((sd?.notDetected as string) || 'Detection failed');
+      setDetectionDone(true);
+    } finally {
+      setDetecting(false);
+    }
+    await load();
+    onRefresh?.();
+  }
 
   async function savePlatform() {
     if (!data) return;
@@ -222,6 +269,105 @@ export function MerchantIntegrationsHub({
           inferred={data.merchant.integration.inferred}
         />
       </div>
+
+      {sd ? (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl border border-[#8b5cf6]/20 bg-gradient-to-r from-[#8b5cf6]/[0.06] to-transparent p-4 sm:p-5"
+        >
+          <h3 className="text-sm font-semibold text-white">{sd.title as string}</h3>
+          <p className="mt-1 text-xs text-[#71717a]">{sd.subtitle as string}</p>
+
+          {!detectionDone ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <input
+                value={siteUrl}
+                onChange={(e) => setSiteUrl(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && detectSite()}
+                placeholder={(sd.placeholder as string) || 'https://my-store.ge'}
+                className="min-w-0 flex-1 rounded-lg border border-white/[0.08] bg-[#0b0a10] px-3 py-2.5 font-mono text-sm text-white placeholder:text-[#52525b]"
+              />
+              <button
+                type="button"
+                disabled={detecting || !siteUrl.trim()}
+                onClick={detectSite}
+                className="rounded-lg bg-[#8b5cf6] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#7c3aed] disabled:opacity-50"
+              >
+                {detecting ? (sd.detecting as string) : (sd.detect as string)}
+              </button>
+            </div>
+          ) : detection ? (
+            <div className="mt-3 space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    'inline-flex h-2 w-2 rounded-full',
+                    detection.confidence === 'high' ? 'bg-[#4ade80] shadow-[0_0_6px_#4ade80]' :
+                    detection.confidence === 'medium' ? 'bg-amber-400 shadow-[0_0_6px_#fbbf24]' :
+                    'bg-[#71717a]',
+                  )} />
+                  <span className="text-sm font-semibold text-white">
+                    {(h.platformNames as Record<string, string>)[detection.platform] || detection.platform}
+                  </span>
+                </div>
+                <span className="rounded-full bg-white/[0.06] px-2.5 py-0.5 text-[10px] font-medium text-[#a1a1aa]">
+                  {((sd.confidence as Record<string, string>) || {})[detection.confidence] || detection.confidence}
+                </span>
+              </div>
+
+              <div className="rounded-lg bg-[#0b0a10] px-3 py-2">
+                <p className="font-mono text-xs text-[#a78bfa]">{detection.site_url}</p>
+                {detection.signals.length > 0 ? (
+                  <p className="mt-1 text-[10px] text-[#52525b]">
+                    {sd.signals as string}: {detection.signals.slice(0, 4).join(', ')}
+                  </p>
+                ) : null}
+              </div>
+
+              {(() => {
+                const platformSteps = (h.platforms as Record<string, { steps: string[] }>)[detection.platform]?.steps ?? [];
+                return platformSteps.length > 0 ? (
+                  <div className="rounded-lg border border-white/[0.06] bg-[#0b0a10] p-3">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-[#8b5cf6]">
+                      {sd.instructions as string}
+                    </p>
+                    <ol className="mt-2 space-y-2 text-sm text-[#a1a1aa]">
+                      {platformSteps.map((step, i) => (
+                        <li key={step} className="flex gap-2">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#8b5cf6]/15 text-[10px] font-bold text-[#c4b5fd]">
+                            {i + 1}
+                          </span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null;
+              })()}
+
+              <button
+                type="button"
+                onClick={() => { setDetectionDone(false); setDetection(null); setSiteUrl(''); }}
+                className="text-xs text-[#71717a] hover:text-white"
+              >
+                {sd.changeUrl as string}
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-amber-400">{sd.notDetected as string}</p>
+              <button
+                type="button"
+                onClick={() => { setDetectionDone(false); setDetection(null); setSiteUrl(''); }}
+                className="text-xs text-[#71717a] hover:text-white"
+              >
+                {sd.changeUrl as string}
+              </button>
+            </div>
+          )}
+        </motion.div>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
         <aside className="space-y-1">
