@@ -3,6 +3,7 @@ import { createCheckoutSession } from './checkout';
 import { markOrderAsPaid, addOrderNote } from '@/lib/shopify-admin';
 import { getMerchantForShop } from './provision-merchant';
 import { dispatchMerchantWebhook } from './webhooks-outbound';
+import { isServiceEnabled } from './service-gate';
 
 const LARIPAY_GATEWAY_KEYWORDS = ['laripay', 'lari pay', 'georgian bank', 'ქართული ბანკი', 'georgia pay'];
 
@@ -50,6 +51,12 @@ export async function handleShopifyManualOrder(
   const merchant = await getMerchantForShop(shopDomain);
   if (!merchant) {
     console.error(`[shopify-manual] No LariPay merchant for shop ${shopDomain}`);
+    return { handled: false };
+  }
+
+  const shopifyActive = await isServiceEnabled(merchant.id, 'shopify');
+  if (!shopifyActive) {
+    console.warn(`[shopify-manual] Shopify service suspended for merchant ${merchant.slug}`);
     return { handled: false };
   }
 

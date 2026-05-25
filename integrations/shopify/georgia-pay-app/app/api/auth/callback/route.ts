@@ -25,6 +25,18 @@ export async function GET(request: NextRequest) {
       console.error('[laripay] Webhook registration failed:', err);
     });
 
+    const { activateService } = await import('@/lib/laripay/service-gate');
+    const { getMerchantForShop } = await import('@/lib/laripay/provision-merchant');
+    const merchant = await getMerchantForShop(session.shop);
+    if (merchant) {
+      await activateService(merchant.id, 'shopify', {
+        paidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        priceGel: 0,
+      }).catch((err) => {
+        console.error('[laripay] Service activation failed:', err);
+      });
+    }
+
     const redirect = NextResponse.redirect(getAppUrl(`/?shop=${session.shop}`));
     if (headers) {
       if (headers instanceof Headers) {

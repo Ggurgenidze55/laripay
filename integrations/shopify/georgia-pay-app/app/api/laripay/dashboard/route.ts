@@ -12,6 +12,7 @@ import { buildMerchantServices } from '@/lib/laripay/merchant-services';
 import { buildMerchantReadiness } from '@/lib/laripay/merchant-readiness';
 import { isTransientDbError, transientDbMessage } from '@/lib/laripay/db-errors';
 import { ensureDatabaseReady, withDbRetry } from '@/lib/laripay/with-db-retry';
+import { getMerchantServices } from '@/lib/laripay/service-gate';
 
 export async function GET(request: NextRequest) {
   try {
@@ -94,6 +95,8 @@ async function buildDashboardResponse(merchantId: string) {
     include: { paykaPayment: true },
   });
 
+  const serviceSubscriptions = await getMerchantServices(merchant.id);
+
   const readiness = buildMerchantReadiness({
     integration_platform: merchant.integrationPlatform,
     bank_configured: bankConfigured,
@@ -172,6 +175,17 @@ async function buildDashboardResponse(merchantId: string) {
         created: s.createdAt,
       };
     }),
+    service_subscriptions: serviceSubscriptions.map((s) => ({
+      service_id: s.serviceId,
+      label: s.label,
+      enabled: s.enabled,
+      active: s.active,
+      paid_until: s.paidUntil,
+      days_remaining: s.daysRemaining,
+      suspended: s.suspended,
+      price_gel: s.priceGel,
+      billing_cycle: s.billingCycle,
+    })),
     readiness,
     phase: 2,
   });
