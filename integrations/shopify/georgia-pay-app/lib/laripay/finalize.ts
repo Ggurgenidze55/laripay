@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { finalizePaymentFromBank } from '@/lib/payment-service';
 import { buildMerchantPaymentsClient, getMerchantBankConfig } from './merchant-config';
 import { dispatchMerchantWebhook } from './webhooks-outbound';
+import { markShopifyOrderPaidFromSession } from './shopify-manual-payment';
 import { expireCheckoutSessionIfNeeded } from './checkout-expiry';
 import type { GeorgianBankId } from '@/lib/georgian-banks/registry';
 import {
@@ -71,6 +72,14 @@ export async function finalizeLariPayCheckout(
       payment_id: payment.id,
       status: 'complete',
     });
+
+    if (session.clientReferenceId?.startsWith('shopify_order_')) {
+      try {
+        await markShopifyOrderPaidFromSession(session.id);
+      } catch (err) {
+        console.error('[laripay] Shopify manual order mark-as-paid failed:', err);
+      }
+    }
 
     if (session.clientReferenceId) {
       const shopifyRecord = await prisma.paymentRecord.findUnique({

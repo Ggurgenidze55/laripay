@@ -1,6 +1,7 @@
-api_version = "2024-10"
+api_version = "2024-07"
 
 [[extensions]]
+uid = "fbb1d285-3fb9-f44d-06bc-ddccc071c32b755d35b1"
 type = "payments_extension"
 name = "Georgia Pay Offsite"
 handle = "georgia-pay-offsite"
@@ -15,3 +16,6 @@ supports_3ds = false
 supports_installments = false
 supports_deferred_payments = false
 multiple_capture = false
+
+[[extensions.targeting]]
+target = "payments.offsite.render"

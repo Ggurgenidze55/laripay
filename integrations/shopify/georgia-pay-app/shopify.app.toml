@@ -1,12 +1,16 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 name = "georgia-pay"
-client_id = "YOUR_CLIENT_ID"
+# Run: npx shopify app config link --reset  (replaces placeholder below)
+client_id = "0b9d6d64dc2f7d8df8f8e5a55ca5b932"
 application_url = "https://laripay.vercel.app"
 embedded = false
 
+# Payment scopes (write_payment_sessions, write_payment_gateways) are restricted —
+# do NOT paste them in Dev Dashboard "Scopes" (shows "invalid scopes").
+# They are granted via the payments_extension when you `shopify app deploy`.
 [access_scopes]
-scopes = "write_payment_sessions,read_payment_sessions,write_payment_gateways,read_payment_gateways"
+scopes = "read_orders,write_orders"
 
 [auth]
 redirect_urls = [
@@ -14,7 +18,7 @@ redirect_urls = [
 ]
 
 [webhooks]
-api_version = "2024-10"
+api_version = "2024-07"
 
 [pos]
 embedded = false

@@ -84,6 +84,16 @@ async function buildDashboardResponse(merchantId: string) {
     bog: Boolean(merchant.bogPublicKey && merchant.bogSecretKey),
   };
 
+  const shopifyManualSessions = await prisma.checkoutSession.findMany({
+    where: {
+      merchantId: merchant.id,
+      clientReferenceId: { startsWith: 'shopify_order_' },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+    include: { paykaPayment: true },
+  });
+
   const readiness = buildMerchantReadiness({
     integration_platform: merchant.integrationPlatform,
     bank_configured: bankConfigured,
@@ -146,6 +156,22 @@ async function buildDashboardResponse(merchantId: string) {
       region: s.region,
       ...(s.integrationPlatform ? { integration_platform: s.integrationPlatform } : {}),
     })),
+    shopify_orders: shopifyManualSessions.map((s) => {
+      const meta = s.metadata ? JSON.parse(s.metadata) : {};
+      return {
+        id: s.id,
+        shopify_order_name: meta.shopify_order_name || null,
+        shopify_order_id: meta.shopify_order_id || null,
+        shop_domain: meta.shop_domain || null,
+        customer_email: meta.customer_email || null,
+        amount: s.amount,
+        currency: s.currency,
+        status: s.status,
+        payment_status: s.paykaPayment?.status || null,
+        payment_url: s.redirectUrl,
+        created: s.createdAt,
+      };
+    }),
     readiness,
     phase: 2,
   });

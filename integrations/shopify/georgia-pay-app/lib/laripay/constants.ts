@@ -7,6 +7,7 @@ export type BillingMode = (typeof BILLING_MODES)[number];
 export const CHECKOUT_SESSION_TTL_MS = 30 * 60 * 1000;
 
 export const LARIPAY_EVENTS = [
+  'checkout.session.created',
   'checkout.session.completed',
   'checkout.session.expired',
   'payment.succeeded',

@@ -15,6 +15,16 @@ export async function GET(request: NextRequest) {
       console.error('[laripay] Merchant provision for shop failed:', err);
     });
 
+    const { registerWebhook } = await import('@/lib/shopify-admin');
+    const host = process.env.HOST || 'https://laripay.vercel.app';
+    await registerWebhook(
+      session.shop,
+      'ORDERS_CREATE',
+      `${host}/api/shopify/webhooks`,
+    ).catch((err) => {
+      console.error('[laripay] Webhook registration failed:', err);
+    });
+
     const redirect = NextResponse.redirect(getAppUrl(`/?shop=${session.shop}`));
     if (headers) {
       if (headers instanceof Headers) {

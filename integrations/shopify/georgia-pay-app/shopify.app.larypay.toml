@@ -1,0 +1,24 @@
+# Linked LariPay app (Partners). Production URLs for Vercel deploy.
+# Regenerate link: npx shopify app config link --reset
+
+client_id = "0b9d6d64dc2f7d8df8f8e5a55ca5b932"
+name = "LariPay"
+application_url = "https://laripay.vercel.app"
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = false
+
+[webhooks]
+api_version = "2024-07"
+
+[access_scopes]
+scopes = "read_orders,write_orders"
+
+[auth]
+redirect_urls = [
+  "https://laripay.vercel.app/api/auth/callback",
+]
+
+[pos]
+embedded = false
