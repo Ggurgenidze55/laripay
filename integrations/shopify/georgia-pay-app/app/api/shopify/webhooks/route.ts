@@ -1,28 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { handleShopifyManualOrder } from '@/lib/laripay/shopify-manual-payment';
 import type { ShopifyOrderWebhookPayload } from '@/lib/laripay/shopify-manual-payment';
 
-function verifyShopifyHmac(body: string, hmacHeader: string): boolean {
-  const secret = process.env.SHOPIFY_API_SECRET;
-  if (!secret) return false;
+export const runtime = 'nodejs';
 
+async function verifyShopifyHmac(body: string, hmacHeader: string): Promise<boolean> {
+  const secret = process.env.SHOPIFY_API_SECRET;
+  if (!secret || !hmacHeader) return false;
+
+  const crypto = await import('crypto');
   const computed = crypto
     .createHmac('sha256', secret)
     .update(body, 'utf8')
     .digest('base64');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(computed),
-    Buffer.from(hmacHeader),
-  );
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(computed),
+      Buffer.from(hmacHeader),
+    );
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
 
   const hmac = request.headers.get('x-shopify-hmac-sha256') || '';
-  if (!verifyShopifyHmac(rawBody, hmac)) {
+  const isValid = await verifyShopifyHmac(rawBody, hmac);
+  if (!isValid) {
     console.error('[shopify-webhook] HMAC verification failed');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
