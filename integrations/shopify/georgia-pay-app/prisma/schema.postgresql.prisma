@@ -183,6 +183,7 @@ model Merchant {
   checkoutSessions        CheckoutSession[]
   paykaPayments           PaykaPayment[]
   paykaRefunds            PaykaRefund[]
+  services                MerchantService[]
   webhookEndpoints        WebhookEndpoint[]
   deliveryShipments       DeliveryShipment[]
   warehouseSyncJobs       WarehouseSyncJob[]
@@ -291,6 +292,28 @@ model PaykaRefund {
   @@unique([merchantId, idempotencyKey])
   @@index([paymentId])
   @@index([merchantId])
+}
+
+model MerchantService {
+  id           String    @id @default(cuid())
+  merchantId   String
+  merchant     Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  serviceId    String
+  enabled      Boolean   @default(true)
+  paidUntil    DateTime?
+  autoRenew    Boolean   @default(true)
+  priceGel     Float     @default(0)
+  billingCycle String    @default("monthly")
+  activatedAt  DateTime  @default(now())
+  suspendedAt  DateTime?
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([merchantId, serviceId])
+  @@index([merchantId])
+  @@index([serviceId])
+  @@index([paidUntil])
 }
 
 model WebhookEndpoint {
