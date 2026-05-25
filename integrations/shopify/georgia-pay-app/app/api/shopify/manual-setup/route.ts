@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   }
 
   const host = process.env.HOST || 'https://laripay.vercel.app';
-  let webhookResult = { success: false, error: 'not attempted' };
+  let webhookResult: { success: boolean; error?: string } = { success: false, error: 'not attempted' };
   try {
     webhookResult = await registerWebhook(
       shop,
