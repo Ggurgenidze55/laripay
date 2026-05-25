@@ -43,9 +43,6 @@ export async function GET(request: NextRequest) {
     let ready = true;
     if (entry.requiresApiKey) ready = ready && hasTestKey;
     if (entry.requiresBank) ready = ready && (bankConfigured.tbc || bankConfigured.bog);
-    if (entry.id === 'shopify') {
-      ready = ready && (active || integration.inferred);
-    }
     return {
       id: entry.id,
       status: entry.status,
@@ -84,7 +81,6 @@ export async function GET(request: NextRequest) {
     })),
     services: services.map((s) => ({ id: s.id, enabled: s.enabled })),
     platforms,
-    shopify_app_url: `${getPublicApiBase(request)}/laripay/en/integrations#shopify`,
   });
 }
 

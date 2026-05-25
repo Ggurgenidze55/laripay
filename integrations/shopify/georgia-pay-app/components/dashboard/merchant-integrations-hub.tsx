@@ -436,28 +436,13 @@ export function MerchantIntegrationsHub({
             ))}
           </ol>
 
-          {selected === 'shopify' ? (
-            <a
-              href={data.shopify_app_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-block text-sm text-[#a78bfa] hover:underline"
-            >
-              {h.shopifyGuide}
-            </a>
-          ) : null}
-
           <div className="grid gap-3 border-t border-white/[0.06] pt-4 sm:grid-cols-2">
             <label className="block text-xs text-[#71717a]">
               {h.storeRef}
               <input
                 value={storeRef}
                 onChange={(e) => setStoreRef(e.target.value)}
-                placeholder={
-                  selected === 'shopify'
-                    ? 'my-store.myshopify.com'
-                    : 'https://my-store.ge'
-                }
+                placeholder="https://my-store.ge"
                 className="mt-1 w-full rounded-lg border border-white/[0.08] bg-[#0b0a10] px-3 py-2 font-mono text-xs text-white"
               />
             </label>
