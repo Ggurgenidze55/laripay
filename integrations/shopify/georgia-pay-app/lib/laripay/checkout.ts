@@ -156,10 +156,52 @@ export async function initiateBankPaymentForSession(sessionId: string, provider:
   }
 
   const fees = computePlatformFee(session.amount, fullMerchant);
+  const host = process.env.HOST || 'https://laripay.vercel.app';
   const returnUrl =
     getLariPayReturnUrl(session.id) ||
-    `${process.env.HOST}/payment/return?paymentId=${encodeURIComponent(session.id)}&source=laripay`;
-  const callbackUrl = getLariPayWebhookUrl(resolvedProvider) || `${process.env.HOST}/api/webhook`;
+    `${host}/payment/return?paymentId=${encodeURIComponent(session.id)}&source=laripay`;
+
+  if (config.testMode) {
+    const testPaymentId = `test_${Date.now()}_${session.id.slice(0, 8)}`;
+    const testRedirectUrl = `${host}/payment/test?session=${session.id}`;
+
+    const paykaPayment =
+      session.paykaPayment ??
+      (await prisma.paykaPayment.create({
+        data: {
+          merchantId: session.merchantId,
+          amount: session.amount,
+          currency: session.currency,
+          grossAmount: fees.grossAmount,
+          platformFee: fees.platformFee,
+          netAmount: fees.netAmount,
+          feeMode: fees.feeMode,
+          provider: resolvedProvider,
+          paymentMode: session.paymentMode || 'card',
+          installmentTerms: session.installmentTerms,
+          bankReference: testPaymentId,
+          status: 'pending',
+          clientReferenceId: session.clientReferenceId,
+          metadata: session.metadata,
+        },
+      }));
+
+    await prisma.checkoutSession.update({
+      where: { id: session.id },
+      data: {
+        provider: resolvedProvider,
+        bankReference: testPaymentId,
+        redirectUrl: testRedirectUrl,
+        paykaPaymentId: paykaPayment.id,
+        status: 'open',
+      },
+    });
+
+    console.log(`[checkout] TEST MODE: session ${session.id}, redirect: ${testRedirectUrl}`);
+    return { redirectUrl: testRedirectUrl, paymentId: paykaPayment.id };
+  }
+
+  const callbackUrl = getLariPayWebhookUrl(resolvedProvider) || `${host}/api/webhook`;
 
   const payments = buildMerchantPaymentsClient({ ...config, provider: resolvedProvider });
   const bankResult = await payments.createPayment(

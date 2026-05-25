@@ -37,6 +37,8 @@ export function redirectCredentialsForBank(
 }
 
 export function isBankConfigured(config: ShopBankConfig, bankId: GeorgianBankId): boolean {
+  if (config.testMode) return true;
+
   if (bankId === 'tbc') {
     return Boolean(config.tbcClientId && config.tbcClientSecret);
   }
