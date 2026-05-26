@@ -26,10 +26,10 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 	 */
 	public function __construct() {
 		$this->id                 = 'georgia_pay';
-		$this->icon               = apply_filters( 'georgia_pay_icon', '' );
+		$this->icon               = apply_filters( 'georgia_pay_icon', $this->get_checkout_icon_html() );
 		$this->method_title       = __( 'LariPay.ai — Georgian banks (GEL)', 'georgia-pay' );
 		$this->method_description = __( 'Pay via LariPay.ai: TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt. Bank-hosted card checkout.', 'georgia-pay' );
-		$this->has_fields         = false;
+		$this->has_fields         = true;
 		$this->supports           = array( 'products' );
 
 		$this->init_form_fields();
@@ -259,6 +259,59 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 			);
 			return array( 'result' => 'fail' );
 		}
+	}
+
+	/**
+	 * Inline checkout icon markup.
+	 *
+	 * @return string
+	 */
+	protected function get_checkout_icon_html() {
+		return '<span class="georgia-pay-icon-inline">'
+			. '<span class="gp-pill">LariPay</span>'
+			. '<span class="gp-banks-mini">TBC · BOG · Liberty</span>'
+			. '</span>';
+	}
+
+	/**
+	 * Show secure payment note below the payment method in checkout.
+	 */
+	public function payment_fields() {
+		$desc = $this->get_description();
+		echo '<div class="georgia-pay-secure-note">';
+		echo '<div class="gp-lock"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z"/></svg></div>';
+		echo '<div class="gp-details">';
+		if ( $desc ) {
+			echo '<p>' . wp_kses_post( $desc ) . '</p>';
+		}
+		echo '<p style="font-size:11px;color:#64748b;margin:4px 0 0;">'
+			. esc_html__( 'Your card data is processed directly by the bank. LariPay never sees your card number.', 'georgia-pay' )
+			. '</p>';
+		echo '<div class="bank-logos">';
+		$banks = array( 'TBC', 'BOG', 'Liberty', 'Credo', 'Cartu', 'Basis', 'Flitt' );
+		foreach ( $banks as $bank ) {
+			echo '<span>' . esc_html( $bank ) . '</span>';
+		}
+		echo '</div>';
+		echo '</div></div>';
+	}
+
+	/**
+	 * Custom admin options with LariPay header.
+	 */
+	public function admin_options() {
+		echo '<div class="laripay-admin-header">';
+		echo '<div class="laripay-logo">L</div>';
+		echo '<div class="laripay-info">';
+		echo '<h2>LariPay.ai</h2>';
+		echo '<p>' . esc_html__( 'Pay via LariPay.ai: TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt. Bank-hosted card checkout.', 'georgia-pay' ) . '</p>';
+		echo '</div>';
+		echo '<span class="laripay-badge">v' . esc_html( GEORGIA_PAY_VERSION ) . '</span>';
+		echo '</div>';
+
+		echo '<table class="form-table">';
+		$this->generate_settings_html();
+		echo '</table>';
 	}
 
 	/**

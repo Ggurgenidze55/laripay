@@ -1,0 +1,148 @@
+# Georgian translations for LariPay.ai Georgia Pay plugin
+msgid ""
+msgstr ""
+"Language: ka_GE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Georgia Pay requires WooCommerce to be installed and active."
+msgstr "Georgia Pay-ს WooCommerce-ის ინსტალაცია და გააქტიურება ესაჭიროება."
+
+msgid "LariPay.ai — Georgian banks (GEL)"
+msgstr "LariPay.ai — ქართული ბანკები (₾)"
+
+msgid "Pay via LariPay.ai: TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt. Bank-hosted card checkout."
+msgstr "გადახდა LariPay.ai-ით: თბს, საქ. ბანკი, ლიბერთი, კრედო, ქართუ, ბაზისი, Flitt. ბანკის გადახდის გვერდი."
+
+msgid "Enable/Disable"
+msgstr "ჩართვა/გამორთვა"
+
+msgid "Enable LariPay.ai payments"
+msgstr "LariPay.ai გადახდების ჩართვა"
+
+msgid "Title"
+msgstr "სათაური"
+
+msgid "Pay with card (GEL)"
+msgstr "ბარათით გადახდა (₾)"
+
+msgid "Description"
+msgstr "აღწერა"
+
+msgid "Secure payment via Georgian banks (LariPay.ai)."
+msgstr "უსაფრთხო გადახდა ქართული ბანკებით (LariPay.ai)."
+
+msgid "LariPay.ai API"
+msgstr "LariPay.ai API"
+
+msgid "Get your secret key from LariPay.ai dashboard or /api/laripay/setup. Billing: 1% per payment or monthly subscription."
+msgstr "მიიღეთ საიდუმლო გასაღები LariPay.ai-ის დეშბორდიდან. ტარიფი: 1% თითო გადახდაზე ან ყოველთვიური გამოწერა."
+
+msgid "LariPay.ai API URL"
+msgstr "LariPay.ai API მისამართი"
+
+msgid "Example: https://laripay.ai or your ngrok URL"
+msgstr "მაგალითი: https://laripay.ai"
+
+msgid "Secret API key"
+msgstr "საიდუმლო API გასაღები"
+
+msgid "sk_test_... or sk_live_..."
+msgstr "sk_test_... ან sk_live_..."
+
+msgid "Webhook signing secret"
+msgstr "Webhook ხელმოწერის საიდუმლო"
+
+msgid "whsec_... from LariPay.ai merchant (optional if using return URL only)."
+msgstr "whsec_... LariPay.ai მერჩანტიდან (არასავალდებულო)."
+
+msgid "Bank provider"
+msgstr "ბანკი"
+
+msgid "TBC Pay"
+msgstr "თიბისი"
+
+msgid "BOG Pay (Bank of Georgia)"
+msgstr "საქართველოს ბანკი"
+
+msgid "Liberty Bank"
+msgstr "ლიბერთი ბანკი"
+
+msgid "Credo Bank"
+msgstr "კრედო ბანკი"
+
+msgid "Cartu Bank"
+msgstr "ქართუ ბანკი"
+
+msgid "Basis Bank"
+msgstr "ბაზისბანკი"
+
+msgid "Flitt (aggregator)"
+msgstr "Flitt (აგრეგატორი)"
+
+msgid "LariPay.ai webhook (recommended)"
+msgstr "LariPay.ai webhook (რეკომენდებული)"
+
+msgid "Order not found."
+msgstr "შეკვეთა ვერ მოიძებნა."
+
+msgid "LariPay.ai is not configured."
+msgstr "LariPay.ai არ არის კონფიგურირებული."
+
+msgid "Awaiting LariPay.ai payment (session %s)."
+msgstr "LariPay.ai გადახდის მოლოდინი (სესია %s)."
+
+msgid "Payment could not be started. Please try again."
+msgstr "გადახდა ვერ დაიწყო. გთხოვთ, სცადეთ თავიდან."
+
+msgid "Thank you — your payment has been received."
+msgstr "მადლობა — თქვენი გადახდა მიღებულია."
+
+msgid "Your payment is being processed. You will receive confirmation shortly."
+msgstr "თქვენი გადახდა მუშავდება. მალე მიიღებთ დადასტურებას."
+
+msgid "Complete your payment at the bank if you have not already done so."
+msgstr "დაასრულეთ გადახდა ბანკში, თუ ეს ჯერ არ გაგიკეთებიათ."
+
+msgid "LariPay.ai — Online installments (GEL)"
+msgstr "LariPay.ai — განვადება (₾)"
+
+msgid "Pay in parts via Georgian banks (TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt). Bank-hosted installment flow."
+msgstr "ნაწილ-ნაწილ გადახდა ქართული ბანკებით. ბანკის განვადების გვერდი."
+
+msgid "Enable LariPay.ai installments"
+msgstr "LariPay.ai განვადების ჩართვა"
+
+msgid "Pay in installments (GEL)"
+msgstr "განვადებით გადახდა (₾)"
+
+msgid "Split your purchase into monthly payments via a Georgian bank (LariPay.ai)."
+msgstr "გადაანაწილეთ შენაძენი ყოველთვიურ გადახდებად ქართული ბანკით (LariPay.ai)."
+
+msgid "Installment term (months)"
+msgstr "განვადების ვადა (თვე)"
+
+msgid "Customer chooses on bank page"
+msgstr "მომხმარებელი ირჩევს ბანკის გვერდზე"
+
+msgid "Awaiting LariPay.ai installment payment (session %s)."
+msgstr "LariPay.ai განვადების გადახდის მოლოდინი (სესია %s)."
+
+msgid "Installment payment could not be started. Please try again."
+msgstr "განვადება ვერ დაიწყო. გთხოვთ, სცადეთ თავიდან."
+
+msgid "Georgian Lari"
+msgstr "ქართული ლარი"
+
+msgid "LariPay.ai: payment received (platform fee: %1$s GEL, mode: %2$s)."
+msgstr "LariPay.ai: გადახდა მიღებულია (პლატფორმის საკომისიო: %1$s ₾, რეჟიმი: %2$s)."
+
+msgid "LariPay.ai: payment failed."
+msgstr "LariPay.ai: გადახდა ვერ მოხერხდა."
+
+msgid "Secure payment"
+msgstr "უსაფრთხო გადახდა"
+
+msgid "Your card data is processed directly by the bank. LariPay never sees your card number."
+msgstr "თქვენი ბარათის მონაცემები პირდაპირ ბანკში მუშავდება. LariPay ვერ ხედავს ბარათის ნომერს."

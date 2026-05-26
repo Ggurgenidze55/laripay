@@ -1,0 +1,193 @@
+/* LariPay.ai — Admin Settings Styling */
+
+.laripay-admin-header {
+	background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+	border-radius: 12px;
+	padding: 28px 32px;
+	margin-bottom: 24px;
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.laripay-admin-header .laripay-logo {
+	width: 48px;
+	height: 48px;
+	background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	font-size: 24px;
+	font-weight: 800;
+	color: #fff;
+	letter-spacing: -1px;
+}
+
+.laripay-admin-header .laripay-info h2 {
+	margin: 0 0 4px;
+	font-size: 20px;
+	font-weight: 700;
+	color: #f1f5f9;
+}
+
+.laripay-admin-header .laripay-info p {
+	margin: 0;
+	font-size: 13px;
+	color: #94a3b8;
+}
+
+.laripay-admin-header .laripay-badge {
+	margin-left: auto;
+	background: rgba(139, 92, 246, 0.15);
+	color: #c4b5fd;
+	padding: 4px 14px;
+	border-radius: 20px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.laripay-admin-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.laripay-admin-card {
+	background: #1e293b;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 10px;
+	padding: 20px;
+	text-align: center;
+}
+
+.laripay-admin-card .card-icon {
+	font-size: 28px;
+	margin-bottom: 8px;
+}
+
+.laripay-admin-card .card-label {
+	font-size: 12px;
+	color: #94a3b8;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.laripay-admin-card .card-value {
+	font-size: 16px;
+	font-weight: 600;
+	color: #f1f5f9;
+	margin-top: 4px;
+}
+
+/* Settings table overrides */
+.woocommerce table.form-table th {
+	font-weight: 500;
+}
+
+.laripay-section-header {
+	background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), transparent);
+	border-left: 3px solid #8b5cf6;
+	padding: 12px 16px;
+	border-radius: 0 8px 8px 0;
+	margin: 24px 0 16px;
+}
+
+.laripay-section-header h3 {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1e293b;
+}
+
+.laripay-section-header p {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #64748b;
+}
+
+/* Checkout icon styling */
+.wc_payment_method .georgia-pay-checkout-icon {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	vertical-align: middle;
+}
+
+.wc_payment_method .georgia-pay-checkout-icon .gp-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+	color: #fff;
+	padding: 3px 10px;
+	border-radius: 6px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.3px;
+}
+
+.wc_payment_method .georgia-pay-checkout-icon .gp-banks {
+	font-size: 10px;
+	color: #64748b;
+}
+
+/* Checkout description area */
+.payment_method_georgia_pay .payment_box,
+.payment_method_georgia_pay_installments .payment_box {
+	background: #f8fafc !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 8px !important;
+	padding: 16px !important;
+}
+
+.georgia-pay-checkout-desc {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.georgia-pay-checkout-desc .gp-shield {
+	flex-shrink: 0;
+	width: 32px;
+	height: 32px;
+	background: rgba(139, 92, 246, 0.1);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+}
+
+.georgia-pay-checkout-desc .gp-text {
+	font-size: 13px;
+	color: #475569;
+	line-height: 1.5;
+}
+
+.georgia-pay-checkout-desc .gp-text strong {
+	color: #1e293b;
+}
+
+.georgia-pay-banks-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 10px;
+}
+
+.georgia-pay-banks-grid .bank-chip {
+	background: #fff;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 4px 10px;
+	font-size: 11px;
+	color: #334155;
+	font-weight: 500;
+}

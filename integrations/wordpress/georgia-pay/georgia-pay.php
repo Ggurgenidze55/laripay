@@ -60,6 +60,64 @@ function georgia_pay_init() {
 add_action( 'plugins_loaded', 'georgia_pay_init', 11 );
 
 /**
+ * Load translations.
+ */
+function georgia_pay_load_textdomain() {
+	load_plugin_textdomain( 'georgia-pay', false, dirname( plugin_basename( GEORGIA_PAY_FILE ) ) . '/languages/' );
+}
+add_action( 'init', 'georgia_pay_load_textdomain' );
+
+/**
+ * Enqueue admin CSS on WooCommerce settings pages.
+ *
+ * @param string $hook Page hook.
+ */
+function georgia_pay_admin_assets( $hook ) {
+	if ( 'woocommerce_page_wc-settings' !== $hook ) {
+		return;
+	}
+	wp_enqueue_style(
+		'georgia-pay-admin',
+		GEORGIA_PAY_URL . 'assets/css/admin.css',
+		array(),
+		GEORGIA_PAY_VERSION
+	);
+}
+add_action( 'admin_enqueue_scripts', 'georgia_pay_admin_assets' );
+
+/**
+ * Enqueue checkout CSS on frontend.
+ */
+function georgia_pay_checkout_assets() {
+	if ( ! is_checkout() && ! is_cart() ) {
+		return;
+	}
+	wp_enqueue_style(
+		'georgia-pay-checkout',
+		GEORGIA_PAY_URL . 'assets/css/checkout.css',
+		array(),
+		GEORGIA_PAY_VERSION
+	);
+}
+add_action( 'wp_enqueue_scripts', 'georgia_pay_checkout_assets' );
+
+/**
+ * Plugin action links.
+ *
+ * @param array $links Links.
+ * @return array
+ */
+function georgia_pay_action_links( $links ) {
+	$settings_url = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=georgia_pay' );
+	array_unshift(
+		$links,
+		'<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'georgia-pay' ) . '</a>'
+	);
+	return $links;
+}
+add_filter( 'plugin_action_links_' . plugin_basename( GEORGIA_PAY_FILE ), 'georgia_pay_action_links' );
+
+/**
  * Declare HPOS compatibility.
  */
 add_action(
