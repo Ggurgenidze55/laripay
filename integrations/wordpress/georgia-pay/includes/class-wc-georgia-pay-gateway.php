@@ -102,7 +102,7 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 				'title'       => __( 'LariPay.ai API URL', 'georgia-pay' ),
 				'type'        => 'text',
 				'description' => __( 'Example: https://laripay.ai or your ngrok URL', 'georgia-pay' ),
-				'default'     => '',
+				'default'     => 'https://laripay.vercel.app',
 				'desc_tip'    => true,
 			),
 			'laripay_secret_key' => array(

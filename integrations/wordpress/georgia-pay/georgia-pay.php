@@ -27,6 +27,7 @@ require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-constants.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-banks.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-laripay-client.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-laripay-webhook.php';
+require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-blocks-support.php';
 
 /**
  * Bootstrap plugin after WooCommerce loads.
@@ -58,6 +59,57 @@ function georgia_pay_init() {
 	);
 }
 add_action( 'plugins_loaded', 'georgia_pay_init', 11 );
+
+/**
+ * Auto-configure sensible defaults on activation.
+ */
+function georgia_pay_activate() {
+	$settings = get_option( 'woocommerce_georgia_pay_settings', array() );
+	if ( ! is_array( $settings ) ) {
+		$settings = array();
+	}
+
+	if ( empty( $settings['laripay_api_url'] ) ) {
+		$settings['laripay_api_url'] = 'https://laripay.vercel.app';
+	}
+	if ( empty( $settings['title'] ) ) {
+		$settings['title'] = __( 'Pay with card (GEL)', 'georgia-pay' );
+	}
+	if ( empty( $settings['description'] ) ) {
+		$settings['description'] = __( 'Secure payment via Georgian banks (LariPay.ai).', 'georgia-pay' );
+	}
+	if ( empty( $settings['bank'] ) ) {
+		$settings['bank'] = 'tbc';
+	}
+	if ( empty( $settings['enabled'] ) ) {
+		$settings['enabled'] = 'yes';
+	}
+
+	update_option( 'woocommerce_georgia_pay_settings', $settings );
+
+	// Keep onboarding friction low: default to GEL for this gateway.
+	if ( 'GEL' !== get_option( 'woocommerce_currency' ) ) {
+		update_option( 'woocommerce_currency', 'GEL' );
+	}
+}
+register_activation_hook( GEORGIA_PAY_FILE, 'georgia_pay_activate' );
+
+/**
+ * Register gateway for WooCommerce Blocks checkout.
+ */
+function georgia_pay_blocks_support() {
+	if ( ! class_exists( 'Automattic\\WooCommerce\\Blocks\\Payments\\Integrations\\AbstractPaymentMethodType' ) ) {
+		return;
+	}
+
+	add_action(
+		'woocommerce_blocks_payment_method_type_registration',
+		function ( $payment_method_registry ) {
+			$payment_method_registry->register( new Georgia_Pay_Blocks_Support() );
+		}
+	);
+}
+add_action( 'woocommerce_blocks_loaded', 'georgia_pay_blocks_support' );
 
 /**
  * Load translations.
