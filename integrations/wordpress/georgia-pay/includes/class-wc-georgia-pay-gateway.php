@@ -305,7 +305,8 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 
 		try {
 			$return_url = $this->get_return_url( $order );
-			$cancel_url = wc_get_checkout_url();
+			// Same thank-you URL for cancel/fail so ?laripay=failed can update the order.
+			$cancel_url = $return_url;
 			$bank       = $this->resolve_checkout_bank( $order );
 
 			$order->update_meta_data( '_laripay_bank', $bank );

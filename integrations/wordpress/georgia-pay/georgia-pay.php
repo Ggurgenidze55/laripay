@@ -3,7 +3,7 @@
  * Plugin Name: LariPay.ai — Georgia Pay (Georgian banks)
  * Plugin URI:  https://laripay.ai
  * Description: WooCommerce payments in GEL via LariPay.ai (TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt). Bank-hosted card checkout.
- * Version:     1.0.4
+ * Version:     1.0.5
  * Author:      Fintech Pay
  * Text Domain: georgia-pay
  * Requires at least: 5.8
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GEORGIA_PAY_VERSION', '1.0.4' );
+define( 'GEORGIA_PAY_VERSION', '1.0.5' );
 define( 'GEORGIA_PAY_FILE', __FILE__ );
 define( 'GEORGIA_PAY_PATH', plugin_dir_path( __FILE__ ) );
 define( 'GEORGIA_PAY_URL', plugin_dir_url( __FILE__ ) );
