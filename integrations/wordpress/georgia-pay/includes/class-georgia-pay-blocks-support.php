@@ -66,7 +66,7 @@ final class Georgia_Pay_Blocks_Support extends AbstractPaymentMethodType {
 		wp_register_script(
 			'georgia-pay-blocks',
 			$script_url,
-			array( 'wc-blocks-registry', 'wc-settings', 'wp-element', 'wp-html-entities' ),
+			array( 'wc-blocks-registry', 'wc-settings', 'wp-element', 'wp-html-entities', 'wc-blocks-checkout' ),
 			file_exists( $script_path ) ? filemtime( $script_path ) : GEORGIA_PAY_VERSION,
 			true
 		);
@@ -88,10 +88,18 @@ final class Georgia_Pay_Blocks_Support extends AbstractPaymentMethodType {
 			? $this->settings['description']
 			: __( 'Secure payment via Georgian banks (LariPay.ai).', 'georgia-pay' );
 
+		$default_bank = isset( $this->settings['bank'] ) ? (string) $this->settings['bank'] : 'tbc';
+		if ( ! georgia_pay_is_valid_bank( $default_bank ) ) {
+			$default_bank = 'tbc';
+		}
+
 		return array(
-			'title'       => $title,
-			'description' => $description,
-			'supports'    => array( 'products' ),
+			'title'             => $title,
+			'description'       => $description,
+			'supports'          => array( 'products' ),
+			'banks'             => georgia_pay_bank_options(),
+			'default_bank'      => $default_bank,
+			'choose_bank_label' => __( 'Choose your bank', 'georgia-pay' ),
 		);
 	}
 }

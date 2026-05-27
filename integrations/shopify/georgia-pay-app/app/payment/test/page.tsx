@@ -3,12 +3,23 @@
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
+interface BankOption {
+  id: string;
+  name: string;
+  name_en: string;
+  name_ka: string;
+}
+
 interface SessionInfo {
   id: string;
   amount: number;
   currency: string;
   status: string;
   client_reference_id: string | null;
+  provider: string;
+  payment_mode: string;
+  banks: BankOption[];
+  default_provider: string;
 }
 
 function TestPaymentContent() {
@@ -16,6 +27,8 @@ function TestPaymentContent() {
   const sessionId = params.get('session') || 'unknown';
   const [status, setStatus] = useState<'loading' | 'ready' | 'processing' | 'done' | 'error'>('loading');
   const [session, setSession] = useState<SessionInfo | null>(null);
+  const [selectedBank, setSelectedBank] = useState('');
+  const [bankSaving, setBankSaving] = useState(false);
   const [result, setResult] = useState<{ status: string; message: string } | null>(null);
 
   useEffect(() => {
@@ -30,6 +43,7 @@ function TestPaymentContent() {
           setResult({ status: 'approved', message: 'This payment has already been completed.' });
         } else {
           setSession(data);
+          setSelectedBank(data.provider || data.default_provider || data.banks?.[0]?.id || 'tbc');
           setStatus('ready');
         }
       })
@@ -39,9 +53,40 @@ function TestPaymentContent() {
       });
   }, [sessionId]);
 
+  const saveBankChoice = async (bankId: string) => {
+    setBankSaving(true);
+    try {
+      const res = await fetch('/api/payment/set-bank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, provider: bankId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Unable to save bank choice');
+      }
+      setSelectedBank(data.provider);
+      setSession((prev) => (prev ? { ...prev, provider: data.provider } : prev));
+    } catch (err) {
+      setResult({ status: 'error', message: err instanceof Error ? err.message : String(err) });
+      setStatus('error');
+    } finally {
+      setBankSaving(false);
+    }
+  };
+
+  const handleBankChange = async (bankId: string) => {
+    setSelectedBank(bankId);
+    await saveBankChoice(bankId);
+  };
+
   const simulatePayment = async (action: 'approve' | 'decline') => {
     setStatus('processing');
     try {
+      if (action === 'approve' && session && selectedBank !== session.provider) {
+        await saveBankChoice(selectedBank);
+      }
+
       const res = await fetch('/api/payment/test-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,13 +98,13 @@ function TestPaymentContent() {
         setResult({ status: 'approved', message: 'Payment approved! Redirecting to order page...' });
         setStatus('done');
         if (data.successUrl) {
-          setTimeout(() => window.location.assign(data.successUrl), 2500);
+          setTimeout(() => window.location.assign(data.successUrl), 800);
         }
       } else {
         setResult({ status: 'declined', message: 'Payment declined. Order has been cancelled.' });
         setStatus('done');
         if (data.cancelUrl) {
-          setTimeout(() => window.location.assign(data.cancelUrl), 3000);
+          setTimeout(() => window.location.assign(data.cancelUrl), 800);
         }
       }
     } catch (err) {
@@ -83,9 +128,9 @@ function TestPaymentContent() {
         border: '1px solid #334155',
         borderRadius: 20,
         padding: '40px 36px',
-        maxWidth: 440,
+        maxWidth: 480,
         width: '100%',
-        textAlign: 'center',
+        textAlign: 'center' as const,
         color: '#e2e8f0',
         boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
       }}>
@@ -127,7 +172,7 @@ function TestPaymentContent() {
               background: '#0f172a',
               borderRadius: 12,
               padding: '20px 24px',
-              margin: '20px 0 24px',
+              margin: '20px 0 16px',
               textAlign: 'left',
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -146,9 +191,51 @@ function TestPaymentContent() {
               )}
             </div>
 
+            <div style={{ textAlign: 'left', marginBottom: 20 }}>
+              <p style={{ color: '#94a3b8', fontSize: 13, margin: '0 0 10px' }}>
+                Choose your bank
+              </p>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {session.banks.map((bank) => {
+                  const active = selectedBank === bank.id;
+                  return (
+                    <button
+                      key={bank.id}
+                      type="button"
+                      disabled={bankSaving}
+                      onClick={() => handleBankChange(bank.id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        border: active ? '1px solid #8b5cf6' : '1px solid #334155',
+                        background: active ? 'rgba(139, 92, 246, 0.12)' : '#0f172a',
+                        color: '#e2e8f0',
+                        cursor: bankSaving ? 'wait' : 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span style={{ fontSize: 14, fontWeight: active ? 700 : 500 }}>{bank.name}</span>
+                      <span style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        border: active ? '5px solid #8b5cf6' : '2px solid #475569',
+                        boxSizing: 'border-box',
+                      }} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
               <button
                 onClick={() => simulatePayment('approve')}
+                disabled={!selectedBank || bankSaving}
                 style={{
                   background: 'linear-gradient(135deg, #22c55e, #16a34a)',
                   color: '#fff',
@@ -157,15 +244,16 @@ function TestPaymentContent() {
                   padding: '14px 36px',
                   fontSize: 15,
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: !selectedBank || bankSaving ? 'not-allowed' : 'pointer',
                   flex: 1,
-                  transition: 'transform 0.1s',
+                  opacity: !selectedBank || bankSaving ? 0.6 : 1,
                 }}
               >
                 Pay Now
               </button>
               <button
                 onClick={() => simulatePayment('decline')}
+                disabled={bankSaving}
                 style={{
                   background: 'transparent',
                   color: '#ef4444',
@@ -174,8 +262,7 @@ function TestPaymentContent() {
                   padding: '14px 24px',
                   fontSize: 15,
                   fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'transform 0.1s',
+                  cursor: bankSaving ? 'not-allowed' : 'pointer',
                 }}
               >
                 Cancel

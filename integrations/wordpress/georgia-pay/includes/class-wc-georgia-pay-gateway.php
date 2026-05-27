@@ -51,6 +51,8 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 		);
 		add_action( 'woocommerce_thankyou_' . $this->id, array( $this, 'handle_return' ) );
 		add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 4 );
+		add_action( 'woocommerce_checkout_create_order', array( $this, 'capture_classic_checkout_bank' ), 10, 2 );
+		add_action( 'woocommerce_store_api_checkout_update_order_from_request', array( $this, 'capture_store_api_bank' ), 10, 2 );
 	}
 
 	/**
@@ -118,10 +120,11 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 				'default'     => '',
 			),
 			'bank'        => array(
-				'title'   => __( 'Bank provider', 'georgia-pay' ),
-				'type'    => 'select',
-				'default' => 'tbc',
-				'options' => georgia_pay_bank_options(),
+				'title'       => __( 'Default bank', 'georgia-pay' ),
+				'type'        => 'select',
+				'description' => __( 'Pre-selected bank at checkout. Customers can choose another bank before paying.', 'georgia-pay' ),
+				'default'     => 'tbc',
+				'options'     => georgia_pay_bank_options(),
 			),
 			'webhook_section' => array(
 				'title'       => __( 'LariPay.ai webhook (recommended)', 'georgia-pay' ),
@@ -195,6 +198,94 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Default bank from admin settings.
+	 *
+	 * @return string
+	 */
+	protected function get_default_bank() {
+		$bank = is_string( $this->bank ) ? $this->bank : 'tbc';
+		return georgia_pay_is_valid_bank( $bank ) ? $bank : 'tbc';
+	}
+
+	/**
+	 * Resolve bank selected at checkout.
+	 *
+	 * @param WC_Order|null $order Order when available.
+	 * @return string
+	 */
+	protected function resolve_checkout_bank( $order = null ) {
+		if ( $order instanceof WC_Order ) {
+			$stored = $order->get_meta( '_laripay_bank' );
+			if ( $stored && georgia_pay_is_valid_bank( $stored ) ) {
+				return $stored;
+			}
+		}
+
+		if ( isset( $_POST['georgia_pay_bank'] ) ) {
+			$posted = sanitize_text_field( wp_unslash( $_POST['georgia_pay_bank'] ) );
+			if ( georgia_pay_is_valid_bank( $posted ) ) {
+				return $posted;
+			}
+		}
+
+		return $this->get_default_bank();
+	}
+
+	/**
+	 * @param WC_Order $order  Order.
+	 * @param array    $data   Checkout data.
+	 */
+	public function capture_classic_checkout_bank( $order, $data ) {
+		if ( ! $order instanceof WC_Order || $order->get_payment_method() !== $this->id ) {
+			return;
+		}
+
+		$bank = $this->resolve_checkout_bank();
+		$order->update_meta_data( '_laripay_bank', $bank );
+	}
+
+	/**
+	 * @param WC_Order         $order   Order.
+	 * @param WP_REST_Request  $request Request.
+	 */
+	public function capture_store_api_bank( $order, $request ) {
+		if ( ! $order instanceof WC_Order || $order->get_payment_method() !== $this->id ) {
+			return;
+		}
+
+		if ( ! $request instanceof WP_REST_Request ) {
+			return;
+		}
+
+		$payment_data = $request->get_param( 'payment_data' );
+		if ( ! is_array( $payment_data ) || empty( $payment_data['georgia_pay_bank'] ) ) {
+			return;
+		}
+
+		$bank = sanitize_text_field( $payment_data['georgia_pay_bank'] );
+		if ( georgia_pay_is_valid_bank( $bank ) ) {
+			$order->update_meta_data( '_laripay_bank', $bank );
+		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function validate_fields() {
+		if ( ! isset( $_POST['georgia_pay_bank'] ) ) {
+			return true;
+		}
+
+		$bank = sanitize_text_field( wp_unslash( $_POST['georgia_pay_bank'] ) );
+		if ( ! georgia_pay_is_valid_bank( $bank ) ) {
+			wc_add_notice( __( 'Please select a valid bank for payment.', 'georgia-pay' ), 'error' );
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * @param int $order_id Order ID.
 	 * @return array
 	 */
@@ -215,13 +306,17 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 		try {
 			$return_url = $this->get_return_url( $order );
 			$cancel_url = wc_get_checkout_url();
+			$bank       = $this->resolve_checkout_bank( $order );
+
+			$order->update_meta_data( '_laripay_bank', $bank );
+			$order->save();
 
 			$session = $client->create_checkout_session(
 				(float) $order->get_total(),
 				$return_url,
 				$cancel_url,
 				(string) $order_id,
-				$this->bank
+				$bank
 			);
 
 			$order->update_meta_data( '_laripay_session_id', $session['id'] );
@@ -287,13 +382,26 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 		echo '<p style="font-size:11px;color:#64748b;margin:4px 0 0;">'
 			. esc_html__( 'Your card data is processed directly by the bank. LariPay never sees your card number.', 'georgia-pay' )
 			. '</p>';
-		echo '<div class="bank-logos">';
-		$banks = array( 'TBC', 'BOG', 'Liberty', 'Credo', 'Cartu', 'Basis', 'Flitt' );
-		foreach ( $banks as $bank ) {
-			echo '<span>' . esc_html( $bank ) . '</span>';
-		}
-		echo '</div>';
 		echo '</div></div>';
+
+		$default_bank = $this->get_default_bank();
+		$banks        = georgia_pay_bank_options();
+
+		echo '<fieldset class="georgia-pay-bank-picker">';
+		echo '<legend>' . esc_html__( 'Choose your bank', 'georgia-pay' ) . '</legend>';
+		echo '<div class="georgia-pay-bank-grid">';
+
+		foreach ( $banks as $bank_id => $bank_label ) {
+			$checked = checked( $bank_id, $default_bank, false );
+			printf(
+				'<label class="georgia-pay-bank-option"><input type="radio" name="georgia_pay_bank" value="%1$s"%2$s /><span>%3$s</span></label>',
+				esc_attr( $bank_id ),
+				$checked,
+				esc_html( $bank_label )
+			);
+		}
+
+		echo '</div></fieldset>';
 	}
 
 	/**
@@ -324,38 +432,47 @@ class WC_Georgia_Pay_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
-		if ( $order->is_paid() ) {
-			echo '<p class="georgia-pay-notice">' . esc_html__( 'Thank you — your payment has been received.', 'georgia-pay' ) . '</p>';
+		$result = Georgia_Pay_Return_Handler::get_return_result();
+
+		if ( $result ) {
+			Georgia_Pay_Return_Handler::render_notice( $order );
 			return;
 		}
 
-		$session_id = $order->get_meta( '_laripay_session_id' );
-		if ( ! $session_id ) {
-			$session_id = $order->get_meta( '_payka_session_id' );
-		}
-		$client = $this->get_laripay_client();
-
-		if ( $session_id && $client ) {
-			try {
-				$data = $client->get_checkout_session( $session_id );
-				if ( isset( $data['status'] ) && 'complete' === $data['status'] ) {
-					$payment_id = $order->get_meta( '_laripay_payment_id' ) ?: $order->get_meta( '_payka_payment_id' );
-					$order->payment_complete( $payment_id );
-					echo '<p class="georgia-pay-notice">' . esc_html__( 'Thank you — your payment has been received.', 'georgia-pay' ) . '</p>';
-					return;
-				}
-				if ( isset( $data['payment_status'] ) && 'succeeded' === $data['payment_status'] ) {
-					$payment_id = $order->get_meta( '_laripay_payment_id' ) ?: $order->get_meta( '_payka_payment_id' );
-					$order->payment_complete( $payment_id );
-					echo '<p class="georgia-pay-notice">' . esc_html__( 'Thank you — your payment has been received.', 'georgia-pay' ) . '</p>';
-					return;
-				}
-			} catch ( Exception $e ) {
-				wc_get_logger()->error( 'LariPay.ai return poll: ' . $e->getMessage(), array( 'source' => 'georgia-pay' ) );
-			}
+		if ( $order->is_paid() ) {
+			Georgia_Pay_Return_Handler::render_notice( $order );
+			return;
 		}
 
-		echo '<p class="georgia-pay-notice">' . esc_html__( 'Your payment is being processed. You will receive confirmation shortly.', 'georgia-pay' ) . '</p>';
+		if ( 'failed' === $order->get_status() ) {
+			Georgia_Pay_Return_Handler::render_notice( $order );
+			return;
+		}
+
+		if ( Georgia_Pay_Return_Handler::poll_session_and_complete( $order, $this->get_laripay_client() ) ) {
+			Georgia_Pay_Return_Handler::render_notice( $order );
+			return;
+		}
+
+		self::echo_notice(
+			'pending',
+			__( 'Payment pending', 'georgia-pay' ),
+			__( 'We could not confirm your payment yet. If you completed payment at the bank, confirmation may arrive shortly.', 'georgia-pay' )
+		);
+	}
+
+	/**
+	 * @param string $type    pending notice type.
+	 * @param string $title   Heading.
+	 * @param string $message Body text.
+	 */
+	protected function echo_notice( $type, $title, $message ) {
+		printf(
+			'<div class="georgia-pay-result georgia-pay-result--%1$s" role="status"><div class="georgia-pay-result__icon" aria-hidden="true"></div><div class="georgia-pay-result__body"><strong class="georgia-pay-result__title">%2$s</strong><p class="georgia-pay-result__message">%3$s</p></div></div>',
+			esc_attr( $type ),
+			esc_html( $title ),
+			esc_html( $message )
+		);
 	}
 
 	/**

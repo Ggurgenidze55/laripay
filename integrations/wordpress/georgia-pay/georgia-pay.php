@@ -3,7 +3,7 @@
  * Plugin Name: LariPay.ai — Georgia Pay (Georgian banks)
  * Plugin URI:  https://laripay.ai
  * Description: WooCommerce payments in GEL via LariPay.ai (TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt). Bank-hosted card checkout.
- * Version:     1.0.2
+ * Version:     1.0.4
  * Author:      Fintech Pay
  * Text Domain: georgia-pay
  * Requires at least: 5.8
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GEORGIA_PAY_VERSION', '1.0.2' );
+define( 'GEORGIA_PAY_VERSION', '1.0.4' );
 define( 'GEORGIA_PAY_FILE', __FILE__ );
 define( 'GEORGIA_PAY_PATH', plugin_dir_path( __FILE__ ) );
 define( 'GEORGIA_PAY_URL', plugin_dir_url( __FILE__ ) );
@@ -27,6 +27,7 @@ require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-constants.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-banks.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-laripay-client.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-laripay-webhook.php';
+require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-return-handler.php';
 
 /**
  * Bootstrap plugin after WooCommerce loads.
@@ -47,6 +48,7 @@ function georgia_pay_init() {
 	require_once GEORGIA_PAY_PATH . 'includes/class-wc-georgia-pay-gateway.php';
 	require_once GEORGIA_PAY_PATH . 'includes/class-wc-georgia-pay-installments-gateway.php';
 	Georgia_Pay_LariPay_Webhook::register_routes();
+	Georgia_Pay_Return_Handler::init();
 
 	add_filter(
 		'woocommerce_payment_gateways',
@@ -144,7 +146,7 @@ add_action( 'admin_enqueue_scripts', 'georgia_pay_admin_assets' );
  * Enqueue checkout CSS on frontend.
  */
 function georgia_pay_checkout_assets() {
-	if ( ! is_checkout() && ! is_cart() ) {
+	if ( ! is_checkout() && ! is_cart() && ! is_wc_endpoint_url( 'order-received' ) ) {
 		return;
 	}
 	wp_enqueue_style(

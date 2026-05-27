@@ -146,3 +146,39 @@ msgstr "უსაფრთხო გადახდა"
 
 msgid "Your card data is processed directly by the bank. LariPay never sees your card number."
 msgstr "თქვენი ბარათის მონაცემები პირდაპირ ბანკში მუშავდება. LariPay ვერ ხედავს ბარათის ნომერს."
+
+msgid "LariPay.ai: payment confirmed."
+msgstr "LariPay.ai: გადახდა დადასტურდა."
+
+msgid "LariPay.ai: payment was not completed."
+msgstr "LariPay.ai: გადახდა ვერ დასრულდა."
+
+msgid "Payment successful"
+msgstr "გადახდა წარმატებულია"
+
+msgid "Your payment has been received. Thank you for your order!"
+msgstr "თქვენი გადახდა მიღებულია. გმადლობთ შეკვეთისთვის!"
+
+msgid "Payment failed"
+msgstr "გადახდა ვერ მოხერხდა"
+
+msgid "Your payment could not be completed. Please try again or choose another payment method."
+msgstr "გადახდა ვერ დასრულდა. გთხოვთ, სცადეთ თავიდან ან აირჩიეთ სხვა გადახდის მეთოდი."
+
+msgid "Payment pending"
+msgstr "გადახდა მოლოდინში"
+
+msgid "We could not confirm your payment yet. If you completed payment at the bank, confirmation may arrive shortly."
+msgstr "გადახდა ჯერ ვერ დავადასტურეთ. თუ ბანკში უკვე გადაიხეთ, დადასტურება მალე მოვა."
+
+msgid "Default bank"
+msgstr "ნაგულისხმევი ბანკი"
+
+msgid "Pre-selected bank at checkout. Customers can choose another bank before paying."
+msgstr "Checkout-ზე წინასწარ არჩეული ბანკი. მომხმარებელს შეუძლია სხვა ბანკის არჩევა გადახდამდე."
+
+msgid "Choose your bank"
+msgstr "აირჩიეთ ბანკი"
+
+msgid "Please select a valid bank for payment."
+msgstr "გთხოვთ, აირჩიოთ სწორი ბანკი გადახდისთვის."

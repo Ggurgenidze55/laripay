@@ -1,0 +1,56 @@
+---
+description: LariPay project context — read AGENTS.md for full handbook (WooCommerce, payment flow, deploy)
+alwaysApply: true
+---
+
+# LariPay / Fintech Pay — Agent Context
+
+**Read first:** `AGENTS.md` at repo root (full handbook from prior sessions).
+
+## What this project is
+
+Georgian payment gateway SaaS (**LariPay.ai**) — Stripe-like for GEL via TBC, BOG, Liberty, Credo, Cartu, Basis, Flitt. Main app: `integrations/shopify/georgia-pay-app/`. Production: **https://laripay.vercel.app**.
+
+## Current focus
+
+- **Active:** WooCommerce plugin (`integrations/wordpress/georgia-pay/`) + Direct API
+- **Paused:** Shopify Payments extension (invitation-only platform)
+- **Test mode:** Simulated payments at `/payment/test` — real bank APIs not fully live
+
+## WooCommerce plugin v1.0.4 essentials
+
+- ZIP: `integrations/shopify/georgia-pay-app/integration-packages/georgia-pay.zip`
+- Return URL uses `?laripay=success|failed` → `Georgia_Pay_Return_Handler` auto-sets **Completed** / **Failed**
+- Customer **chooses bank** at checkout (`georgia_pay_bank`) and on test payment page (`POST /api/payment/set-bank`)
+- Webhook: `?wc-api=georgia_pay_laripay` (local sites won't receive it — return URL is primary for local test)
+- Validate: `php integrations/wordpress/test-plugin.php`
+
+## Key paths
+
+| Area | Path |
+|------|------|
+| Checkout API | `lib/laripay/checkout.ts` |
+| Finalize + redirect | `lib/laripay/finalize.ts`, `lib/laripay/redirect-result.ts` |
+| Test page | `app/payment/test/page.tsx` |
+| WC gateway | `integrations/wordpress/georgia-pay/includes/class-wc-georgia-pay-gateway.php` |
+| Return handler | `integrations/wordpress/georgia-pay/includes/class-georgia-pay-return-handler.php` |
+
+## Deploy
+
+```bash
+cd integrations/shopify/georgia-pay-app && npx vercel --prod --yes
+node scripts/build-integration-packages.mjs  # rebuild plugin ZIP locally
+```
+
+## User preferences (Georgian market)
+
+- Auto payment confirmation — **no manual order status edits**
+- Instant success/failure UI — not "processing…"
+- Simple merchant onboarding; rejected email payment links as main flow
+- User writes in Georgian; support ka + en copy
+
+## Pitfalls
+
+- Blocks support: `protected $settings`, load blocks class only on `woocommerce_blocks_loaded`
+- Never commit secrets; don't commit unless user asks
+- Legacy `payka_*` naming still supported alongside `laripay_*`

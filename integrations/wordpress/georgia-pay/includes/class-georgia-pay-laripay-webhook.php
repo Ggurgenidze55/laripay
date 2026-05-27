@@ -77,7 +77,7 @@ class Georgia_Pay_LariPay_Webhook {
 		}
 
 		$order = wc_get_order( $order_id );
-		if ( ! $order || $order->get_payment_method() !== 'georgia_pay' ) {
+		if ( ! $order || ! in_array( $order->get_payment_method(), Georgia_Pay_Return_Handler::gateway_ids(), true ) ) {
 			return;
 		}
 
@@ -85,7 +85,7 @@ class Georgia_Pay_LariPay_Webhook {
 			return;
 		}
 
-		$order->payment_complete( isset( $payment['id'] ) ? $payment['id'] : '' );
+		Georgia_Pay_Return_Handler::mark_paid( $order );
 		$order->add_order_note(
 			sprintf(
 				/* translators: 1: fee, 2: fee mode */
@@ -106,12 +106,12 @@ class Georgia_Pay_LariPay_Webhook {
 		}
 
 		$order = wc_get_order( $order_id );
-		if ( ! $order || $order->get_payment_method() !== 'georgia_pay' ) {
+		if ( ! $order || ! in_array( $order->get_payment_method(), Georgia_Pay_Return_Handler::gateway_ids(), true ) ) {
 			return;
 		}
 
 		if ( ! $order->is_paid() ) {
-			$order->update_status( 'failed', __( 'LariPay.ai: payment failed.', 'georgia-pay' ) );
+			Georgia_Pay_Return_Handler::mark_failed( $order );
 		}
 	}
 

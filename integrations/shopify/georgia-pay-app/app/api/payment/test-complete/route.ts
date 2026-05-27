@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { markShopifyOrderPaidFromSession } from '@/lib/laripay/shopify-manual-payment';
 import { cancelOrder } from '@/lib/shopify-admin';
 import { dispatchMerchantWebhook } from '@/lib/laripay/webhooks-outbound';
+import { appendLariPayResult } from '@/lib/laripay/redirect-result';
 
 export const runtime = 'nodejs';
 
@@ -47,14 +48,23 @@ export async function POST(request: NextRequest) {
     if (session.paykaPaymentId) {
       await prisma.paykaPayment.update({
         where: { id: session.paykaPaymentId },
-        data: { status: 'success' },
+        data: { status: 'succeeded' },
       });
     }
 
-    let shopifyMarked = false;
-    if (shopifyInfo) {
-      shopifyMarked = await markShopifyOrderPaidFromSession(sessionId);
-    }
+    const payment = session.paykaPaymentId
+      ? await prisma.paykaPayment.findUnique({ where: { id: session.paykaPaymentId } })
+      : null;
+
+    await dispatchMerchantWebhook(session.merchantId, 'payment.succeeded', {
+      id: payment?.id || session.paykaPaymentId || session.id,
+      object: 'payment',
+      status: 'succeeded',
+      amount: session.amount,
+      currency: session.currency,
+      client_reference_id: session.clientReferenceId,
+      test_mode: true,
+    }).catch(() => {});
 
     await dispatchMerchantWebhook(session.merchantId, 'checkout.session.completed', {
       id: session.id,
@@ -65,6 +75,11 @@ export async function POST(request: NextRequest) {
       test_mode: true,
     }).catch(() => {});
 
+    let shopifyMarked = false;
+    if (shopifyInfo) {
+      shopifyMarked = await markShopifyOrderPaidFromSession(sessionId);
+    }
+
     console.log(`[test-payment] APPROVED session ${sessionId}, shopify marked: ${shopifyMarked}`);
 
     return NextResponse.json({
@@ -72,7 +87,7 @@ export async function POST(request: NextRequest) {
       status: 'approved',
       sessionId,
       shopifyMarked,
-      successUrl: session.successUrl,
+      successUrl: appendLariPayResult(session.successUrl, 'success'),
     });
   }
 
@@ -103,6 +118,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    await dispatchMerchantWebhook(session.merchantId, 'payment.failed', {
+      id: session.paykaPaymentId || session.id,
+      object: 'payment',
+      status: 'failed',
+      client_reference_id: session.clientReferenceId,
+      test_mode: true,
+    }).catch(() => {});
+
     await dispatchMerchantWebhook(session.merchantId, 'checkout.session.expired', {
       id: session.id,
       object: 'checkout.session',
@@ -119,7 +142,7 @@ export async function POST(request: NextRequest) {
       status: 'declined',
       sessionId,
       shopifyCancelled,
-      cancelUrl: session.cancelUrl,
+      cancelUrl: appendLariPayResult(session.cancelUrl || session.successUrl, 'failed'),
     });
   }
 

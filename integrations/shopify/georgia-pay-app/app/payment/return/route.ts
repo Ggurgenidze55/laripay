@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pollAndFinalize, isShopifyHostedPayment } from '@/lib/payment-service';
 import { pollAndFinalizeLariPay } from '@/lib/laripay/finalize';
+import { appendLariPayResult } from '@/lib/laripay/redirect-result';
 import prisma from '@/lib/prisma';
 
 /**
@@ -26,8 +27,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ status: result.status });
     } catch (error) {
       console.error('[payment/return laripay]', error);
-      const url = laripaySession.cancelUrl || laripaySession.successUrl;
-      return NextResponse.redirect(url);
+      const url = appendLariPayResult(
+        laripaySession.cancelUrl || laripaySession.successUrl,
+        'failed',
+      );
+      return NextResponse.redirect(url || laripaySession.successUrl);
     }
   }
 

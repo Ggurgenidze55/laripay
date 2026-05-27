@@ -257,6 +257,65 @@ export async function initiateBankPaymentForSession(sessionId: string, provider:
   };
 }
 
+export async function updateCheckoutSessionProvider(
+  sessionId: string,
+  provider: GeorgianBankId,
+): Promise<{ provider: GeorgianBankId }> {
+  const session = await prisma.checkoutSession.findUnique({
+    where: { id: sessionId },
+    include: { paykaPayment: true },
+  });
+
+  if (!session) {
+    throw new Error('Checkout session not found');
+  }
+
+  if (session.status !== 'open') {
+    throw new Error('Checkout session is not open');
+  }
+
+  const config = await getMerchantBankConfig(session.merchantId);
+  if (!isBankConfigured(config, provider)) {
+    throw new Error(
+      `${georgianBankLabel(provider, 'en')} is not configured for this merchant. Add bank credentials in dashboard.`,
+    );
+  }
+
+  if (session.paymentMode === 'installment') {
+    const installmentBank = getInstallmentBank(provider);
+    if (!installmentBank) {
+      throw new Error(`Installments not supported for provider ${provider}`);
+    }
+    if (session.amount < installmentBank.minAmountGel) {
+      throw new Error(
+        `Minimum installment amount is ${installmentBank.minAmountGel} GEL for ${georgianBankLabel(provider, 'en')}`,
+      );
+    }
+    if (
+      session.installmentTerms != null &&
+      !validateInstallmentTerms(provider, session.installmentTerms)
+    ) {
+      throw new Error(
+        `Invalid installment term. Allowed for ${provider}: ${installmentBank.terms.join(', ')} months`,
+      );
+    }
+  }
+
+  await prisma.checkoutSession.update({
+    where: { id: sessionId },
+    data: { provider },
+  });
+
+  if (session.paykaPaymentId) {
+    await prisma.paykaPayment.update({
+      where: { id: session.paykaPaymentId },
+      data: { provider },
+    });
+  }
+
+  return { provider };
+}
+
 export async function getCheckoutSessionForMerchant(merchantId: string, sessionId: string) {
   const session = await prisma.checkoutSession.findFirst({
     where: { id: sessionId, merchantId },

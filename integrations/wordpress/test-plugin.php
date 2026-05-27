@@ -31,6 +31,7 @@ $required_files = [
     'includes/class-wc-georgia-pay-installments-gateway.php',
     'includes/class-georgia-pay-laripay-client.php',
     'includes/class-georgia-pay-laripay-webhook.php',
+    'includes/class-georgia-pay-return-handler.php',
     'includes/class-georgia-pay-banks.php',
     'includes/class-georgia-pay-constants.php',
     'assets/css/admin.css',
@@ -88,6 +89,8 @@ test("Bank selector", strpos($gw, "georgia_pay_bank_options") !== false);
 test("Return URL handling", strpos($gw, "get_return_url") !== false);
 test("Cart emptied after payment", strpos($gw, "empty_cart") !== false);
 test("Session ID saved as meta", strpos($gw, "_laripay_session_id") !== false);
+test("Bank picker on checkout", strpos($gw, "georgia-pay-bank-picker") !== false);
+test("Resolves checkout bank", strpos($gw, "resolve_checkout_bank") !== false);
 
 // 5. Installments gateway
 echo "\n[Installments Gateway]\n";
@@ -113,9 +116,19 @@ $webhook = file_get_contents("$plugin_dir/includes/class-georgia-pay-laripay-web
 test("Handles payment.succeeded", strpos($webhook, "payment.succeeded") !== false);
 test("Handles payment.failed", strpos($webhook, "payment.failed") !== false);
 test("HMAC signature verification", strpos($webhook, "hash_hmac") !== false);
-test("Calls payment_complete", strpos($webhook, "payment_complete") !== false);
-test("Updates failed status", strpos($webhook, "update_status") !== false);
+test("Calls mark_paid helper", strpos($webhook, "mark_paid") !== false);
+test("Calls mark_failed helper", strpos($webhook, "mark_failed") !== false);
 test("WC API route registered", strpos($webhook, "woocommerce_api_georgia_pay_laripay") !== false);
+
+// 7b. Return handler
+echo "\n[Return Handler]\n";
+$return = file_get_contents("$plugin_dir/includes/class-georgia-pay-return-handler.php");
+test("Return handler class exists", strpos($return, "class Georgia_Pay_Return_Handler") !== false);
+test("Processes laripay query param", strpos($return, "laripay") !== false);
+test("Marks order paid", strpos($return, "mark_paid") !== false);
+test("Marks order failed", strpos($return, "mark_failed") !== false);
+test("Sets completed status", strpos($return, "woocommerce_payment_complete_order_status") !== false);
+test("Renders success/failed notice", strpos($return, "georgia-pay-result") !== false);
 
 // 8. CSS files
 echo "\n[CSS Assets]\n";
@@ -126,6 +139,8 @@ test("Admin CSS has purple gradient", strpos($adminCss, "#8b5cf6") !== false);
 test("Admin CSS has dark background", strpos($adminCss, "#0f172a") !== false);
 test("Checkout CSS has secure note", strpos($checkoutCss, "georgia-pay-secure-note") !== false);
 test("Checkout CSS has icon styling", strpos($checkoutCss, "georgia-pay-icon-inline") !== false);
+test("Checkout CSS has result banner", strpos($checkoutCss, "georgia-pay-result--success") !== false);
+test("Checkout CSS has bank picker", strpos($checkoutCss, "georgia-pay-bank-picker") !== false);
 
 // 9. i18n
 echo "\n[Internationalization]\n";

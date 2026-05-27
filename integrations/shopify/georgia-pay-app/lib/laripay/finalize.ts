@@ -9,6 +9,7 @@ import {
   isBankPaymentFailure,
   isBankPaymentSuccess,
 } from '@/lib/georgian-banks/payment-status';
+import { appendLariPayResult } from './redirect-result';
 
 /**
  * Finalize a LariPay.ai checkout session after bank callback or return poll.
@@ -29,11 +30,17 @@ export async function finalizeLariPayCheckout(
 
   session = await expireCheckoutSessionIfNeeded(session);
   if (session.status === 'expired') {
-    return { status: 'expired', redirectUrl: session.cancelUrl || session.successUrl };
+    return {
+      status: 'expired',
+      redirectUrl: appendLariPayResult(session.cancelUrl || session.successUrl, 'failed'),
+    };
   }
 
   if (session.status === 'complete' && session.paykaPayment?.status === 'succeeded') {
-    return { status: 'complete', redirectUrl: session.successUrl };
+    return {
+      status: 'complete',
+      redirectUrl: appendLariPayResult(session.successUrl, 'success'),
+    };
   }
 
   const provider = session.provider as GeorgianBankId;
@@ -94,7 +101,10 @@ export async function finalizeLariPayCheckout(
           );
           return {
             status: 'complete',
-            redirectUrl: shopifyResult.shopifyRedirectUrl || session.successUrl,
+            redirectUrl: appendLariPayResult(
+              shopifyResult.shopifyRedirectUrl || session.successUrl,
+              'success',
+            ),
           };
         } catch (err) {
           console.error('[laripay] Shopify finalize after LariPay.ai success:', err);
@@ -102,7 +112,7 @@ export async function finalizeLariPayCheckout(
       }
     }
 
-    return { status: 'complete', redirectUrl: session.successUrl };
+    return { status: 'complete', redirectUrl: appendLariPayResult(session.successUrl, 'success') };
   }
 
   if (isBankPaymentFailure(provider, bankStatus)) {
@@ -122,7 +132,10 @@ export async function finalizeLariPayCheckout(
       bank_status: bankStatus,
     });
 
-    return { status: 'failed', redirectUrl: session.cancelUrl || session.successUrl };
+    return {
+      status: 'failed',
+      redirectUrl: appendLariPayResult(session.cancelUrl || session.successUrl, 'failed'),
+    };
   }
 
   return { status: 'processing' };
