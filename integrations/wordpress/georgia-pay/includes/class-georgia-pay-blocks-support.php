@@ -28,11 +28,11 @@ final class Georgia_Pay_Blocks_Support extends AbstractPaymentMethodType {
 	protected $name = 'georgia_pay';
 
 	/**
-	 * Gateway settings.
+	 * Gateway settings (must match parent visibility).
 	 *
 	 * @var array
 	 */
-	private $settings = array();
+	protected $settings = array();
 
 	/**
 	 * Initialize.
