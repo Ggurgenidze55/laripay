@@ -27,7 +27,6 @@ require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-constants.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-banks.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-laripay-client.php';
 require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-laripay-webhook.php';
-require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-blocks-support.php';
 
 /**
  * Bootstrap plugin after WooCommerce loads.
@@ -98,8 +97,12 @@ register_activation_hook( GEORGIA_PAY_FILE, 'georgia_pay_activate' );
  * Register gateway for WooCommerce Blocks checkout.
  */
 function georgia_pay_blocks_support() {
-	if ( ! class_exists( 'Automattic\\WooCommerce\\Blocks\\Payments\\Integrations\\AbstractPaymentMethodType' ) ) {
+	if ( ! class_exists( '\Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
 		return;
+	}
+
+	if ( ! class_exists( 'Georgia_Pay_Blocks_Support', false ) ) {
+		require_once GEORGIA_PAY_PATH . 'includes/class-georgia-pay-blocks-support.php';
 	}
 
 	add_action(
